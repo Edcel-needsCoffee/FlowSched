@@ -1,0 +1,27 @@
+# Dependencies
+node_modules/
+
+# Builds
+dist/
+build/
+.vite/
+*.tsbuildinfo
+
+# Env (never commit real secrets)
+.env
+.env.local
+apps/api/.env
+apps/web/.env
+
+# Prisma (generated client only — migrations are committed)
+apps/api/node_modules/.prisma
+
+
+# Logs / OS
+npm-debug.log*
+*.log
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json

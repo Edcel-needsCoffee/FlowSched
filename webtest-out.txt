@@ -1,0 +1,24 @@
+
+> web@0.1.0 test
+> vitest run
+
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mC:/FLOWSCHED/apps/web[39m
+
+[90mstderr[2m | src/LoginPage.test.tsx[2m > [22m[2mLoginPage[2m > [22m[2mrenders the Login title with email + password fields
+[22m[39m⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+ [32m✓[39m src/LoginPage.test.tsx [2m([22m[2m6 tests[22m[2m)[22m[33m 1301[2mms[22m[39m
+   [33m[2m✓[22m[39m LoginPage[2m > [22mrenders the Login title with email + password fields [33m387[2mms[22m[39m
+   [33m[2m✓[22m[39m RequireAuth route guard[2m > [22mkeeps an inline error path available (server failure surfaces alert) [33m768[2mms[22m[39m
+ [32m✓[39m src/pages/SubjectsPage.test.tsx [2m([22m[2m13 tests[22m[2m)[22m[33m 3035[2mms[22m[39m
+   [33m[2m✓[22m[39m SubjectsPage — list rendering[2m > [22mshows a search empty state distinct from the catalog empty state [33m427[2mms[22m[39m
+   [33m[2m✓[22m[39m SubjectsPage — list rendering[2m > [22msends a debounced search query [33m376[2mms[22m[39m
+   [33m[2m✓[22m[39m SubjectsPage — create[2m > [22mcreates a subject through the modal and refreshes in place [33m439[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m2 passed[39m[22m[90m (2)[39m
+[2m      Tests [22m [1m[32m19 passed[39m[22m[90m (19)[39m
+[2m   Start at [22m 15:31:50
+[2m   Duration [22m 36.80s[2m (transform 767ms, setup 1.77s, collect 6.62s, tests 4.34s, environment 54.17s, prepare 3.26s)[22m
+

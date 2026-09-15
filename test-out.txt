@@ -1,0 +1,33 @@
+
+> api@0.1.0 test
+> vitest run
+
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mC:/FLOWSCHED/apps/api[39m
+
+(node:39128) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:35856) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:35088) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:40404) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:20208) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ [32m✓[39m src/services/auth.service.test.ts [2m([22m[2m3 tests[22m[2m)[22m[33m 471[2mms[22m[39m
+   [33m[2m✓[22m[39m auth.service password hashing[2m > [22mverifies a correct password and rejects a wrong one [33m444[2mms[22m[39m
+ [32m✓[39m src/health.test.ts [2m([22m[2m1 test[22m[2m)[22m[90m 74[2mms[22m[39m
+ [32m✓[39m src/auth.test.ts [2m([22m[2m11 tests[22m[2m)[22m[33m 2018[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/login[2m > [22mreturns tokens on success [33m578[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/refresh + logout[2m > [22missues a new access token for a valid refresh token [33m360[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/refresh + logout[2m > [22mrejects a refresh token after logout [33m464[2mms[22m[39m
+ [32m✓[39m src/subject.test.ts [2m([22m[2m28 tests[22m[2m)[22m[33m 2655[2mms[22m[39m
+ [32m✓[39m src/faculty.test.ts [2m([22m[2m25 tests[22m[2m)[22m[33m 3131[2mms[22m[39m
+   [33m[2m✓[22m[39m DELETE /api/faculty/:id[2m > [22mblocks deleting a faculty member with an active login unless confirmed [33m312[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m5 passed[39m[22m[90m (5)[39m
+[2m      Tests [22m [1m[32m68 passed[39m[22m[90m (68)[39m
+[2m   Start at [22m 15:30:28
+[2m   Duration [22m 6.26s[2m (transform 1.09s, setup 0ms, collect 8.59s, tests 8.35s, environment 2ms, prepare 2.44s)[22m
+

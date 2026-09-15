@@ -1,0 +1,157 @@
+// FlowSched Prisma schema — mirrors docs/4-database.md exactly.
+// Enums Role / EmploymentStatus / DayOfWeek / Semester are duplicated in
+// packages/shared/src/index.ts; keep both in sync.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CHAIR
+  FACULTY
+  ACADEMIC_ADMIN
+}
+
+enum EmploymentStatus {
+  FULL_TIME
+  PART_TIME
+}
+
+enum DayOfWeek {
+  MON
+  TUE
+  WED
+  THU
+  FRI
+  SAT
+}
+
+enum Semester {
+  FIRST
+  SECOND
+  SUMMER
+}
+
+model User {
+  id            String   @id @default(uuid()) @db.Uuid
+  email         String   @unique
+  password_hash String
+  role          Role     @default(FACULTY)
+  faculty_id    String?  @unique @db.Uuid
+  faculty       Faculty? @relation(fields: [faculty_id], references: [id], onDelete: Restrict)
+  is_active     Boolean  @default(true)
+  created_at    DateTime @default(now()) @db.Timestamptz
+  updated_at    DateTime @default(now()) @updatedAt @db.Timestamptz
+
+  @@map("users")
+}
+
+model Faculty {
+  id                String               @id @default(uuid()) @db.Uuid
+  employee_no       String               @unique
+  first_name        String
+  last_name         String
+  rank              String?
+  employment_status EmploymentStatus     @default(FULL_TIME)
+  max_units         Int                  @default(24)
+  created_at        DateTime             @default(now()) @db.Timestamptz
+  updated_at        DateTime             @default(now()) @updatedAt @db.Timestamptz
+  deleted_at        DateTime?            @db.Timestamptz
+  user              User?
+  assignments       WorkloadAssignment[]
+
+  @@map("faculty")
+}
+
+model Subject {
+  id            String               @id @default(uuid()) @db.Uuid
+  code          String               @unique
+  title         String
+  units         Decimal              @db.Decimal(5, 2)
+  lecture_hours Decimal              @default(0) @db.Decimal(5, 2)
+  lab_hours     Decimal              @default(0) @db.Decimal(5, 2)
+  created_at    DateTime             @default(now()) @db.Timestamptz
+  updated_at    DateTime             @default(now()) @updatedAt @db.Timestamptz
+  deleted_at    DateTime?            @db.Timestamptz
+  assignments   WorkloadAssignment[]
+
+  @@map("subjects")
+}
+
+model Section {
+  id          String               @id @default(uuid()) @db.Uuid
+  year_level  Int
+  name        String
+  created_at  DateTime             @default(now()) @db.Timestamptz
+  updated_at  DateTime             @default(now()) @updatedAt @db.Timestamptz
+  assignments WorkloadAssignment[]
+
+  @@unique([year_level, name])
+  @@map("sections")
+}
+
+model Room {
+  id                   String         @id @default(uuid()) @db.Uuid
+  name                 String         @unique
+  is_under_maintenance Boolean        @default(false)
+  created_at           DateTime       @default(now()) @db.Timestamptz
+  updated_at           DateTime       @default(now()) @updatedAt @db.Timestamptz
+  slots                ScheduleSlot[]
+
+  @@map("rooms")
+}
+
+model AcademicTerm {
+  id          String               @id @default(uuid()) @db.Uuid
+  school_year String
+  semester    Semester
+  is_active   Boolean              @default(false)
+  created_at  DateTime             @default(now()) @db.Timestamptz
+  assignments WorkloadAssignment[]
+
+  @@unique([school_year, semester])
+  @@map("academic_terms")
+}
+
+model WorkloadAssignment {
+  id         String         @id @default(uuid()) @db.Uuid
+  faculty_id String         @db.Uuid
+  faculty    Faculty        @relation(fields: [faculty_id], references: [id], onDelete: Restrict)
+  subject_id String         @db.Uuid
+  subject    Subject        @relation(fields: [subject_id], references: [id], onDelete: Restrict)
+  section_id String         @db.Uuid
+  section    Section        @relation(fields: [section_id], references: [id], onDelete: Restrict)
+  term_id    String         @db.Uuid
+  term       AcademicTerm   @relation(fields: [term_id], references: [id], onDelete: Restrict)
+  created_at DateTime       @default(now()) @db.Timestamptz
+  updated_at DateTime       @default(now()) @updatedAt @db.Timestamptz
+  deleted_at DateTime?      @db.Timestamptz
+  slots      ScheduleSlot[]
+
+  @@unique([faculty_id, subject_id, section_id, term_id])
+  @@index([faculty_id])
+  @@index([term_id])
+  @@map("workload_assignments")
+}
+
+model ScheduleSlot {
+  id                     String             @id @default(uuid()) @db.Uuid
+  workload_assignment_id String             @db.Uuid
+  workload_assignment    WorkloadAssignment @relation(fields: [workload_assignment_id], references: [id], onDelete: Cascade)
+  room_id                String?            @db.Uuid
+  room                   Room?              @relation(fields: [room_id], references: [id], onDelete: Restrict)
+  day_of_week            DayOfWeek
+  start_time             DateTime           @db.Time
+  end_time               DateTime           @db.Time
+  created_at             DateTime           @default(now()) @db.Timestamptz
+  updated_at             DateTime           @default(now()) @updatedAt @db.Timestamptz
+
+  @@index([room_id, day_of_week])
+  @@index([workload_assignment_id, day_of_week])
+  @@map("schedule_slots")
+}
