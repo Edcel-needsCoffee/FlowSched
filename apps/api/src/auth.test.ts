@@ -60,13 +60,16 @@ describe('POST /api/auth/login', () => {
 });
 
 describe('POST /api/auth/refresh + logout', () => {
-  it('issues a new access token for a valid refresh token', async () => {
+  it('issues a new access token and returns the current user', async () => {
     const { email, password } = await seedLoginUser();
     const app = createApp();
     const login = await request(app).post('/api/auth/login').send({ email, password });
     const refresh = await request(app).post('/api/auth/refresh').send({ refreshToken: login.body.refreshToken });
     expect(refresh.status).toBe(200);
     expect(typeof refresh.body.accessToken).toBe('string');
+    // The web app's boot-time session restore (SessionBootstrap) needs the
+    // user object to repopulate the in-memory session after a page reload.
+    expect(refresh.body.user).toMatchObject({ email, role: 'CHAIR', facultyId: null });
   });
 
   it('returns 401 for an invalid refresh token', async () => {

@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Landing } from './pages/Landing/Landing';
 import { LoginModal } from './components/auth/LoginModal';
+import { SessionBootstrap } from './components/auth/SessionBootstrap';
 import { AppShell } from './layouts/AppShell';
 import { DashboardPage } from './pages/DashboardPage';
 import { SubjectsPage } from './pages/SubjectsPage';
@@ -15,6 +16,7 @@ import { NotAuthorizedPage } from './pages/NotAuthorizedPage';
 import { RequireAuth } from './components/RequireAuth';
 import { ToastProvider } from './components/Toast';
 import { ALL_ROLES, MANAGEMENT_ROLES } from './config/navigation';
+import type { AuthRole } from './store/auth.store';
 
 /** Reports: Chair + Academic Admin (ui-ux.md §4). */
 const REPORTS_ROLES: AuthRole[] = ['CHAIR', 'ACADEMIC_ADMIN'];
@@ -25,7 +27,10 @@ const MY_WORKLOAD_ROLES: AuthRole[] = ['CHAIR', 'FACULTY'];
 export function App(): JSX.Element {
   return (
     <BrowserRouter>
-      <ToastProvider>
+      {/* Boot-time session restore — must wrap the router content so the
+          check runs before RequireAuth makes any redirect decision. */}
+      <SessionBootstrap>
+        <ToastProvider>
         <LoginModal />
         <Routes>
           {/* Public landing: full-bleed marketing layout (own nav/footer). */}
@@ -110,7 +115,8 @@ export function App(): JSX.Element {
             <Route path="*" element={<Navigate to="/" replace />} />
           </Route>
         </Routes>
-      </ToastProvider>
+        </ToastProvider>
+      </SessionBootstrap>
     </BrowserRouter>
   );
 }

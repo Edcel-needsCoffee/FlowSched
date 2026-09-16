@@ -14,8 +14,18 @@ interface AuthState {
   accessToken: string | null;
   refreshToken: string | null;
   isAuthenticated: boolean;
+  /**
+   * True from store creation until the boot-time session check resolves
+   * (SessionBootstrap). Route guards must NOT redirect while this is true:
+   * a hard reload wipes the in-memory access token/user, so without this
+   * gate the guard would bounce an authenticated user to Landing before
+   * the refresh round-trip has had a chance to restore the session.
+   */
+  isInitializing: boolean;
   login: (input: { user: AuthUser; accessToken: string; refreshToken: string }) => void;
   setAccessToken: (token: string) => void;
+  setUser: (user: AuthUser) => void;
+  finishSessionCheck: () => void;
   logout: () => void;
 }
 
@@ -28,7 +38,11 @@ const REFRESH_STORAGE_KEY = 'flowsched.refreshToken';
  *   written to localStorage, so a stored-XSS payload cannot exfiltrate a
  *   long-lived credential from disk — but the session does not survive a
  *   page reload without a refresh round-trip.
- * - Refresh token is persisted in localStorage so sessions survive reloads.
+ * - Refresh token is persisted in localStorage so sessions survive reloads:
+ *   on boot, SessionBootstrap exchanges the persisted token for a fresh
+ *   access token + user before any protected route renders. (Storage
+ *   approach unchanged from the original Phase 2 decision — what was
+ *   missing was the boot-time restore itself, not the persistence.)
  *   An httpOnly, Secure, SameSite cookie set by the backend would be
  *   strictly safer (JS cannot read it, CSRF mitigated via SameSite), but
  *   that requires cookie-based refresh endpoints + CSRF handling, which is
@@ -69,13 +83,22 @@ export const useAuthStore = create<AuthState>()((set) => ({
   accessToken: null,
   refreshToken: readPersistedRefreshToken(),
   isAuthenticated: false,
+  isInitializing: true,
   login: ({ user, accessToken, refreshToken }) => {
     persistRefreshToken(refreshToken);
-    set({ user, accessToken, refreshToken, isAuthenticated: true });
+    set({ user, accessToken, refreshToken, isAuthenticated: true, isInitializing: false });
   },
   setAccessToken: (accessToken) => set({ accessToken }),
+  setUser: (user) => set({ user }),
+  finishSessionCheck: () => set({ isInitializing: false }),
   logout: () => {
     persistRefreshToken(null);
-    set({ user: null, accessToken: null, refreshToken: null, isAuthenticated: false });
+    set({
+      user: null,
+      accessToken: null,
+      refreshToken: null,
+      isAuthenticated: false,
+      isInitializing: false,
+    });
   },
 }));

@@ -12,28 +12,6 @@ function toApiError(status: number, message: string): ApiError {
   return err;
 }
 
-async function refreshAccessToken(): Promise<string> {
-  const { refreshToken } = useAuthStore.getState();
-  if (!refreshToken) {
-    throw toApiError(401, 'No refresh token available');
-  }
-  const res = await fetch(`${apiBase}/api/auth/refresh`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ refreshToken }),
-  });
-  if (!res.ok) {
-    useAuthStore.getState().logout();
-    throw toApiError(res.status, 'Session expired. Please log in again.');
-  }
-  const body = (await res.json()) as { accessToken?: string };
-  if (typeof body.accessToken !== 'string') {
-    throw toApiError(500, 'Malformed refresh response');
-  }
-  useAuthStore.getState().setAccessToken(body.accessToken);
-  return body.accessToken;
-}
-
 export interface ApiOptions extends RequestInit {
   /** Set false to skip the Authorization header / refresh retry (e.g. login itself). */
   auth?: boolean;
@@ -93,6 +71,60 @@ export interface LoginResponse {
   accessToken: string;
   refreshToken: string;
   user: { id: string; email: string; role: 'CHAIR' | 'FACULTY' | 'ACADEMIC_ADMIN'; facultyId: string | null };
+}
+
+export interface RefreshResponse {
+  accessToken: string;
+  /** Current user, re-read from the DB — lets a reload fully restore state. */
+  user: LoginResponse['user'];
+}
+
+/**
+ * Exchange a refresh token for a fresh access token + the current user.
+ * Used by SessionBootstrap to restore the session on page reload and by the
+ * silent 401 retry below. Throws an ApiError (with `status`) when the server
+ * rejects the token, so callers can distinguish "invalid token" (401) from
+ * network/server failures.
+ */
+export async function refreshSessionRequest(refreshToken: string): Promise<RefreshResponse> {
+  const res = await fetch(`${apiBase}/api/auth/refresh`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refreshToken }),
+  });
+  if (!res.ok) {
+    throw toApiError(res.status, 'Session expired. Please log in again.');
+  }
+  const body = (await res.json()) as Partial<RefreshResponse>;
+  if (typeof body.accessToken !== 'string' || !body.user) {
+    throw toApiError(500, 'Malformed refresh response');
+  }
+  return body as RefreshResponse;
+}
+
+async function refreshAccessToken(): Promise<string> {
+  const { refreshToken } = useAuthStore.getState();
+  if (!refreshToken) {
+    throw toApiError(401, 'No refresh token available');
+  }
+  const res = await fetch(`${apiBase}/api/auth/refresh`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refreshToken }),
+  });
+  if (!res.ok) {
+    useAuthStore.getState().logout();
+    throw toApiError(res.status, 'Session expired. Please log in again.');
+  }
+  const body = (await res.json()) as Partial<RefreshResponse>;
+  if (typeof body.accessToken !== 'string' || !body.user) {
+    throw toApiError(500, 'Malformed refresh response');
+  }
+  // Re-read from the DB on every refresh, so role changes / deactivation
+  // become visible mid-session without waiting for the next reload.
+  useAuthStore.getState().setUser(body.user);
+  useAuthStore.getState().setAccessToken(body.accessToken);
+  return body.accessToken;
 }
 
 export async function loginRequest(email: string, password: string): Promise<LoginResponse> {

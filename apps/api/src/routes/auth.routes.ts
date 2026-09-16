@@ -98,7 +98,10 @@ authRouter.post('/auth/refresh', async (req: Request, res: Response) => {
     role: user.role,
     facultyId: user.faculty_id,
   };
-  res.status(200).json({ accessToken: signAccessToken(freshPayload) });
+  // `user` is included so the web app can fully restore an in-memory session
+  // from the persisted refresh token on page reload (SessionBootstrap) —
+  // same public shape as the login response.
+  res.status(200).json({ accessToken: signAccessToken(freshPayload), user: toPublicUser(user) });
 });
 
 authRouter.post('/auth/logout', (req: Request, res: Response) => {
