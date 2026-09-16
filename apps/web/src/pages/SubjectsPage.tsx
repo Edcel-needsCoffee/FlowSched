@@ -352,99 +352,94 @@ export function SubjectsPage(): JSX.Element {
         onClose={saving ? () => undefined : closeModal}
       >
         <form onSubmit={handleSubmit} noValidate className="space-y-4">
-          <div>
-            <label htmlFor="subject-code" className="block text-sm font-medium text-slate-700">
-              Subject code
-            </label>
-            <input
-              id="subject-code"
-              type="text"
-              value={formValues.code}
-              onChange={(event) => setFormValues((v) => ({ ...v, code: event.target.value }))}
-              className="mt-1 w-full rounded border border-slate-300 px-3 py-2 font-mono"
-            />
-            {fieldErrors.code ? <p className="mt-1 text-sm text-red-600">{fieldErrors.code}</p> : null}
-          </div>
-          <div>
-            <label htmlFor="subject-title" className="block text-sm font-medium text-slate-700">
-              Title
-            </label>
-            <input
-              id="subject-title"
-              type="text"
-              value={formValues.title}
-              onChange={(event) => setFormValues((v) => ({ ...v, title: event.target.value }))}
-              className="mt-1 w-full rounded border border-slate-300 px-3 py-2"
-            />
-            {fieldErrors.title ? <p className="mt-1 text-sm text-red-600">{fieldErrors.title}</p> : null}
-          </div>
+          <SubjectField
+            id="subject-code"
+            label="Subject code"
+            icon={<TagIcon />}
+            mono
+            value={formValues.code}
+            onChange={(value) => setFormValues((v) => ({ ...v, code: value }))}
+            error={fieldErrors.code}
+          />
+          <SubjectField
+            id="subject-title"
+            label="Title"
+            icon={<BookIcon />}
+            value={formValues.title}
+            onChange={(value) => setFormValues((v) => ({ ...v, title: value }))}
+            error={fieldErrors.title}
+          />
           <div className="grid grid-cols-3 gap-3">
-            <div>
-              <label htmlFor="subject-units" className="block text-sm font-medium text-slate-700">
-                Units
-              </label>
-              <input
-                id="subject-units"
-                type="number"
-                min="0"
-                step="0.5"
-                value={formValues.units}
-                onChange={(event) => setFormValues((v) => ({ ...v, units: event.target.value }))}
-                className="mt-1 w-full rounded border border-slate-300 px-3 py-2"
-              />
-              {fieldErrors.units ? <p className="mt-1 text-sm text-red-600">{fieldErrors.units}</p> : null}
-            </div>
-            <div>
-              <label htmlFor="subject-lecture-hours" className="block text-sm font-medium text-slate-700">
-                Lecture hrs
-              </label>
-              <input
-                id="subject-lecture-hours"
-                type="number"
-                min="0"
-                step="0.5"
-                value={formValues.lecture_hours}
-                onChange={(event) => setFormValues((v) => ({ ...v, lecture_hours: event.target.value }))}
-                className="mt-1 w-full rounded border border-slate-300 px-3 py-2"
-              />
-              {fieldErrors.lecture_hours ? (
-                <p className="mt-1 text-sm text-red-600">{fieldErrors.lecture_hours}</p>
-              ) : null}
-            </div>
-            <div>
-              <label htmlFor="subject-lab-hours" className="block text-sm font-medium text-slate-700">
-                Lab hrs
-              </label>
-              <input
-                id="subject-lab-hours"
-                type="number"
-                min="0"
-                step="0.5"
-                value={formValues.lab_hours}
-                onChange={(event) => setFormValues((v) => ({ ...v, lab_hours: event.target.value }))}
-                className="mt-1 w-full rounded border border-slate-300 px-3 py-2"
-              />
-              {fieldErrors.lab_hours ? <p className="mt-1 text-sm text-red-600">{fieldErrors.lab_hours}</p> : null}
-            </div>
+            <SubjectField
+              id="subject-units"
+              label="Units"
+              type="number"
+              min="0"
+              step="0.5"
+              icon={<HashIcon />}
+              value={formValues.units}
+              onChange={(value) => setFormValues((v) => ({ ...v, units: value }))}
+              error={fieldErrors.units}
+            />
+            <SubjectField
+              id="subject-lecture-hours"
+              label="Lecture hrs"
+              type="number"
+              min="0"
+              step="0.5"
+              icon={<ClockIcon />}
+              value={formValues.lecture_hours}
+              onChange={(value) => setFormValues((v) => ({ ...v, lecture_hours: value }))}
+              error={fieldErrors.lecture_hours}
+            />
+            <SubjectField
+              id="subject-lab-hours"
+              label="Lab hrs"
+              type="number"
+              min="0"
+              step="0.5"
+              icon={<FlaskIcon />}
+              value={formValues.lab_hours}
+              onChange={(value) => setFormValues((v) => ({ ...v, lab_hours: value }))}
+              error={fieldErrors.lab_hours}
+            />
           </div>
           {formError ? (
-            <p role="alert" className="text-sm text-red-600">
-              {formError}
-            </p>
+            <div
+              role="alert"
+              className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+            >
+              <svg
+                aria-hidden="true"
+                className="mt-0.5 shrink-0"
+                width="15"
+                height="15"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" x2="12" y1="8" y2="12" />
+                <line x1="12" x2="12.01" y1="16" y2="16" />
+              </svg>
+              <p>{formError}</p>
+            </div>
           ) : null}
           <div className="flex justify-end gap-3 pt-2">
             <button
               type="button"
               onClick={closeModal}
               disabled={saving}
-              className="rounded border border-slate-300 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+              className="rounded-lg border border-leaf-100 px-4 py-2 text-sm font-medium text-ink/70 transition-colors hover:bg-leaf-50 disabled:opacity-50"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={saving}
-              className="rounded bg-primary px-4 py-2 text-sm font-medium text-white hover:bg-primary-dark disabled:opacity-50"
+              className="rounded-lg bg-leaf-500 px-4 py-2 text-sm font-semibold text-[#08130D] transition enabled:hover:scale-[1.03] enabled:hover:bg-leaf-600 enabled:hover:text-white enabled:active:scale-[0.98] disabled:opacity-50"
             >
               {saving ? 'Saving…' : 'Save'}
             </button>
@@ -499,5 +494,114 @@ function SortButton({
       {label}
       {arrow}
     </button>
+  );
+}
+
+/**
+ * Icon-in-field form input (ui-ux.md Section 1.2): leading icon, hairline
+ * `border-leaf-100`, focus state `border-leaf-500 ring-4 ring-leaf-500/15`.
+ */
+function SubjectField({
+  id,
+  label,
+  icon,
+  value,
+  onChange,
+  error,
+  type = 'text',
+  min,
+  step,
+  mono = false,
+}: {
+  id: string;
+  label: string;
+  icon: JSX.Element;
+  value: string;
+  onChange: (value: string) => void;
+  error?: string;
+  type?: 'text' | 'number';
+  min?: string;
+  step?: string;
+  mono?: boolean;
+}): JSX.Element {
+  return (
+    <div>
+      <label htmlFor={id} className="mb-1.5 block text-xs font-semibold text-ink/70">
+        {label}
+      </label>
+      <div className="relative">
+        <span aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#8FA396]">
+          {icon}
+        </span>
+        <input
+          id={id}
+          type={type}
+          min={min}
+          step={step}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          className={`w-full rounded-xl border-[1.5px] border-leaf-100 bg-[#FBFEFC] py-2.5 pl-10 pr-3.5 text-sm text-ink outline-none transition-colors focus:border-leaf-500 focus:bg-white focus:ring-4 focus:ring-leaf-500/15 ${
+            mono ? 'font-mono' : ''
+          }`}
+        />
+      </div>
+      {error ? <p className="mt-1 text-sm text-red-600">{error}</p> : null}
+    </div>
+  );
+}
+
+const ICON_STROKE = {
+  fill: 'none',
+  stroke: 'currentColor',
+  strokeWidth: 2,
+  strokeLinecap: 'round',
+  strokeLinejoin: 'round',
+} as const;
+
+function TagIcon(): JSX.Element {
+  return (
+    <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" {...ICON_STROKE}>
+      <path d="M12.586 2.586A2 2 0 0 0 11.172 2H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l8.704 8.704a2.426 2.426 0 0 0 3.42 0l6.58-6.58a2.426 2.426 0 0 0 0-3.42z" />
+      <circle cx="7.5" cy="7.5" r="0.5" fill="currentColor" />
+    </svg>
+  );
+}
+
+function BookIcon(): JSX.Element {
+  return (
+    <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" {...ICON_STROKE}>
+      <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+      <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+    </svg>
+  );
+}
+
+function HashIcon(): JSX.Element {
+  return (
+    <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" {...ICON_STROKE}>
+      <line x1="4" x2="20" y1="9" y2="9" />
+      <line x1="4" x2="20" y1="15" y2="15" />
+      <line x1="10" x2="8" y1="3" y2="21" />
+      <line x1="16" x2="14" y1="3" y2="21" />
+    </svg>
+  );
+}
+
+function ClockIcon(): JSX.Element {
+  return (
+    <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" {...ICON_STROKE}>
+      <circle cx="12" cy="12" r="10" />
+      <polyline points="12 6 12 12 16 14" />
+    </svg>
+  );
+}
+
+function FlaskIcon(): JSX.Element {
+  return (
+    <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" {...ICON_STROKE}>
+      <path d="M10 2v7.527a2 2 0 0 1-.211.896L4.72 20.55a1 1 0 0 0 .9 1.45h12.76a1 1 0 0 0 .9-1.45l-5.069-10.127A2 2 0 0 1 14 9.527V2" />
+      <path d="M8.5 2h7" />
+      <path d="M7 16h10" />
+    </svg>
   );
 }

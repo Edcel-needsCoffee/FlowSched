@@ -21,7 +21,10 @@ function presentString(label: string, max: number) {
 
 /**
  * Coerces JSON/query values to finite numbers, normalizing null and blank
- * strings to "missing" so defaults / required errors apply.
+ * strings to "missing" so defaults / required errors apply. Only strings and
+ * real numbers coerce — booleans (Number(true) === 1), arrays and objects
+ * become NaN so `z.number()` rejects them with a clean "must be a number"
+ * instead of silently storing a coerced value.
  */
 function numberFrom(label: string) {
   return z.preprocess(
@@ -32,9 +35,15 @@ function numberFrom(label: string) {
       if (typeof value === 'string' && value.trim() === '') {
         return undefined;
       }
-      return value;
+      if (typeof value === 'string') {
+        return Number(value);
+      }
+      if (typeof value === 'number') {
+        return value;
+      }
+      return Number.NaN;
     },
-    z.coerce
+    z
       .number({ invalid_type_error: `${label} must be a number` })
       .finite(`${label} must be a finite number`),
   );

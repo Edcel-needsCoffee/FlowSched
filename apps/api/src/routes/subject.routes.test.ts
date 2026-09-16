@@ -1,12 +1,12 @@
 /**
- * Module A — Subjects API tests (testing.md: integration tests against the
+ * Module A — Subjects routes tests (testing.md: integration tests against the
  * real database, real HTTP stack via supertest; Section 4 auth expectations).
  */
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import request from 'supertest';
-import { createApp } from './app.js';
-import { prisma } from './config/prisma.js';
-import { hashPassword } from './services/auth.service.js';
+import { createApp } from '../app.js';
+import { prisma } from '../config/prisma.js';
+import { hashPassword } from '../services/auth.service.js';
 
 beforeAll(() => {
   process.env.JWT_SECRET ??= 'test-access-secret';
@@ -138,6 +138,16 @@ describe('POST /api/subjects', () => {
     expect(negativeHours.body.error.details.fieldErrors).toHaveProperty('lab_hours');
   });
 
+  it('rejects non-numeric scalars that would coerce (units: true) with 400', async () => {
+    // Guards the template: Number(true) === 1 must never become a stored unit.
+    const res = await request(createApp())
+      .post('/api/subjects')
+      .set('Authorization', `Bearer ${chairToken}`)
+      .send({ code: 'TST-107', title: 'Boolean units', units: true });
+    expect(res.status).toBe(400);
+    expect(res.body.error.details.fieldErrors).toHaveProperty('units');
+  });
+
   it('returns 401 without a token', async () => {
     const res = await request(createApp())
       .post('/api/subjects')
@@ -200,6 +210,21 @@ describe('GET /api/subjects', () => {
     expect(byTitleFragment.body.data.map((s: { code: string }) => s.code)).toEqual(['TST-201']);
   });
 
+  it('excludes soft-deleted subjects from the default list', async () => {
+    const doomed = await createSubject({ code: 'TST-207', title: 'Soft deleted', units: 3 });
+    const del = await request(createApp())
+      .delete(`/api/subjects/${doomed.body.subject.id}`)
+      .set('Authorization', `Bearer ${chairToken}`);
+    expect(del.status).toBe(204);
+
+    const list = await request(createApp())
+      .get('/api/subjects?search=TST-')
+      .set('Authorization', `Bearer ${chairToken}`);
+    expect(list.status).toBe(200);
+    expect(list.body.data.map((s: { code: string }) => s.code)).not.toContain('TST-207');
+    expect(list.body.meta.total).toBe(3);
+  });
+
   it('sorts by title asc when requested', async () => {
     const res = await request(createApp())
       .get('/api/subjects?search=TST-&sortBy=title&sortDir=asc')
@@ -236,6 +261,18 @@ describe('GET /api/subjects/:id', () => {
       .set('Authorization', `Bearer ${chairToken}`);
     expect(res.status).toBe(404);
     expect(res.body.error.code).toBe('NOT_FOUND');
+  });
+
+  it('returns 404 for a soft-deleted id', async () => {
+    const created = await createSubject({ code: 'TST-402', title: 'Vanishing', units: 3 });
+    const id = created.body.subject.id as string;
+    await request(createApp())
+      .delete(`/api/subjects/${id}`)
+      .set('Authorization', `Bearer ${chairToken}`);
+    const res = await request(createApp())
+      .get(`/api/subjects/${id}`)
+      .set('Authorization', `Bearer ${chairToken}`);
+    expect(res.status).toBe(404);
   });
 
   it('returns 400 for a malformed id', async () => {
@@ -376,3 +413,9 @@ describe('DELETE /api/subjects/:id', () => {
     expect(res.status).toBe(404);
   });
 });
+
+
+
+
+
+
