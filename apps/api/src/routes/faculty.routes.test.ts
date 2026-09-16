@@ -1,13 +1,18 @@
 /**
- * Module B — Faculty API tests (mirrors subject.test.ts: real database +
- * real HTTP stack via supertest; Module B specifics: linked-login guard,
- * soft-delete-only preservation of referenced faculty).
+ * Module B — Faculty API tests (apps/api/src/routes — mirrors
+ * subject.routes.test.ts: real database + real HTTP stack via supertest).
+ *
+ * Module B specifics: linked-login delete guard (explicit confirmation flag),
+ * ACTIVE-WorkloadAssignment delete guard (blocked outright with a clear 409),
+ * soft-delete-only preservation of referenced faculty, and list/count
+ * assertions scoped to this suite's TST-E- prefix (Step 2 decision — see the
+ * pagination test for the stray '22-09333-23' row story).
  */
 import { beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import request from 'supertest';
-import { createApp } from './app.js';
-import { prisma } from './config/prisma.js';
-import { hashPassword } from './services/auth.service.js';
+import { createApp } from '../app.js';
+import { prisma } from '../config/prisma.js';
+import { hashPassword } from '../services/auth.service.js';
 
 beforeAll(() => {
   process.env.JWT_SECRET ??= 'test-access-secret';
@@ -193,7 +198,7 @@ describe('POST /api/faculty', () => {
 });
 
 describe('GET /api/faculty', () => {
-  it('lists faculty with pagination metadata', async () => {
+  it('lists faculty with pagination metadata (counts scoped to this suite prefix)', async () => {
     for (const [index, last] of ['Alpha', 'Bravo', 'Charlie'].entries()) {
       await createFaculty({
         employee_no: `${NO_PREFIX}1${index}`,
@@ -201,16 +206,27 @@ describe('GET /api/faculty', () => {
         last_name: last,
       });
     }
+    // Step 2 decision: the dev DB once contained a manually-created
+    // '22-09333-23' faculty row (leftover UI smoke-test pollution — seed.ts
+    // creates no faculty) that made the old UNscoped `total: 3` assertion
+    // fail. The row was deleted AND the count assertions are now scoped to
+    // this suite's own TST-E- prefix, so unrelated rows can never change the
+    // expected totals — assertions stay relative to what this test created.
     const page = await request(createApp())
-      .get('/api/faculty?page=1&pageSize=2')
+      .get(`/api/faculty?search=${NO_PREFIX}&page=1&pageSize=2`)
       .set('Authorization', `Bearer ${chairToken}`);
     expect(page.status).toBe(200);
     expect(page.body.data).toHaveLength(2);
+    expect(page.body.data.map((row: { employee_no: string }) => row.employee_no)).toEqual([
+      `${NO_PREFIX}10`,
+      `${NO_PREFIX}11`,
+    ]);
     expect(page.body.meta).toMatchObject({ total: 3, page: 1, pageSize: 2, pageCount: 2 });
 
     const second = await request(createApp())
-      .get('/api/faculty?page=2&pageSize=2')
+      .get(`/api/faculty?search=${NO_PREFIX}&page=2&pageSize=2`)
       .set('Authorization', `Bearer ${chairToken}`);
+    expect(second.status).toBe(200);
     expect(second.body.data).toHaveLength(1);
   });
 
@@ -366,7 +382,7 @@ describe('DELETE /api/faculty/:id', () => {
       .set('Authorization', `Bearer ${chairToken}`);
     expect(res.status).toBe(204);
 
-    // Soft delete only — never a hard delete, even with assignments.
+    // Soft delete only — the row must persist with deleted_at set.
     const stored = await prisma.faculty.findUnique({ where: { id } });
     expect(stored).not.toBeNull();
     expect(stored?.deleted_at).not.toBeNull();
@@ -375,9 +391,16 @@ describe('DELETE /api/faculty/:id', () => {
       .get(`/api/faculty/${id}`)
       .set('Authorization', `Bearer ${chairToken}`);
     expect(get.status).toBe(404);
+
+    // ...and the list endpoint excludes soft-deleted rows too.
+    const list = await request(createApp())
+      .get(`/api/faculty?search=${NO_PREFIX}501`)
+      .set('Authorization', `Bearer ${chairToken}`);
+    expect(list.status).toBe(200);
+    expect(list.body.data).toHaveLength(0);
   });
 
-  it('does not hard-delete a faculty member referenced by a WorkloadAssignment', async () => {
+  it('blocks deleting a faculty member with active WorkloadAssignment rows (409, clear message)', async () => {
     const created = await createFaculty({
       employee_no: `${NO_PREFIX}502`,
       first_name: 'Referenced',
@@ -385,7 +408,7 @@ describe('DELETE /api/faculty/:id', () => {
     });
     const facultyId = created.body.faculty.id as string;
 
-    // Minimal referencing assignment (FR: history must never be orphaned).
+    // Minimal ACTIVE referencing assignment — the deletion guard fires on it.
     const subject = await prisma.subject.create({
       data: { code: 'FKTST-E', title: 'FK Subject', units: 3 },
     });
@@ -400,15 +423,67 @@ describe('DELETE /api/faculty/:id', () => {
     const res = await request(createApp())
       .delete(`/api/faculty/${facultyId}`)
       .set('Authorization', `Bearer ${chairToken}`);
-    expect(res.status).toBe(204);
+    expect(res.status).toBe(409);
+    expect(res.body.error.code).toBe('FACULTY_HAS_ASSIGNMENTS');
+    // The exact message the frontend surfaces in the delete dialog.
+    expect(res.body.error.message).toBe(
+      'This faculty member has active workload assignments and cannot be removed',
+    );
+    expect(res.body.error.details).toMatchObject({ field: 'workloadAssignments', count: 1 });
 
-    // Faculty row survives (soft-deleted) and the assignment stays intact.
+    // The blocked attempt changed nothing: faculty still active, assignment intact.
     const storedFaculty = await prisma.faculty.findUnique({ where: { id: facultyId } });
     expect(storedFaculty).not.toBeNull();
-    expect(storedFaculty?.deleted_at).not.toBeNull();
-    const storedAssignment = await prisma.workloadAssignment.findUnique({ where: { id: assignment.id } });
-    expect(storedAssignment).not.toBeNull();
+    expect(storedFaculty?.deleted_at).toBeNull();
+    const storedAssignment = await prisma.workloadAssignment.findUnique({
+      where: { id: assignment.id },
+    });
     expect(storedAssignment?.deleted_at).toBeNull();
+
+    // ...and the faculty member still shows up in reads.
+    const listed = await request(createApp())
+      .get(`/api/faculty?search=${NO_PREFIX}502`)
+      .set('Authorization', `Bearer ${chairToken}`);
+    expect(listed.body.data).toHaveLength(1);
+  });
+
+  it('allows deletion once the assignments themselves are soft-deleted (guard is active-only)', async () => {
+    const created = await createFaculty({
+      employee_no: `${NO_PREFIX}507`,
+      first_name: 'Unassigned',
+      last_name: 'Soon',
+    });
+    const facultyId = created.body.faculty.id as string;
+
+    const subject = await prisma.subject.create({
+      data: { code: 'FKTST-E', title: 'FK Subject', units: 3 },
+    });
+    const section = await prisma.section.create({ data: { year_level: 1, name: 'FKTST-E 1A' } });
+    const term = await prisma.academicTerm.create({
+      data: { school_year: 'FKTST-E-SY', semester: 'FIRST' },
+    });
+    const assignment = await prisma.workloadAssignment.create({
+      data: { faculty_id: facultyId, subject_id: subject.id, section_id: section.id, term_id: term.id },
+    });
+
+    // Chair unassigns the workload first (assignment soft-deleted)...
+    await prisma.workloadAssignment.update({
+      where: { id: assignment.id },
+      data: { deleted_at: new Date() },
+    });
+
+    // ...then the faculty delete may proceed.
+    const res = await request(createApp())
+      .delete(`/api/faculty/${facultyId}`)
+      .set('Authorization', `Bearer ${chairToken}`);
+    expect(res.status).toBe(204);
+    expect((await prisma.faculty.findUnique({ where: { id: facultyId } }))?.deleted_at).not.toBeNull();
+
+    // The historical (soft-deleted) assignment row survives the removal.
+    const storedAssignment = await prisma.workloadAssignment.findUnique({
+      where: { id: assignment.id },
+    });
+    expect(storedAssignment).not.toBeNull();
   });
 
   it('blocks deleting a faculty member with an active login unless confirmed', async () => {

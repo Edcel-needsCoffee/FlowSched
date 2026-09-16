@@ -254,6 +254,34 @@ describe('FacultyPage — delete', () => {
     await waitFor(() => expect(deleteFacultyMock).toHaveBeenCalledWith(FACULTY_B.id, true));
     expect(await screen.findByText(/Faculty member deleted\./)).toBeInTheDocument();
   });
+
+  it('surfaces the backend guard message in the dialog when deletion is blocked by active workload assignments', async () => {
+    deleteFacultyMock.mockRejectedValue(
+      new Error('This faculty member has active workload assignments and cannot be removed'),
+    );
+    renderPage();
+    const deleteButtons = await screen.findAllByRole('button', { name: 'Delete' });
+    fireEvent.click(deleteButtons[0] as HTMLElement); // FACULTY_A — no linked login
+    const dialog = await screen.findByRole('dialog');
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Delete' }));
+
+    // The 409 guard message is surfaced verbatim inside the confirmation
+    // dialog (not as a generic failure toast), and the dialog stays open.
+    expect(await screen.findByRole('alert')).toHaveTextContent('active workload assignments');
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.queryByText(/Faculty member deleted\./)).not.toBeInTheDocument();
+  });
+});
+
+describe('FacultyPage — role-based controls (FACULTY session)', () => {
+  it('shows no create/edit/delete controls for a Faculty-role session (view-only)', async () => {
+    setRole('FACULTY');
+    renderPage();
+    await screen.findByText('TST-001');
+    expect(screen.queryByRole('button', { name: 'Add Faculty Member' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Edit' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Delete' })).not.toBeInTheDocument();
+  });
 });
 
 

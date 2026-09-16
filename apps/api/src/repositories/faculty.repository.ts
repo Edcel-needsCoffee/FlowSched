@@ -1,6 +1,5 @@
 import { Prisma, type Faculty } from '@prisma/client';
 import { prisma } from '../config/prisma.js';
-
 export type FacultySortField = 'employee_no' | 'last_name' | 'max_units' | 'created_at';
 export type SortDirection = 'asc' | 'desc';
 
@@ -124,4 +123,15 @@ export async function softDelete(id: string): Promise<Faculty> {
 /** Assignment count for a faculty member (FK-preservation check). */
 export async function countAssignments(facultyId: string): Promise<number> {
   return prisma.workloadAssignment.count({ where: { faculty_id: facultyId } });
+}
+
+/**
+ * Count of ACTIVE (non-soft-deleted) WorkloadAssignment rows — the data for
+ * the faculty deletion guard: a person with active assignments is currently
+ * scheduled and must not be removed.
+ */
+export async function countActiveAssignments(facultyId: string): Promise<number> {
+  return prisma.workloadAssignment.count({
+    where: { faculty_id: facultyId, deleted_at: null },
+  });
 }

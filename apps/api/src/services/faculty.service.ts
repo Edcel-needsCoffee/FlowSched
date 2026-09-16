@@ -2,6 +2,7 @@ import type { Faculty } from '@prisma/client';
 import { z } from 'zod';
 import { ApiError } from '../errors/apiError.js';
 import {
+  countActiveAssignments,
   countAssignments,
   findActiveByEmployeeNo,
   findActiveById,
@@ -159,6 +160,19 @@ export async function updateFaculty(id: string, rawBody: unknown): Promise<Facul
 /**
  * Soft delete only — never a hard delete, so WorkloadAssignments (historical
  * schedules/workload reports) are never orphaned (database-specification.md §7).
+ *
+ * Two pre-delete guards:
+ *
+ * 1. ACTIVE WorkloadAssignment rows → delete is BLOCKED outright (no
+ *    confirmation escape hatch). Documented choice: an active assignment
+ *    means the faculty member is currently scheduled this term, so removing
+ *    them is almost certainly a mistake — the Chair must unassign their
+ *    workload first (Workload Assignment module). The 409 message is
+ *    surfaced verbatim in the frontend delete confirmation dialog.
+ * 2. Active linked User login → delete is allowed only with an explicit
+ *    `?confirmLinkedUser=true` confirmation flag; the login is then
+ *    deactivated in the same transaction as the soft delete (it would be
+ *    meaningless without the faculty record).
  */
 export async function deleteFaculty(
   id: string,
@@ -181,8 +195,19 @@ export async function deleteFaculty(
   }
   const confirmLinkedUser = confirmParsed.data !== undefined;
 
-  // Active-login guard: a faculty record linked to an active User login is
-  // only removable with an explicit confirmation flag (task requirement).
+  // Guard #1 — active workload assignments block the delete (see docstring
+  // above for why this blocks instead of asking for confirmation).
+  const activeAssignments = await countActiveAssignments(id);
+  if (activeAssignments > 0) {
+    throw ApiError.conflict(
+      'FACULTY_HAS_ASSIGNMENTS',
+      'This faculty member has active workload assignments and cannot be removed',
+      { field: 'workloadAssignments', count: activeAssignments },
+    );
+  }
+
+  // Guard #2 — active-login guard: a faculty record linked to an active User
+  // login is only removable with an explicit confirmation flag (task requirement).
   if (faculty.user?.is_active && !confirmLinkedUser) {
     throw ApiError.conflict(
       'FACULTY_LINKED_USER',
@@ -206,7 +231,8 @@ export async function deleteFaculty(
   }
 
   if (assignments > 0) {
-    // Sanity check: the referencing assignments must still exist.
+    // Sanity check: the referencing (historical, soft-deleted) assignments
+    // must still exist — soft delete never removes referencing rows.
     const stillThere = await countAssignments(id);
     if (stillThere !== assignments) {
       throw new ApiError(500, 'FACULTY_DELETE_INVARIANT', 'Referencing assignments were removed unexpectedly');
