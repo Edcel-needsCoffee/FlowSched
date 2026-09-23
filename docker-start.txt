@@ -1,0 +1,62 @@
+Docker Desktop.exe present: True
+launched Docker Desktop
+
+=== waiting for the engine (docker info ServerVersion) ===
+t+ 43s : TIMEOUT
+t+ 74s : TIMEOUT
+t+ 98s : TIMEOUT
+t+105s : docker : Error response from daemon: Docker Desktop is unable to start
+At line:1 char:3
++  (docker info --format '{{.ServerVersion}}' 2>&1 | Out-String)
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Error response ...unable to start:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+t+112s : docker : Error response from daemon: Docker Desktop is unable to start
+At line:1 char:3
++  (docker info --format '{{.ServerVersion}}' 2>&1 | Out-String)
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Error response ...unable to start:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+t+119s : docker : Error response from daemon: Docker Desktop is unable to start
+At line:1 char:3
++  (docker info --format '{{.ServerVersion}}' 2>&1 | Out-String)
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Error response ...unable to start:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+t+126s : docker : Error response from daemon: Docker Desktop is unable to start
+At line:1 char:3
++  (docker info --format '{{.ServerVersion}}' 2>&1 | Out-String)
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Error response ...unable to start:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+t+132s : docker : Error response from daemon: Docker Desktop is unable to start
+At line:1 char:3
++  (docker info --format '{{.ServerVersion}}' 2>&1 | Out-String)
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Error response ...unable to start:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+t+139s : docker : Error response from daemon: Docker Desktop is unable to start
+At line:1 char:3
++  (docker info --format '{{.ServerVersion}}' 2>&1 | Out-String)
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Error response ...unable to start:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+t+145s : docker : Error response from daemon: Docker Desktop is unable to start
+At line:1 char:3
++  (docker info --format '{{.ServerVersion}}' 2>&1 | Out-String)
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Error response ...unable to start:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+t+152s : docker : Error response from daemon: Docker Desktop is unable to start
+At line:1 char:3
++  (docker info --format '{{.ServerVersion}}' 2>&1 | Out-String)
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Error response ...unable to start:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+
+ENGINE_READY=False
+Id ProcessName        StartTime             
+   -- -----------        ---------             
+33496 com.docker.backend 21/09/2026 10:20:30 am
+43056 com.docker.backend 21/09/2026 10:20:30 am
+COMPLETE_MARKER_DOCKERSTART

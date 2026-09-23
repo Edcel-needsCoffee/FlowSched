@@ -1,8 +1,10 @@
+import { useEffect } from 'react';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { logoutRequest } from '../lib/api';
 import { useAuthStore } from '../store/auth.store';
 import { useUiStore } from '../store/ui.store';
 import { navItemsForRole, navLabelForPath } from '../config/navigation';
+import { useTermStore } from '../store/term.store';
 
 function initialsFor(email: string | undefined): string {
   if (!email) return '?';
@@ -14,6 +16,9 @@ function initialsFor(email: string | undefined): string {
 
 function SideIcon({ name }: { name: string }): JSX.Element {
   const p: Record<string, JSX.Element> = {
+    'view-section': (<><rect width="18" height="16" x="3" y="5" rx="2" /><path d="M3 10h18M10 5v16" /></>),
+    'view-faculty': (<><rect width="18" height="16" x="3" y="5" rx="2" /><path d="M8 3v4M16 3v4M3 10h18" /><circle cx="12" cy="14" r="2" /><path d="M8.5 21a3.5 3.5 0 0 1 7 0" /></>),
+    'view-rooms': (<><path d="M3 21h18" /><path d="M5 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16" /><path d="M15 9h4v12" /><path d="M9 8h2M9 12h2" /></>),
     dashboard: (<><rect width="7" height="9" x="3" y="3" rx="1" /><rect width="7" height="5" x="14" y="3" rx="1" /><rect width="7" height="9" x="14" y="12" rx="1" /><rect width="7" height="5" x="3" y="16" rx="1" /></>),
     schedule: (<><rect width="18" height="18" x="3" y="4" rx="2" /><path d="M16 2v4M8 2v4M3 10h18" /></>),
     assignment: (<><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" /><rect width="8" height="4" x="8" y="2" rx="1" /><path d="M9 12h6M9 16h6" /></>),
@@ -126,13 +131,7 @@ export function AppShell(): JSX.Element {
           </button>
           <h1 className="truncate text-lg font-semibold text-ink">{pageTitle}</h1>
           <div className="ml-auto flex items-center gap-3">
-            <label className="hidden items-center gap-2 text-xs text-ink/60 sm:flex">
-              Term
-              <select aria-label="Active academic term" className="rounded-md border border-leaf-100 bg-white px-2 py-1.5 text-xs text-ink">
-                <option>2026-2027 - 1st Sem</option>
-                <option>2026-2027 - 2nd Sem</option>
-              </select>
-            </label>
+            <TermSelector />
             <button type="button" aria-label="Notifications" className="rounded-md p-2 text-ink/60 hover:bg-leaf-50 hover:text-ink">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" /></svg>
             </button>
@@ -143,5 +142,51 @@ export function AppShell(): JSX.Element {
         </main>
       </div>
     </div>
+  );
+}
+
+/**
+ * Header Term selector — backed by the real terms API. Loads once per shell
+ * mount; the selection lives in the shared term store so the Schedule page
+ * (and any other page) always agrees on the working term. Defaults to the
+ * active term seeded by the API seed script.
+ */
+function TermSelector(): JSX.Element | null {
+  const terms = useTermStore((s) => s.terms);
+  const status = useTermStore((s) => s.status);
+  const selectedTermId = useTermStore((s) => s.selectedTermId);
+  const loadTerms = useTermStore((s) => s.loadTerms);
+  const selectTerm = useTermStore((s) => s.selectTerm);
+
+  useEffect(() => {
+    if (status === 'idle') {
+      void loadTerms();
+    }
+  }, [status, loadTerms]);
+
+  if (status === 'error' || (status === 'ready' && terms.length === 0)) {
+    return null;
+  }
+
+  return (
+    <label className="hidden items-center gap-2 text-xs text-ink/60 sm:flex">
+      Term
+      <select
+        aria-label="Active academic term"
+        value={selectedTermId ?? ''}
+        onChange={(event) => selectTerm(event.target.value)}
+        className="rounded-md border border-leaf-100 bg-white px-2 py-1.5 text-xs text-ink outline-none transition-colors focus:border-leaf-500 focus:ring-4 focus:ring-leaf-500/15"
+      >
+        {terms.length === 0 ? (
+          <option value="">Loading…</option>
+        ) : (
+          terms.map((term) => (
+            <option key={term.id} value={term.id}>
+              {term.label}
+            </option>
+          ))
+        )}
+      </select>
+    </label>
   );
 }

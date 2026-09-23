@@ -1,0 +1,9 @@
+CONTAINER ID   IMAGE                             COMMAND                  CREATED        STATUS                      PORTS                                         NAMES
+1464631d483b   postgres:17                       "docker-entrypoint.s…"   6 days ago     Up 44 hours                 0.0.0.0:5433->5432/tcp, [::]:5433->5432/tcp   flowsched-postgres
+0ec130ed6d2e   redis:latest                      "docker-entrypoint.s…"   11 days ago    Exited (0) 44 hours ago                                                   campass-redis
+db8c91ebe9d3   navmap-app                        "docker-entrypoint.s…"   3 months ago   Exited (137) 3 months ago                                                 pit_app
+ee780e1c77d2   php:8.2-apache                    "docker-php-entrypoi…"   4 months ago   Exited (137) 3 months ago                                                 pit_web
+170bc83f4a17   phpmyadmin/phpmyadmin             "/docker-entrypoint.…"   4 months ago   Exited (137) 3 months ago                                                 pit_phpmyadmin
+fd685bba833a   mysql:8.0                         "docker-entrypoint.s…"   4 months ago   Exited (137) 3 months ago                                                 pit_db
+18101972f3ad   docker/welcome-to-docker:latest   "/docker-entrypoint.…"   6 months ago   Exited (255) 4 months ago   0.0.0.0:8088->80/tcp                          welcome-to-docker
+COMPLETE_MARKER_16422 

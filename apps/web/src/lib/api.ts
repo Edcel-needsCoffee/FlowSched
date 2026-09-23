@@ -2,13 +2,32 @@ import { useAuthStore } from '../store/auth.store';
 
 const apiBase = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:4000';
 
-interface ApiError extends Error {
-  status: number;
+/**
+ * Resolve a server-provided asset path (avatar photo) against the API base.
+ * Absolute URLs pass through untouched; empty values return null so callers
+ * can fall back to initials cleanly.
+ */
+export function apiAssetUrl(path: string | null | undefined): string | null {
+  if (!path) return null;
+  if (/^https?:\/\//i.test(path)) return path;
+  return `${apiBase}${path.startsWith('/') ? '' : '/'}${path}`;
 }
 
-function toApiError(status: number, message: string): ApiError {
+export interface ApiError extends Error {
+  status: number;
+  /** Server error code (e.g. `FACULTY_CONFLICT`, `ROOM_DUPLICATE_NAME`) when
+   *  the response carried one — the Schedule page keys its override flow off
+   *  this rather than string-matching the message. */
+  code?: string;
+  /** Structured `error.details` payload (conflict slot summaries, field names…). */
+  details?: unknown;
+}
+
+function toApiError(status: number, message: string, code?: string, details?: unknown): ApiError {
   const err = new Error(message) as ApiError;
   err.status = status;
+  err.code = code;
+  err.details = details;
   return err;
 }
 
@@ -24,15 +43,26 @@ export interface ApiOptions extends RequestInit {
 export async function apiFetch<T>(path: string, options: ApiOptions = {}): Promise<T> {
   const { auth = true, headers, ...init } = options;
 
-  const doFetch = async (token: string | null): Promise<Response> =>
-    fetch(`${apiBase}${path}`, {
+  const doFetch = async (token: string | null): Promise<Response> => {
+    // FormData (multipart uploads) must set its own Content-Type boundary —
+    // only add the JSON default for plain string bodies.
+    const baseHeaders: Record<string, string> = {};
+    if (headers) {
+      new Headers(headers).forEach((value, key) => {
+        baseHeaders[key] = value;
+      });
+    }
+    if (typeof init.body !== 'string' && !(init.body instanceof FormData)) {
+      baseHeaders['Content-Type'] = 'application/json';
+    }
+    return fetch(`${apiBase}${path}`, {
       ...init,
       headers: {
-        'Content-Type': 'application/json',
-        ...(headers ?? {}),
+        ...baseHeaders,
         ...(auth && token ? { Authorization: `Bearer ${token}` } : {}),
       },
     });
+  };
 
   let token = auth ? useAuthStore.getState().accessToken : null;
   let res = await doFetch(token);
@@ -48,15 +78,21 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}): Promi
 
   if (!res.ok) {
     let message = `Request failed with status ${res.status}`;
+    let code: string | undefined;
+    let details: unknown;
     try {
-      const body = JSON.parse(await res.text()) as { error?: { message?: string } };
+      const body = JSON.parse(await res.text()) as {
+        error?: { code?: string; message?: string; details?: unknown };
+      };
       if (body.error?.message) {
         message = body.error.message;
       }
+      code = body.error?.code;
+      details = body.error?.details;
     } catch {
       // Non-JSON error body — keep the generic message.
     }
-    throw toApiError(res.status, message);
+    throw toApiError(res.status, message, code, details);
   }
 
   // 204 No Content (e.g. DELETE) has no body — don't try to parse it.
@@ -70,7 +106,13 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}): Promi
 export interface LoginResponse {
   accessToken: string;
   refreshToken: string;
-  user: { id: string; email: string; role: 'CHAIR' | 'FACULTY' | 'ACADEMIC_ADMIN'; facultyId: string | null };
+  user: {
+    id: string;
+    email: string;
+    role: 'CHAIR' | 'FACULTY' | 'ACADEMIC_ADMIN';
+    facultyId: string | null;
+    avatar_url?: string | null;
+  };
 }
 
 export interface RefreshResponse {

@@ -8,6 +8,7 @@ import {
   verifyRefreshToken,
   type AuthTokenPayload,
 } from '../services/auth.service.js';
+import { asyncHandler } from '../utils/asyncHandler.js';
 import { loginSchema, refreshSchema } from '../validation/auth.validation.js';
 import { prisma } from '../config/prisma.js';
 
@@ -18,11 +19,28 @@ function toPublicUser(user: {
   email: string;
   role: AuthTokenPayload['role'];
   faculty_id: string | null;
-}): { id: string; email: string; role: AuthTokenPayload['role']; facultyId: string | null } {
-  return { id: user.id, email: user.email, role: user.role, facultyId: user.faculty_id };
+  avatar_url?: string | null;
+}): {
+  id: string;
+  email: string;
+  role: AuthTokenPayload['role'];
+  facultyId: string | null;
+  avatar_url: string | null;
+} {
+  return {
+    id: user.id,
+    email: user.email,
+    role: user.role,
+    facultyId: user.faculty_id,
+    avatar_url: user.avatar_url ?? null,
+  };
 }
 
-authRouter.post('/auth/login', async (req: Request, res: Response) => {
+// Wrapped in asyncHandler (Express 4 does not forward async rejections): without
+// it, a Prisma/DB failure inside this handler became an unhandled rejection that
+// killed the entire API process — the web app then reported "Failed to fetch"
+// because nothing was listening on :4000 at all, not because of CORS or a bad URL.
+authRouter.post('/auth/login', asyncHandler(async (req: Request, res: Response) => {
   const parsed = loginSchema.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({
@@ -60,9 +78,9 @@ authRouter.post('/auth/login', async (req: Request, res: Response) => {
     refreshToken: signRefreshToken(payload),
     user: toPublicUser(user),
   });
-});
+}));
 
-authRouter.post('/auth/refresh', async (req: Request, res: Response) => {
+authRouter.post('/auth/refresh', asyncHandler(async (req: Request, res: Response) => {
   const parsed = refreshSchema.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({
@@ -102,7 +120,7 @@ authRouter.post('/auth/refresh', async (req: Request, res: Response) => {
   // from the persisted refresh token on page reload (SessionBootstrap) —
   // same public shape as the login response.
   res.status(200).json({ accessToken: signAccessToken(freshPayload), user: toPublicUser(user) });
-});
+}));
 
 authRouter.post('/auth/logout', (req: Request, res: Response) => {
   const parsed = refreshSchema.safeParse(req.body);

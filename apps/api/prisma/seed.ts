@@ -17,13 +17,23 @@ async function main(): Promise<void> {
   }
 
   // Starter IE subject catalog (units/lecture/lab hours are dev-plausible examples).
+  // IE 105/IE 322/IE 411 all carry BOTH lecture and lab hours so the Schedule
+  // sidebar shows a LECTURE card and a LAB card per subject (each rendered by
+  // its own `remaining_*_hours > 0` check — neither gates the other).
+  // The `update` clause re-applies the hours on re-seed: the original seed used
+  // `update: {}`, so databases seeded before a seed fix kept stale (e.g.
+  // lecture_hours: 0) rows forever — the root cause of "no LECTURE cards".
   const subjects = [
-    { code: 'IE 105', title: 'Introduction to Industrial Engineering', units: 3, lecture_hours: 3, lab_hours: 0 },
-    { code: 'IE 322', title: 'Operations Research 1', units: 3, lecture_hours: 3, lab_hours: 0 },
+    { code: 'IE 105', title: 'Introduction to Industrial Engineering', units: 3, lecture_hours: 2, lab_hours: 2 },
+    { code: 'IE 322', title: 'Operations Research 1', units: 3, lecture_hours: 2, lab_hours: 2 },
     { code: 'IE 411', title: 'Methods Engineering', units: 4, lecture_hours: 3, lab_hours: 3 },
   ];
   for (const s of subjects) {
-    await prisma.subject.upsert({ where: { code: s.code }, update: {}, create: s });
+    await prisma.subject.upsert({
+      where: { code: s.code },
+      update: { title: s.title, units: s.units, lecture_hours: s.lecture_hours, lab_hours: s.lab_hours },
+      create: s,
+    });
   }
 
   // DEV-ONLY placeholder credentials. Never use these outside local dev;
@@ -48,8 +58,40 @@ async function main(): Promise<void> {
     },
   });
 
+  // Sections + faculty, so the Schedule page's quick-assign form (faculty ×
+  // subject × section) and every filter dropdown have real options on a fresh
+  // database. No WorkloadAssignments are seeded on purpose: the Schedule
+  // sidebar's inline quick-assign form is the intended first-run path.
+  for (const section of [
+    { year_level: 1, name: 'BSIE 1A' },
+    { year_level: 2, name: 'BSIE 2A' },
+    { year_level: 3, name: 'BSIE 3A' },
+    { year_level: 4, name: 'BSIE 4A' },
+  ]) {
+    await prisma.section.upsert({
+      where: { year_level_name: section },
+      update: {},
+      create: section,
+    });
+  }
+
+  const facultySeed = [
+    { employee_no: 'IE-0001', first_name: 'Maria', last_name: 'Santos', rank: 'Assistant Professor' },
+    { employee_no: 'IE-0002', first_name: 'Jose', last_name: 'Reyes', rank: 'Instructor I' },
+    { employee_no: 'IE-0003', first_name: 'Liza', last_name: 'Cruz', rank: 'Professor' },
+  ];
+  for (const member of facultySeed) {
+    await prisma.faculty.upsert({
+      where: { employee_no: member.employee_no },
+      update: {},
+      create: member,
+    });
+  }
+
   // eslint-disable-next-line no-console
-  console.log(`[seed] term=${term.school_year} ${term.semester} rooms=4 subjects=3 users=2`);
+  console.log(
+    `[seed] term=${term.school_year} ${term.semester} rooms=4 subjects=3 sections=4 faculty=3 users=2`,
+  );
 }
 
 main()

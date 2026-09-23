@@ -1,0 +1,10 @@
+=== 0) connectivity probes (node/undici) ===
+node v24.14.0
+FAIL http://localhost:4000/api/health :: TypeError: fetch failed | cause: ECONNREFUSED  | :
+FAIL http://127.0.0.1:4000/api/health :: TypeError: fetch failed | cause: ECONNREFUSED connect ECONNREFUSED 127.0.0.1:4000 | 127.0.0.1:4000
+FAIL http://[::1]:4000/api/health :: TypeError: fetch failed | cause: ECONNREFUSED connect ECONNREFUSED ::1:4000 | ::1:4000
+OK   200 http://localhost:5173/
+
+=== 1) POST /api/auth/login as seeded Chair (Origin: http://localhost:5173) ===
+SCRIPT_ERROR: TypeError: fetch failed
+COMPLETE_MARKER_VERIFY_LOGIN

@@ -18,6 +18,9 @@ export const MANAGEMENT_ROLES: AuthRole[] = ['CHAIR', 'ACADEMIC_ADMIN'];
 export const NAV_ITEMS: NavItem[] = [
   { label: 'Dashboard', path: '/dashboard', icon: 'dashboard', allowedRoles: ALL_ROLES },
   { label: 'Schedule', path: '/schedule', icon: 'schedule', allowedRoles: ALL_ROLES },
+  { label: 'Section Schedule', path: '/views/section', icon: 'view-section', allowedRoles: MANAGEMENT_ROLES },
+  { label: 'Faculty Schedule', path: '/views/faculty', icon: 'view-faculty', allowedRoles: ALL_ROLES },
+  { label: 'Room Schedule', path: '/views/rooms', icon: 'view-rooms', allowedRoles: MANAGEMENT_ROLES },
   { label: 'Workload Assignment', path: '/workload-assignment', icon: 'assignment', allowedRoles: MANAGEMENT_ROLES },
   { label: 'Faculty', path: '/faculty', icon: 'faculty', allowedRoles: MANAGEMENT_ROLES },
   { label: 'Subjects', path: '/subjects', icon: 'subjects', allowedRoles: MANAGEMENT_ROLES },

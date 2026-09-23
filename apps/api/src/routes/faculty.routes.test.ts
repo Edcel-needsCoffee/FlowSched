@@ -251,8 +251,13 @@ describe('GET /api/faculty', () => {
     const byName = await request(createApp())
       .get('/api/faculty?search=santos')
       .set('Authorization', `Bearer ${chairToken}`);
-    expect(byName.body.data).toHaveLength(1);
-    expect(byName.body.data[0].first_name).toBe('Maria');
+    // The dev seed also contains a "Maria Santos", so scope the assertion to
+    // this suite's own fixtures instead of asserting a global result count.
+    const thisSuitesMatches = byName.body.data.filter((row: { employee_no: string }) =>
+      row.employee_no.startsWith(NO_PREFIX),
+    );
+    expect(thisSuitesMatches).toHaveLength(1);
+    expect(thisSuitesMatches[0].first_name).toBe('Maria');
   });
 
   it('returns 401 without a token', async () => {

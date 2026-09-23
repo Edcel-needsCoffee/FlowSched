@@ -1,0 +1,22 @@
+--- docker backend processes (StartTime shows if Docker Desktop was restarted) ---
+
+   Id ProcessName        StartTime            
+   -- -----------        ---------            
+25440 com.docker.backend 19/09/2026 1:38:13 pm
+26184 com.docker.backend 19/09/2026 1:38:15 pm
+22396 com.docker.build   19/09/2026 1:38:16 pm
+ 3008 Docker Desktop     19/09/2026 1:38:13 pm
+ 9484 Docker Desktop     21/09/2026 9:29:52 am
+18576 Docker Desktop     19/09/2026 1:38:18 pm
+18932 Docker Desktop     19/09/2026 1:38:18 pm
+19844 Docker Desktop     19/09/2026 1:38:16 pm
+ 6516 wslrelay           19/09/2026 1:38:26 pm
+
+
+
+--- docker server version ---
+29.7.2
+--- flowsched-postgres status ---
+CONTAINER ID   IMAGE         COMMAND                  CREATED      STATUS        PORTS                                         NAMES
+1464631d483b   postgres:17   "docker-entrypoint.s???"   6 days ago   Up 44 hours   0.0.0.0:5433->5432/tcp, [::]:5433->5432/tcp   flowsched-postgres
+COMPLETE_MARKER_HEALTH

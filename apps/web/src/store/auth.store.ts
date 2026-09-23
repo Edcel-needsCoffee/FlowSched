@@ -7,6 +7,8 @@ export interface AuthUser {
   email: string;
   role: AuthRole;
   facultyId: string | null;
+  /** Profile photo URL (path served by the API, e.g. /uploads/avatars/x.png). */
+  avatar_url?: string | null;
 }
 
 interface AuthState {
@@ -25,6 +27,8 @@ interface AuthState {
   login: (input: { user: AuthUser; accessToken: string; refreshToken: string }) => void;
   setAccessToken: (token: string) => void;
   setUser: (user: AuthUser) => void;
+  /** Patch only the avatar after an upload (keeps the rest of the user). */
+  setAvatarUrl: (avatarUrl: string | null) => void;
   finishSessionCheck: () => void;
   logout: () => void;
 }
@@ -90,6 +94,8 @@ export const useAuthStore = create<AuthState>()((set) => ({
   },
   setAccessToken: (accessToken) => set({ accessToken }),
   setUser: (user) => set({ user }),
+  setAvatarUrl: (avatarUrl) =>
+    set((state) => (state.user ? { user: { ...state.user, avatar_url: avatarUrl } } : state)),
   finishSessionCheck: () => set({ isInitializing: false }),
   logout: () => {
     persistRefreshToken(null);

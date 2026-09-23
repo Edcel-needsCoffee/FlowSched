@@ -52,7 +52,7 @@ if not exist "%~dp0apps\api\node_modules\" (
     pause
     exit /b 1
 )
-if not exist "%~dp0apps\web\node_modules\framer-motion\" (
+if not exist "%~dp0node_modules\framer-motion\" (
     echo [FlowSched] WARNING: framer-motion not found - web deps may be out of date.
     echo [FlowSched] Run this once from the repo root, then re-run dev.bat:
     echo [FlowSched]     npm install

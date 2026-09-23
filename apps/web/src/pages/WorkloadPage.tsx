@@ -1,10 +1,11 @@
+import { FacultySchedulePage } from './Views/FacultySchedulePage';
+
+/**
+ * "My Workload" — the signed-in user's own Faculty Class Program, powered by
+ * the same read-only view as the Faculty Schedule page (self-scoped here, so
+ * the placeholder's "coming soon" is replaced by the real thing).
+ */
 export function WorkloadPage(): JSX.Element {
-  return (
-    <section aria-labelledby="workload-title">
-      <h1 id="workload-title" className="text-2xl font-semibold text-primary-dark">
-        My Workload
-      </h1>
-      <p className="mt-2 text-slate-600">Coming soon — personal workload lands in Phase 3.</p>
-    </section>
-  );
+  return <FacultySchedulePage selfScoped heading="My Workload" />;
 }
+

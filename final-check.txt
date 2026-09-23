@@ -1,0 +1,41 @@
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mc:/FLOWSCHED/apps/api[39m
+
+(node:39524) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:31928) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:41756) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:38328) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ [32m✓[39m src/routes/dashboard.routes.test.ts [2m([22m[2m3 tests[22m[2m)[22m[33m 2536[2mms[22m[39m
+   [33m[2m✓[22m[39m Dashboard summary API[2m > [22mchair gets live department numbers scoped to the term [33m1139[2mms[22m[39m
+   [33m[2m✓[22m[39m Dashboard summary API[2m > [22mrequires auth and rejects a malformed termId [33m577[2mms[22m[39m
+   [33m[2m✓[22m[39m Dashboard summary API[2m > [22mfaculty gets only their own summary, never another faculty data [33m751[2mms[22m[39m
+ [32m✓[39m src/routes/subject.routes.test.ts [2m([22m[2m31 tests[22m[2m)[22m[33m 4096[2mms[22m[39m
+ [32m✓[39m src/routes/faculty.routes.test.ts [2m([22m[2m26 tests[22m[2m)[22m[33m 5042[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/faculty[2m > [22mlists faculty with pagination metadata (counts scoped to this suite prefix) [33m318[2mms[22m[39m
+   [33m[2m✓[22m[39m DELETE /api/faculty/:id[2m > [22mallows deletion once the assignments themselves are soft-deleted (guard is active-only) [33m521[2mms[22m[39m
+   [33m[2m✓[22m[39m DELETE /api/faculty/:id[2m > [22mblocks deleting a faculty member with an active login unless confirmed [33m965[2mms[22m[39m
+ [32m✓[39m src/routes/schedule-view.routes.test.ts [2m([22m[2m14 tests[22m[2m)[22m[33m 8113[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/section/:sectionId (Student Class Program)[2m > [22mreturns the section slots sorted by day then time in the flat row shape [33m631[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/section/:sectionId (Student Class Program)[2m > [22mfilters by term; without termId it returns the raw cross-term schedule [33m635[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/section/:sectionId (Student Class Program)[2m > [22mdoes not leak other sections' slots into the section program [33m418[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/section/:sectionId (Student Class Program)[2m > [22m404s unknown sections and 400s malformed ids / termIds [33m476[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/faculty/:facultyId (Faculty Class Program)[2m > [22maggregates one faculty member's slots across all their sections [33m1015[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/faculty/:facultyId (Faculty Class Program)[2m > [22mlets a FACULTY-role account view its own schedule but 403s on anyone else [33m1001[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/faculty/:facultyId (Faculty Class Program)[2m > [22mlets management roles view any faculty member [33m498[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/faculty/:facultyId (Faculty Class Program)[2m > [22m404s unknown faculty ids and 400s malformed ones [33m406[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/room/:roomId (Classroom Utilization tab)[2m > [22mreturns every slot booked into the room across sections and faculty [33m364[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/room/:roomId (Classroom Utilization tab)[2m > [22mrespects the term filter [33m344[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/room/:roomId (Classroom Utilization tab)[2m > [22m404s unknown rooms and 400s malformed ids [33m366[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/rooms-overview (all utilization tabs at once)[2m > [22mreturns all rooms with their booked slots in one call [33m392[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/rooms-overview (all utilization tabs at once)[2m > [22mrespects the term filter and is open to every authenticated role [33m462[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mrequires authentication on every view endpoint [33m392[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m4 passed[39m[22m[90m (4)[39m
+[2m      Tests [22m [1m[32m74 passed[39m[22m[90m (74)[39m
+[2m   Start at [22m 10:01:23
+[2m   Duration [22m 14.71s[2m (transform 2.06s, setup 0ms, collect 16.87s, tests 19.79s, environment 2ms, prepare 2.86s)[22m
+

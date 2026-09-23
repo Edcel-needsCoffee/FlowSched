@@ -6,9 +6,12 @@ import { AppShell } from './layouts/AppShell';
 import { DashboardPage } from './pages/DashboardPage';
 import { SubjectsPage } from './pages/SubjectsPage';
 import { FacultyPage } from './pages/FacultyPage';
-import { SchedulePage } from './pages/SchedulePage';
+import { SchedulePage } from './pages/Schedule/SchedulePage';
+import { SectionSchedulePage } from './pages/Views/SectionSchedulePage';
+import { FacultySchedulePage } from './pages/Views/FacultySchedulePage';
+import { RoomSchedulePage } from './pages/Views/RoomSchedulePage';
 import { WorkloadPage } from './pages/WorkloadPage';
-import { WorkloadAssignmentPage } from './pages/WorkloadAssignmentPage';
+import { WorkloadAssignmentPage } from './pages/WorkloadAssignment/WorkloadAssignmentPage';
 import { RoomsPage } from './pages/RoomsPage';
 import { ReportsPage } from './pages/ReportsPage';
 import { AccountSettingsPage } from './pages/AccountSettingsPage';
@@ -53,6 +56,33 @@ export function App(): JSX.Element {
               element={
                 <RequireAuth allowedRoles={ALL_ROLES}>
                   <SchedulePage />
+                </RequireAuth>
+              }
+            />
+            {/* Read-only schedule views (the paper-form replacements).
+                Faculty role sees only their own program; management can pick
+                any section / faculty / room. */}
+            <Route
+              path="/views/section"
+              element={
+                <RequireAuth allowedRoles={MANAGEMENT_ROLES}>
+                  <SectionSchedulePage />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/views/faculty"
+              element={
+                <RequireAuth allowedRoles={ALL_ROLES}>
+                  <FacultySchedulePage />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/views/rooms"
+              element={
+                <RequireAuth allowedRoles={MANAGEMENT_ROLES}>
+                  <RoomSchedulePage />
                 </RequireAuth>
               }
             />

@@ -24,6 +24,10 @@ export class ApiError extends Error {
     return new ApiError(404, 'NOT_FOUND', message);
   }
 
+  static server(message = 'Internal server error'): ApiError {
+    return new ApiError(500, 'INTERNAL_ERROR', message);
+  }
+
   static conflict(code: string, message: string, details?: unknown): ApiError {
     return new ApiError(409, code, message, details);
   }

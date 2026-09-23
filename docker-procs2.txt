@@ -1,0 +1,19 @@
+
+
+ProcessId       : 37584
+ParentProcessId : 25632
+Name            : cmd.exe
+CreationDate    : 21/09/2026 9:37:13 am
+CommandLine     : "C:\WINDOWS\system32\cmd.exe" /c "docker stop flowsched-postgres > docker-stop2.txt 2>&1 & echo 
+                  COMPLETE_MARKER_%RANDOM% >> docker-stop2.txt"
+
+ProcessId       : 40872
+ParentProcessId : 37584
+Name            : docker.exe
+CreationDate    : 21/09/2026 9:37:13 am
+CommandLine     : docker  stop flowsched-postgres  
+
+
+
+
+COMPLETE_MARKER_PROCS2
