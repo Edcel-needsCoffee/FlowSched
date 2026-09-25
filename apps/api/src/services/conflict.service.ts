@@ -1,4 +1,4 @@
-import type { DayOfWeek } from '@prisma/client';
+import type { DayOfWeek } from '../types/domain.js';
 import * as roomRepository from '../repositories/room.repository.js';
 import * as scheduleSlotRepository from '../repositories/schedule-slot.repository.js';
 import type { ScheduleSlotWithRelations } from '../repositories/schedule-slot.repository.js';
@@ -49,8 +49,8 @@ export interface DetectConflictInput {
   /** Room being requested; null/undefined = TBA (no room clash possible). */
   roomId?: string | null;
   day: DayOfWeek;
-  startTime: Date;
-  endTime: Date;
+  startTime: string;
+  endTime: string;
   /** Ignore this slot — passed when moving an existing block. */
   excludeSlotId?: string | null;
 }
@@ -59,7 +59,7 @@ function summarize(slot: ScheduleSlotWithRelations): ConflictSlotSummary {
   return {
     slot_id: slot.id,
     assignment_id: slot.workload_assignment_id,
-    day_of_week: slot.day_of_week,
+    day_of_week: slot.day_of_week as DayOfWeek,
     start_time: formatTimeOfDay(slot.start_time),
     end_time: formatTimeOfDay(slot.end_time),
     room_name: slot.room?.name ?? null,
@@ -69,7 +69,7 @@ function summarize(slot: ScheduleSlotWithRelations): ConflictSlotSummary {
   };
 }
 
-function rangeLabel(start: Date, end: Date): string {
+function rangeLabel(start: string, end: string): string {
   return `${humanizeTimeOfDay(formatTimeOfDay(start))}–${humanizeTimeOfDay(formatTimeOfDay(end))}`;
 }
 

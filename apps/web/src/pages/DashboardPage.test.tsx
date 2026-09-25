@@ -8,6 +8,7 @@
 import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
+import { ToastProvider } from '../components/Toast';
 import {
   getDashboardSummary,
   uploadAvatar,
@@ -168,7 +169,9 @@ function setAuth(role: AuthRole, facultyId: string | null = null): void {
 function renderPage(): void {
   render(
     <MemoryRouter>
-      <DashboardPage />
+      <ToastProvider>
+        <DashboardPage />
+      </ToastProvider>
     </MemoryRouter>,
   );
 }
@@ -181,4 +184,28 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup();
+});
+
+describe('DashboardPage', () => {
+  it('renders the department dashboard (faculty load panel) for a management session', async () => {
+    setAuth('CHAIR');
+    getDashboardSummaryMock.mockResolvedValue({ summary: DEPARTMENT });
+    renderPage();
+    expect(await screen.findByText('Ada Lovelace')).toBeInTheDocument();
+    expect(screen.getByText('Blaise Pascal')).toBeInTheDocument();
+  });
+
+  it('renders the personal summary for a FACULTY session', async () => {
+    setAuth('FACULTY', 'fac-1');
+    getDashboardSummaryMock.mockResolvedValue({ summary: PERSONAL });
+    renderPage();
+    expect(await screen.findByText(/Next class: IE 322/)).toBeInTheDocument();
+  });
+
+  it('shows a Retry affordance when the summary fails to load', async () => {
+    setAuth('CHAIR');
+    getDashboardSummaryMock.mockRejectedValue(new Error('network down'));
+    renderPage();
+    expect(await screen.findByRole('button', { name: 'Retry' })).toBeInTheDocument();
+  });
 });

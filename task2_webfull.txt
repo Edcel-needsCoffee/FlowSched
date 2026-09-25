@@ -1,0 +1,99 @@
+
+> web@0.1.0 test
+> vitest run
+
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mc:/FLOWSCHED/apps/web[39m
+
+[90mstderr[2m | src/components/auth/SessionBootstrap.test.tsx[2m > [22m[2mSessionBootstrap + RequireAuth — reload behavior[2m > [22m[2mshows the loading state and does NOT redirect while the session check is in flight
+[22m[39m⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+ [32m✓[39m src/components/auth/SessionBootstrap.test.tsx [2m([22m[2m5 tests[22m[2m)[22m[33m 801[2mms[22m[39m
+   [33m[2m✓[22m[39m SessionBootstrap + RequireAuth — reload behavior[2m > [22mshows the loading state and does NOT redirect while the session check is in flight [33m559[2mms[22m[39m
+ [32m✓[39m src/pages/Views/SectionSchedulePage.test.tsx [2m([22m[2m2 tests[22m[2m)[22m[33m 1330[2mms[22m[39m
+   [33m[2m✓[22m[39m SectionSchedulePage[2m > [22mrenders the fetched section slots into the Mon–Sat grid (subject + faculty + room per block) [33m1166[2mms[22m[39m
+ [32m✓[39m src/pages/Views/FacultySchedulePage.test.tsx [2m([22m[2m3 tests[22m[2m)[22m[33m 1436[2mms[22m[39m
+   [33m[2m✓[22m[39m FacultySchedulePage[2m > [22mrenders the picked faculty member's slots into the grid (management picks anyone) [33m1129[2mms[22m[39m
+ [32m✓[39m src/pages/Schedule/schedule-duration.test.ts [2m([22m[2m12 tests[22m[2m)[22m[90m 102[2mms[22m[39m
+[90mstderr[2m | src/pages/WorkloadAssignment/WorkloadAssignmentPage.test.tsx[2m > [22m[2mWorkloadAssignmentPage[2m > [22m[2mrenders assignment rows from the API for a CHAIR session
+[22m[39m⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+[90mstderr[2m | src/LoginModal.test.tsx[2m > [22m[2mLoginModal[2m > [22m[2mrenders the Welcome back title with email + password fields
+[22m[39m⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+[90mstderr[2m | src/pages/DashboardPage.test.tsx[2m > [22m[2mDashboardPage[2m > [22m[2mrenders the department dashboard (faculty load panel) for a management session
+[22m[39m⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+ [32m✓[39m src/pages/Views/RoomSchedulePage.test.tsx [2m([22m[2m2 tests[22m[2m)[22m[33m 3144[2mms[22m[39m
+   [33m[2m✓[22m[39m RoomSchedulePage[2m > [22mrenders the selected room's slots into the grid with a tab per room [33m1981[2mms[22m[39m
+   [33m[2m✓[22m[39m RoomSchedulePage[2m > [22mswitches rooms like workbook tabs without extra requests, and empty rooms show the empty state [33m1148[2mms[22m[39m
+ [32m✓[39m src/lib/colors.test.ts [2m([22m[2m8 tests[22m[2m)[22m[90m 14[2mms[22m[39m
+ [32m✓[39m src/pages/Schedule/SchedulePage.conflict.test.tsx [2m([22m[2m6 tests[22m[2m)[22m[33m 2294[2mms[22m[39m
+   [33m[2m✓[22m[39m OverrideDialog (what a 409 actually renders)[2m > [22mrenders the conflict type, server message, and the booked class details [33m1315[2mms[22m[39m
+   [33m[2m✓[22m[39m OverrideDialog (what a 409 actually renders)[2m > [22mtypes a reason and confirms the override through the Place anyway button [33m635[2mms[22m[39m
+ [32m✓[39m src/pages/WorkloadAssignment/WorkloadAssignmentPage.test.tsx [2m([22m[2m3 tests[22m[2m)[22m[33m 3031[2mms[22m[39m
+   [33m[2m✓[22m[39m WorkloadAssignmentPage[2m > [22mrenders assignment rows from the API for a CHAIR session [33m2480[2mms[22m[39m
+   [33m[2m✓[22m[39m WorkloadAssignmentPage[2m > [22mshows the empty state when the filtered list has no rows [33m332[2mms[22m[39m
+ [32m✓[39m src/LoginModal.test.tsx [2m([22m[2m7 tests[22m[2m)[22m[33m 3568[2mms[22m[39m
+   [33m[2m✓[22m[39m LoginModal[2m > [22mrenders the Welcome back title with email + password fields [33m1631[2mms[22m[39m
+   [33m[2m✓[22m[39m LoginModal[2m > [22mshows client-side validation errors for a bad email [33m688[2mms[22m[39m
+   [33m[2m✓[22m[39m LoginModal[2m > [22mkeeps an inline error path available (server failure surfaces alert) [33m780[2mms[22m[39m
+   [33m[2m✓[22m[39m LoginModal[2m > [22mredirects to /dashboard on successful login [33m431[2mms[22m[39m
+ [32m✓[39m src/pages/DashboardPage.test.tsx [2m([22m[2m3 tests[22m[2m)[22m[33m 2282[2mms[22m[39m
+   [33m[2m✓[22m[39m DashboardPage[2m > [22mrenders the department dashboard (faculty load panel) for a management session [33m1596[2mms[22m[39m
+   [33m[2m✓[22m[39m DashboardPage[2m > [22mshows a Retry affordance when the summary fails to load [33m489[2mms[22m[39m
+ [32m✓[39m src/lib/api.test.ts [2m([22m[2m3 tests[22m[2m)[22m[90m 9[2mms[22m[39m
+[90mstderr[2m | src/Landing.test.tsx[2m > [22m[2mLanding page[2m > [22m[2mshows the hero headline with no legacy CTA copy
+[22m[39m⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+ [32m✓[39m src/pages/SubjectsPage.test.tsx [2m([22m[2m13 tests[22m[2m)[22m[33m 6640[2mms[22m[39m
+   [33m[2m✓[22m[39m SubjectsPage — list rendering[2m > [22mrenders subjects from the API [33m476[2mms[22m[39m
+   [33m[2m✓[22m[39m SubjectsPage — list rendering[2m > [22mshows a search empty state distinct from the catalog empty state [33m763[2mms[22m[39m
+   [33m[2m✓[22m[39m SubjectsPage — list rendering[2m > [22mshows an error state with a working Retry (ui-ux.md §13) [33m1122[2mms[22m[39m
+   [33m[2m✓[22m[39m SubjectsPage — list rendering[2m > [22msends a debounced search query [33m556[2mms[22m[39m
+   [33m[2m✓[22m[39m SubjectsPage — list rendering[2m > [22msorts by the clicked column header [33m669[2mms[22m[39m
+   [33m[2m✓[22m[39m SubjectsPage — create[2m > [22mcreates a subject through the modal and refreshes in place [33m796[2mms[22m[39m
+   [33m[2m✓[22m[39m SubjectsPage — create[2m > [22mshows inline validation for zero units and does not call the API [33m799[2mms[22m[39m
+   [33m[2m✓[22m[39m SubjectsPage — create[2m > [22mkeeps the modal open and shows the server error for a duplicate code [33m524[2mms[22m[39m
+ [32m✓[39m src/Landing.test.tsx [2m([22m[2m6 tests[22m[2m)[22m[33m 4745[2mms[22m[39m
+   [33m[2m✓[22m[39m Landing page[2m > [22mshows the hero headline with no legacy CTA copy [33m2176[2mms[22m[39m
+   [33m[2m✓[22m[39m Landing page[2m > [22mexposes Log in buttons that open the modal without navigating [33m850[2mms[22m[39m
+   [33m[2m✓[22m[39m Landing page[2m > [22mopens the modal on mount for the /login route [33m596[2mms[22m[39m
+   [33m[2m✓[22m[39m Landing page[2m > [22mcloses the modal via backdrop, X, and Escape [33m956[2mms[22m[39m
+ [32m✓[39m src/pages/FacultyPage.test.tsx [2m([22m[2m15 tests[22m[2m)[22m[33m 6977[2mms[22m[39m
+   [33m[2m✓[22m[39m FacultyPage — list rendering[2m > [22mrenders faculty from the API [33m408[2mms[22m[39m
+   [33m[2m✓[22m[39m FacultyPage — list rendering[2m > [22mshows an error state with a working Retry (ui-ux.md §13) [33m1231[2mms[22m[39m
+   [33m[2m✓[22m[39m FacultyPage — list rendering[2m > [22msorts by the clicked column header [33m583[2mms[22m[39m
+   [33m[2m✓[22m[39m FacultyPage — role-based controls[2m > [22mshows Add/Edit/Delete for the Chair [33m607[2mms[22m[39m
+   [33m[2m✓[22m[39m FacultyPage — role-based controls[2m > [22mhides all edit controls from the Academic Admin (view-only) [33m370[2mms[22m[39m
+   [33m[2m✓[22m[39m FacultyPage — create[2m > [22mcreates a faculty member through the modal with a blank rank sent as null [33m776[2mms[22m[39m
+   [33m[2m✓[22m[39m FacultyPage — create[2m > [22mshows inline validation for zero max units and does not call the API [33m598[2mms[22m[39m
+   [33m[2m✓[22m[39m FacultyPage — create[2m > [22mshows inline validation for a missing required name [33m489[2mms[22m[39m
+   [33m[2m✓[22m[39m FacultyPage — create[2m > [22mkeeps the modal open and shows the server error for a duplicate employee_no [33m628[2mms[22m[39m
+   [33m[2m✓[22m[39m FacultyPage — edit[2m > [22mpre-fills the modal and saves edits in place [33m363[2mms[22m[39m
+[90mstderr[2m | src/layouts/AppShell.test.tsx[2m > [22m[2mAppShell sidebar (role-scoped)[2m > [22m[2mrenders Chair nav items
+[22m[39m⚠️ React Router Future Flag Warning: React Router will begin wrapping state updates in `React.startTransition` in v7. You can use the `v7_startTransition` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_starttransition.
+⚠️ React Router Future Flag Warning: Relative route resolution within Splat routes is changing in v7. You can use the `v7_relativeSplatPath` future flag to opt-in early. For more information, see https://reactrouter.com/v6/upgrading/future#v7_relativesplatpath.
+
+ [32m✓[39m src/layouts/AppShell.test.tsx [2m([22m[2m5 tests[22m[2m)[22m[33m 1858[2mms[22m[39m
+   [33m[2m✓[22m[39m AppShell sidebar (role-scoped)[2m > [22mrenders Chair nav items [33m1247[2mms[22m[39m
+ [32m✓[39m src/pages/Schedule/SchedulePage.duration.test.tsx [2m([22m[2m33 tests[22m[2m)[22m[33m 10971[2mms[22m[39m
+   [33m[2m✓[22m[39m SchedulePage — per-session-type chunk cards with duration pickers[2m > [22mrenders separate LECTURE and LAB cards, each defaulting to its full remaining hours [33m3449[2mms[22m[39m
+   [33m[2m✓[22m[39m SchedulePage — per-session-type chunk cards with duration pickers[2m > [22mshows a partially-placed class with its reduced remaining hours [33m336[2mms[22m[39m
+   [33m[2m✓[22m[39m SchedulePage — per-session-type chunk cards with duration pickers[2m > [22msteps the duration in 0.5h increments and clamps the + button at the remaining max [33m925[2mms[22m[39m
+   [33m[2m✓[22m[39m SchedulePage — per-session-type chunk cards with duration pickers[2m > [22mclamps a typed duration above the remaining hours and shows an inline note [33m563[2mms[22m[39m
+   [33m[2m✓[22m[39m SchedulePage — per-session-type chunk cards with duration pickers[2m > [22mdisables dragging while the duration is 0/negative, and re-enables once fixed [33m540[2mms[22m[39m
+   [33m[2m✓[22m[39m SchedulePage — per-session-type chunk cards with duration pickers[2m > [22mcarries the picked duration through keyboard drag activation into the overlay [33m2249[2mms[22m[39m
+   [33m[2m✓[22m[39m SchedulePage — per-session-type chunk cards with duration pickers[2m > [22mdrops the picked duration through the real drag pipeline and re-points the card at the reduced remainder [33m1357[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m16 passed[39m[22m[90m (16)[39m
+[2m      Tests [22m [1m[32m126 passed[39m[22m[90m (126)[39m
+[2m   Start at [22m 14:41:47
+[2m   Duration [22m 31.14s[2m (transform 11.15s, setup 25.22s, collect 106.36s, tests 49.20s, environment 85.86s, prepare 6.39s)[22m
+
+COMPLETE_MARKER_WEBFULL 

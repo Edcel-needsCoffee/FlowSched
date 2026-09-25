@@ -46,9 +46,9 @@ function listWhere(search: string | null): Prisma.FacultyWhereInput {
   return {
     deleted_at: null,
     OR: [
-      { employee_no: { contains: trimmed, mode: 'insensitive' } },
-      { first_name: { contains: trimmed, mode: 'insensitive' } },
-      { last_name: { contains: trimmed, mode: 'insensitive' } },
+      { employee_no: { contains: trimmed } },
+      { first_name: { contains: trimmed } },
+      { last_name: { contains: trimmed } },
     ],
   };
 }
@@ -97,14 +97,15 @@ export async function findActiveByEmployeeNo(
   employeeNo: string,
   excludeId?: string,
 ): Promise<{ id: string; employee_no: string } | null> {
-  return prisma.faculty.findFirst({
-    where: {
-      employee_no: { equals: employeeNo, mode: 'insensitive' },
-      deleted_at: null,
-      ...(excludeId ? { id: { not: excludeId } } : {}),
-    },
+  // Case-insensitive compare in JS: SQLite (local dev) has no
+  // `mode: 'insensitive'` filter and PG/SQLite LIKE semantics differ —
+  // faculty tables are department-scale, so scanning live rows is cheap.
+  const candidates = await prisma.faculty.findMany({
+    where: { deleted_at: null, ...(excludeId ? { id: { not: excludeId } } : {}) },
     select: { id: true, employee_no: true },
   });
+  const target = employeeNo.toLowerCase();
+  return candidates.find((row) => row.employee_no.toLowerCase() === target) ?? null;
 }
 
 export async function create(data: FacultyCreateData): Promise<Faculty> {

@@ -1,0 +1,10 @@
+LAB_OVER_BUDGET (remaining_lab=0) -> THREW after 24ms
+  name=ApiError status=400 code=VALIDATION_ERROR
+  message=IE 105 would schedule 1 lab hour for a subject with only 2 lab hours (already placed: 2 hours). Reduce the duration or pick a different lab block.
+  stack=ApiError: IE 105 would schedule 1 lab hour for a subject with only 2 lab hours (already placed: 2 hours). Reduce the duration or pick a different lab block.
+    at ApiError.badRequest (c:\FLOWSCHED\apps\api\src\errors\apiError.ts:20:12)
+    at overScheduledError (c:\FLOWSCHED\apps\api\src\services\over-scheduled.error.ts:10:19)
+    at assertWithinSessionCapacity (c:\FLOWSCHED\apps\api\src\services\schedule-slot.service.ts:145:11)
+    at async createScheduleSlot (c:\FLOWSCHED\apps\api\src\services\schedule-slot.service.ts:174:3)
+    at async main (c:\FLOWSCHED\apps\api\tmp_overbudget_probe.ts:28:20)
+COMPLETE_MARKER_PROBE 

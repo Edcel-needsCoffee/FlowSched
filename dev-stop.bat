@@ -22,6 +22,6 @@ for /f "tokens=5" %%p in ('netstat -ano ^| findstr "LISTENING" ^| findstr /c:":5
 if !FOUND!==1 (
     echo [FlowSched] Killed remaining listeners by port.
 )
-echo [FlowSched] Done. Postgres container left running (start it with: docker start flowsched-postgres).
+echo [FlowSched] Done. Local SQLite database (apps\api\prisma\dev.db) left as-is.
 echo.
 endlocal

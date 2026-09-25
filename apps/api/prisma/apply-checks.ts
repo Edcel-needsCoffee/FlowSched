@@ -2,17 +2,22 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-const CHECKS = [
-  'ALTER TABLE "schedule_slots" ADD CONSTRAINT "schedule_slots_time_range_check" CHECK ("end_time" > "start_time")',
-  'ALTER TABLE "faculty" ADD CONSTRAINT "faculty_max_units_check" CHECK ("max_units" > 0)',
-  'ALTER TABLE "subjects" ADD CONSTRAINT "subjects_units_check" CHECK ("units" > 0)',
-];
+// NOTE (SQLite): SQLite cannot run `ALTER TABLE ... ADD CONSTRAINT`, so the
+// former PostgreSQL CHECK constraints (schedule_slots_time_range_check,
+// faculty_max_units_check, subjects_units_check) are not applied here. The
+// same rules are enforced at the API layer by Zod, exactly as before:
+//   end_time > start_time → validation/schedule-slot.validation.ts (assertTimeRange)
+//   max_units > 0        → validation/faculty.validation.ts (maxUnitsSchema)
+//   units > 0            → validation/subject.validation.ts (subjectUnitsSchema)
+const CHECKS: string[] = [];
 
 // Soft-delete-aware uniqueness (database-specification.md §7: "a common
 // pattern is a partial unique index"). Soft-deleted rows keep their history
 // without blocking reuse of their code / employee_no by future records.
-// Prisma's @unique only emits full unique indexes, so these are applied
-// outside migrations, like the check constraints above.
+// Prisma's @unique only emits full unique indexes, so these are applied as
+// raw SQL. SQLite supports partial unique indexes natively — the same SQL is
+// baked into the initial migration (prisma/migrations/*_sqlite_init/), and
+// re-running it here is idempotent (DROP IF EXISTS + CREATE).
 const SOFT_DELETE_INDEXES = [
   'DROP INDEX IF EXISTS "subjects_code_key"',
   'CREATE UNIQUE INDEX "subjects_code_key" ON "subjects"("code") WHERE "deleted_at" IS NULL',

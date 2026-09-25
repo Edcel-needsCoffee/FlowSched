@@ -25,15 +25,15 @@ let facultyToken = '';
 
 async function clean(): Promise<void> {
   await prisma.workloadAssignment.deleteMany({
-    where: { faculty: { employee_no: { startsWith: PREFIX, mode: 'insensitive' } } },
+    where: { faculty: { employee_no: { startsWith: PREFIX } } },
   });
   await prisma.faculty.deleteMany({
-    where: { employee_no: { startsWith: PREFIX, mode: 'insensitive' } },
+    where: { employee_no: { startsWith: PREFIX } },
   });
-  await prisma.subject.deleteMany({ where: { code: { startsWith: PREFIX, mode: 'insensitive' } } });
-  await prisma.section.deleteMany({ where: { name: { startsWith: PREFIX, mode: 'insensitive' } } });
+  await prisma.subject.deleteMany({ where: { code: { startsWith: PREFIX } } });
+  await prisma.section.deleteMany({ where: { name: { startsWith: PREFIX } } });
   await prisma.academicTerm.deleteMany({
-    where: { school_year: { startsWith: PREFIX, mode: 'insensitive' } },
+    where: { school_year: { startsWith: PREFIX } },
   });
 }
 
@@ -337,8 +337,8 @@ describe('WorkloadAssignment API', () => {
         workload_assignment_id: id,
         session_type: 'LECTURE',
         day_of_week: 'MON',
-        start_time: new Date('1970-01-01T07:00:00.000Z'),
-        end_time: new Date('1970-01-01T08:30:00.000Z'),
+        start_time: '07:00',
+        end_time: '08:30',
       },
     });
 

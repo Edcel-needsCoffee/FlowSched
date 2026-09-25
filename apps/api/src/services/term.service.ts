@@ -1,4 +1,5 @@
-import type { AcademicTerm, Semester } from '@prisma/client';
+import type { AcademicTerm } from '@prisma/client';
+import type { Semester } from '../types/domain.js';
 import { z } from 'zod';
 import { ApiError } from '../errors/apiError.js';
 import * as termRepository from '../repositories/term.repository.js';
@@ -42,9 +43,9 @@ export function toTermDto(term: AcademicTerm): TermDto {
   return {
     id: term.id,
     school_year: term.school_year,
-    semester: term.semester,
+    semester: term.semester as Semester, // validated on write (z.enum); stored as a plain string
     is_active: term.is_active,
-    label: `${term.school_year} — ${SEMESTER_LABELS[term.semester]}`,
+    label: `${term.school_year} — ${SEMESTER_LABELS[term.semester as Semester]}`,
     created_at: term.created_at.toISOString(),
   };
 }
@@ -99,7 +100,7 @@ export async function updateTerm(id: string, rawBody: unknown): Promise<TermDto>
   const nextSchoolYear = input.school_year ?? existing.school_year;
   const nextSemester = input.semester ?? existing.semester;
   if (input.school_year !== undefined || input.semester !== undefined) {
-    await assertUnique(nextSchoolYear, nextSemester, id);
+    await assertUnique(nextSchoolYear, nextSemester as Semester, id);
   }
   return toTermDto(await termRepository.update(id, input));
 }

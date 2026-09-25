@@ -29,11 +29,19 @@ async function main(): Promise<void> {
     { code: 'IE 411', title: 'Methods Engineering', units: 4, lecture_hours: 3, lab_hours: 3 },
   ];
   for (const s of subjects) {
-    await prisma.subject.upsert({
-      where: { code: s.code },
-      update: { title: s.title, units: s.units, lecture_hours: s.lecture_hours, lab_hours: s.lab_hours },
-      create: s,
-    });
+    // find-then-write instead of upsert: `subjects.code` has a partial unique
+    // index (soft-delete aware), and SQLite's `ON CONFLICT("code")` cannot
+    // target a partial index — upsert fails with "ON CONFLICT clause does not
+    // match any PRIMARY KEY or UNIQUE constraint".
+    const existing = await prisma.subject.findUnique({ where: { code: s.code } });
+    if (existing) {
+      await prisma.subject.update({
+        where: { id: existing.id },
+        data: { title: s.title, units: s.units, lecture_hours: s.lecture_hours, lab_hours: s.lab_hours },
+      });
+    } else {
+      await prisma.subject.create({ data: s });
+    }
   }
 
   // DEV-ONLY placeholder credentials. Never use these outside local dev;
@@ -81,11 +89,15 @@ async function main(): Promise<void> {
     { employee_no: 'IE-0003', first_name: 'Liza', last_name: 'Cruz', rank: 'Professor' },
   ];
   for (const member of facultySeed) {
-    await prisma.faculty.upsert({
+    // `faculty.employee_no` also has a partial unique index — find-then-write
+    // for the same reason as the subject loop above. The old `update: {}` was
+    // a no-op anyway, so an existing row is simply left alone.
+    const existing = await prisma.faculty.findUnique({
       where: { employee_no: member.employee_no },
-      update: {},
-      create: member,
     });
+    if (!existing) {
+      await prisma.faculty.create({ data: member });
+    }
   }
 
   // eslint-disable-next-line no-console

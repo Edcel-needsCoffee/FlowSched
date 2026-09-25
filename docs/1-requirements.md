@@ -1,4 +1,7 @@
 # FlowSched — Industrial Engineering Faculty Workload Management System
+
+> **Current implementation status (2026-09-25):** The core application is implemented: JWT login/refresh/logout, role-guarded REST endpoints, faculty/subject/room/section/term CRUD, workload assignments, schedule slots and conflict overrides, role-scoped schedule views, dashboard summaries, avatar upload, and responsive frontend pages. Reports/export, bulk import, email, WebSockets, Redis, and background workers are not implemented yet.
+
 ## Software Requirements Document
 **Version 1.0**
 

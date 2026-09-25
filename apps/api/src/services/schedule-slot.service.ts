@@ -1,4 +1,4 @@
-import type { DayOfWeek } from '@prisma/client';
+import type { DayOfWeek, SessionType } from '../types/domain.js';
 import { z } from 'zod';
 import { ApiError } from '../errors/apiError.js';
 import * as roomRepository from '../repositories/room.repository.js';
@@ -77,8 +77,8 @@ export function toScheduleSlotDto(slot: ScheduleSlotWithRelations): ScheduleSlot
     workload_assignment_id: slot.workload_assignment_id,
     room_id: slot.room_id,
     room_name: slot.room?.name ?? null,
-    session_type: slot.session_type,
-    day_of_week: slot.day_of_week,
+    session_type: slot.session_type as SessionType,
+    day_of_week: slot.day_of_week as DayOfWeek,
     start_time: formatTimeOfDay(slot.start_time),
     end_time: formatTimeOfDay(slot.end_time),
     session_hours: round2(slotHours),
@@ -218,7 +218,7 @@ export async function updateScheduleSlot(id: string, rawBody: unknown): Promise<
   await assertRoomExists(roomId);
 
   const sessionType =
-    input.session_type !== undefined ? input.session_type : existing.session_type;
+    input.session_type !== undefined ? input.session_type : (existing.session_type as SessionType);
   const hours = (timeOfDayToMinutes(formatTimeOfDay(endTime)) -
     timeOfDayToMinutes(formatTimeOfDay(startTime))) / 60;
 
@@ -227,7 +227,7 @@ export async function updateScheduleSlot(id: string, rawBody: unknown): Promise<
   const conflict = await detectPlacementConflict({
     facultyId: existing.workload_assignment.faculty_id,
     roomId,
-    day: input.day_of_week ?? existing.day_of_week,
+    day: (input.day_of_week ?? existing.day_of_week) as DayOfWeek,
     startTime,
     endTime,
     excludeSlotId: id,
@@ -239,7 +239,7 @@ export async function updateScheduleSlot(id: string, rawBody: unknown): Promise<
   const slot = await scheduleSlotRepository.update(id, {
     room_id: roomId,
     session_type: sessionType,
-    day_of_week: input.day_of_week ?? existing.day_of_week,
+    day_of_week: (input.day_of_week ?? existing.day_of_week) as DayOfWeek,
     start_time: startTime,
     end_time: endTime,
   });
@@ -301,7 +301,7 @@ export async function confirmOverride(
     }
     slot = await scheduleSlotRepository.update(input.slot_id, {
       room_id: roomId,
-      session_type: input.session_type ?? existing.session_type,
+      session_type: (input.session_type ?? existing.session_type) as SessionType,
       day_of_week: input.day_of_week,
       start_time: startTime,
       end_time: endTime,

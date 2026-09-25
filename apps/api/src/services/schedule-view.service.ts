@@ -1,4 +1,4 @@
-import type { DayOfWeek } from '@prisma/client';
+import type { DayOfWeek } from '../types/domain.js';
 import { z } from 'zod';
 import { ApiError } from '../errors/apiError.js';
 import * as facultyRepository from '../repositories/faculty.repository.js';
@@ -52,7 +52,7 @@ function parseQuery(rawQuery: unknown): z.infer<typeof scheduleViewQuerySchema> 
 function toViewSlotDto(slot: ScheduleSlotWithRelations): ScheduleViewSlotDto {
   const { workload_assignment: assignment } = slot;
   return {
-    day_of_week: slot.day_of_week,
+    day_of_week: slot.day_of_week as DayOfWeek,
     start_time: formatTimeOfDay(slot.start_time),
     end_time: formatTimeOfDay(slot.end_time),
     subject_code: assignment.subject.code,

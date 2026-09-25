@@ -1,5 +1,8 @@
 # UI / UX Specification
 
+> **Current implementation status (2026-09-25):** The landing page, authenticated sidebar shell, role-filtered routes, schedule editing/read-only views, management forms, dashboard, My Workload, Account Settings avatar upload, loading/empty/error/toast states, and responsive layouts are implemented. The Reports page is currently a placeholder; WebSocket-driven live updates and report/export UI are not implemented.
+
+
 ## 1. Design System
 
 Framework:

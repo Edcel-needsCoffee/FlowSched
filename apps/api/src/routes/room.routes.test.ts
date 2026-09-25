@@ -28,13 +28,13 @@ let chairToken = '';
 let facultyToken = '';
 
 beforeEach(async () => {
-  await prisma.room.deleteMany({ where: { name: { startsWith: PREFIX, mode: 'insensitive' } } });
+  await prisma.room.deleteMany({ where: { name: { startsWith: PREFIX } } });
 });
 
 // Leave no fixtures behind: a leftover row here would leak into other suites'
 // unfiltered list assertions (and into the developer's local data).
 afterAll(async () => {
-  await prisma.room.deleteMany({ where: { name: { startsWith: PREFIX, mode: 'insensitive' } } });
+  await prisma.room.deleteMany({ where: { name: { startsWith: PREFIX } } });
   await prisma.user.deleteMany({ where: { email: { in: [CHAIR_EMAIL, FACULTY_EMAIL] } } });
 });
 
@@ -84,7 +84,7 @@ describe('Rooms API', () => {
     expect(duplicate.body.error.details).toMatchObject({ field: 'name' });
 
     const count = await prisma.room.count({
-      where: { name: { startsWith: PREFIX, mode: 'insensitive' } },
+      where: { name: { startsWith: PREFIX } },
     });
     expect(count).toBe(1);
   });

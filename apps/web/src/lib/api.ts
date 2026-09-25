@@ -45,14 +45,18 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}): Promi
 
   const doFetch = async (token: string | null): Promise<Response> => {
     // FormData (multipart uploads) must set its own Content-Type boundary —
-    // only add the JSON default for plain string bodies.
+    // everything else apiFetch sends is a JSON string, so it needs the JSON
+    // default. Without this, fetch() labels a string body
+    // `text/plain;charset=UTF-8`, which express.json() ignores — req.body then
+    // arrives empty and the API answers 400 "Invalid request" with every field
+    // reported as missing.
     const baseHeaders: Record<string, string> = {};
     if (headers) {
       new Headers(headers).forEach((value, key) => {
         baseHeaders[key] = value;
       });
     }
-    if (typeof init.body !== 'string' && !(init.body instanceof FormData)) {
+    if (!(init.body instanceof FormData)) {
       baseHeaders['Content-Type'] = 'application/json';
     }
     return fetch(`${apiBase}${path}`, {

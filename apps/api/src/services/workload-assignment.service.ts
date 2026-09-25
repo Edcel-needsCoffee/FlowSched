@@ -1,11 +1,13 @@
 import { z } from 'zod';
 import { ApiError } from '../errors/apiError.js';
+import { timeOfDayToMinutes } from '../utils/time.js';
 import * as facultyRepository from '../repositories/faculty.repository.js';
 import * as sectionRepository from '../repositories/section.repository.js';
 import * as subjectRepository from '../repositories/subject.repository.js';
 import * as termRepository from '../repositories/term.repository.js';
 import * as workloadAssignmentRepository from '../repositories/workload-assignment.repository.js';
 import type { WorkloadAssignmentWithRelations } from '../repositories/workload-assignment.repository.js';
+import { sortSlotsByDay } from '../repositories/schedule-slot.repository.js';
 import { toScheduleSlotDto, type ScheduleSlotDto } from './schedule-slot.service.js';
 import {
   createWorkloadAssignmentSchema,
@@ -51,11 +53,13 @@ export interface WorkloadAssignmentListDto {
   meta: { total: number; page: number; pageSize: number; pageCount: number };
 }
 
-const SEMESTER_LABELS = {
+// Indexed by the stored semester string (the schema field was a Prisma enum
+// before the SQLite migration).
+const SEMESTER_LABELS: Record<string, string> = {
   FIRST: '1st Sem',
   SECOND: '2nd Sem',
   SUMMER: 'Summer',
-} as const;
+};
 
 function parseOrBadRequest<T extends z.ZodTypeAny>(schema: T, payload: unknown): z.infer<T> {
   const parsed = schema.safeParse(payload);
@@ -71,7 +75,7 @@ function round2(value: number): number {
 
 /**
  * Weekly hours the assignment must occupy. Subject hours are authoritative
- * (Decimal columns → plain numbers); 0-hour catalog rows fall back to units so
+ * (Float columns — plain numbers); 0-hour catalog rows fall back to units so
  * a drag always has a sensible block length.
  */
 export function weeklyHoursOf(assignment: WorkloadAssignmentWithRelations): number {
@@ -99,7 +103,7 @@ export function toWorkloadAssignmentDto(
   let scheduledLectureHours = 0;
   let scheduledLabHours = 0;
   for (const slot of assignment.slots) {
-    const slotHours = (slot.end_time.getTime() - slot.start_time.getTime()) / 3_600_000;
+    const slotHours = (timeOfDayToMinutes(slot.end_time) - timeOfDayToMinutes(slot.start_time)) / 60;
     const hours = round2(slotHours);
     scheduledHours = round2(scheduledHours + hours);
     if (slot.session_type === 'LECTURE') {
@@ -128,7 +132,7 @@ export function toWorkloadAssignmentDto(
     scheduled_lab_hours: scheduledLabHours,
     remaining_lab_hours: Math.max(0, labHours - scheduledLabHours),
     color: assignment.color ?? null,
-    slots: assignment.slots.map(toScheduleSlotDto),
+    slots: sortSlotsByDay(assignment.slots).map(toScheduleSlotDto),
     created_at: assignment.created_at.toISOString(),
   };
 }

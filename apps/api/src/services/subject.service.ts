@@ -49,7 +49,7 @@ function toNumber(value: Subject['units']): number {
   return Number(value);
 }
 
-/** Decimals serialize as plain numbers (stored at 2dp by the schema). */
+/** Floats serialize as plain numbers (SQLite dropped the Decimal columns). */
 export function toSubjectDto(subject: Subject): SubjectDto {
   return {
     id: subject.id,

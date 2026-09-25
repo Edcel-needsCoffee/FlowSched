@@ -34,7 +34,7 @@ export async function findBySchoolYearAndSemester(
 ): Promise<AcademicTerm | null> {
   return prisma.academicTerm.findFirst({
     where: {
-      school_year: { equals: schoolYear, mode: 'insensitive' },
+      school_year: { equals: schoolYear },
       semester,
       ...(excludeId ? { id: { not: excludeId } } : {}),
     },

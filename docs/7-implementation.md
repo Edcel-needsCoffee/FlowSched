@@ -1,5 +1,8 @@
 # Implementation Plan
 
+> **Current implementation status (2026-09-25):** Phases 1–3 are largely implemented in the current code, including SQLite migration/seed, authentication and RBAC, core CRUD, workload/schedule conflict handling, role-scoped views, dashboard data, avatar upload, and frontend pages/tests. Phases 4–7 remain planned or partial; this document intentionally preserves that roadmap.
+
+
 ## Development Rules
 
 Implement the application incrementally.

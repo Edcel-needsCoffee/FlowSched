@@ -1,5 +1,8 @@
 # Testing Specification
 
+> **Current implementation status (2026-09-25):** Vitest is configured for API and web tests; Supertest is used for API route tests, and Testing Library is used for web tests. Playwright is installed as a dependency but no maintained E2E suite/config is currently present. The sections below distinguish current automated coverage from planned coverage.
+
+
 ## 1. Unit Tests
 
 Test:

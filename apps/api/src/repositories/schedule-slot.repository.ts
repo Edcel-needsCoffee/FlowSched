@@ -1,6 +1,7 @@
-import { Prisma, type DayOfWeek, type ScheduleSlot, type SessionType } from '@prisma/client';
+import { Prisma, type ScheduleSlot } from '@prisma/client';
 import { prisma } from '../config/prisma.js';
-import { formatTimeOfDay, timeOfDayToMinutes } from '../utils/time.js';
+import { DAY_ORDER, type DayOfWeek, type SessionType } from '../types/domain.js';
+import { timeOfDayToMinutes } from '../utils/time.js';
 
 export interface ScheduleSlotListFilters {
   termId: string | null;
@@ -18,14 +19,17 @@ export interface ScheduleSlotCreateData {
   room_id: string | null;
   session_type: SessionType;
   day_of_week: DayOfWeek;
-  start_time: Date;
-  end_time: Date;
+  /** Canonical "HH:MM" string (SQLite stores times as plain strings). */
+  start_time: string;
+  end_time: string;
 }
 
 export interface OverlapQuery {
   day: DayOfWeek;
-  startTime: Date;
-  endTime: Date;
+  /** Canonical "HH:MM" strings — zero-padded, so lexicographic lt/gt in the
+   *  overlap filter matches chronological order. */
+  startTime: string;
+  endTime: string;
   /** Ignore this slot — used when moving an existing block. */
   excludeSlotId?: string | null;
 }
@@ -60,12 +64,31 @@ function listWhere(filters: ScheduleSlotListFilters): Prisma.ScheduleSlotWhereIn
   };
 }
 
+/** Rank of a day in grid order MON..SAT (unknown days sort last). */
+const DAY_RANK = new Map<string, number>(DAY_ORDER.map((day, index) => [day, index]));
+
+/**
+ * Grid order (MON..SAT, then "HH:MM"): SQLite stores days as plain strings,
+ * so `ORDER BY day_of_week` would sort alphabetically (FRI first). Sorting in
+ * app code preserves the Postgres enum ordering the views and UI depend on.
+ */
+export function sortSlotsByDay<T extends { day_of_week: string; start_time: string }>(
+  rows: T[],
+): T[] {
+  return [...rows].sort(
+    (a, b) =>
+      (DAY_RANK.get(a.day_of_week) ?? 99) - (DAY_RANK.get(b.day_of_week) ?? 99) ||
+      a.start_time.localeCompare(b.start_time),
+  );
+}
+
 export async function list(filters: ScheduleSlotListFilters): Promise<ScheduleSlotWithRelations[]> {
-  return prisma.scheduleSlot.findMany({
+  const rows = await prisma.scheduleSlot.findMany({
     where: listWhere(filters),
     include: scheduleSlotInclude,
-    orderBy: [{ day_of_week: 'asc' }, { start_time: 'asc' }],
+    orderBy: { start_time: 'asc' },
   });
+  return sortSlotsByDay(rows);
 }
 
 export async function findById(id: string): Promise<ScheduleSlotWithRelations | null> {
@@ -150,14 +173,10 @@ export async function sumSessionHours(
 }
 
 /**
- * Length of a stored slot in hours. The columns are `@db.Time`, so Prisma hands
- * them back as Dates anchored on the epoch day in UTC — read the UTC wall clock
- * through the shared helpers (utils/time.ts). Using local getters here would
- * wrap around midnight for any machine east of UTC (e.g. a 15:00–16:30 slot
- * becomes 23:00–00:30 local, i.e. −22.5h, which silently disables the cap).
+ * Length of a stored slot in hours. Times are canonical "HH:MM" strings
+ * (SQLite migration) — no Date involved; minutes math via utils/time.ts.
  */
-function slotHours(startTime: Date, endTime: Date): number {
-  const minutes =
-    timeOfDayToMinutes(formatTimeOfDay(endTime)) - timeOfDayToMinutes(formatTimeOfDay(startTime));
+function slotHours(startTime: string, endTime: string): number {
+  const minutes = timeOfDayToMinutes(endTime) - timeOfDayToMinutes(startTime);
   return Math.round((minutes / 60) * 100) / 100;
 }

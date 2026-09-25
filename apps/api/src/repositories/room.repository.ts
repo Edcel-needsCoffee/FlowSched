@@ -15,7 +15,7 @@ function listWhere(search: string | null): Prisma.RoomWhereInput {
   if (!trimmed) {
     return {};
   }
-  return { name: { contains: trimmed, mode: 'insensitive' } };
+  return { name: { contains: trimmed } };
 }
 
 export async function list(search: string | null): Promise<Room[]> {
@@ -27,12 +27,13 @@ export async function findById(id: string): Promise<Room | null> {
 }
 
 export async function findByName(name: string, excludeId?: string): Promise<Room | null> {
-  return prisma.room.findFirst({
-    where: {
-      name: { equals: name, mode: 'insensitive' },
-      ...(excludeId ? { id: { not: excludeId } } : {}),
-    },
+  // Case-insensitive compare in JS (see faculty.repository.findActiveByEmployeeNo:
+  // SQLite has no `mode: 'insensitive'` filter). Rooms have no soft delete.
+  const candidates = await prisma.room.findMany({
+    where: excludeId ? { id: { not: excludeId } } : {},
   });
+  const target = name.toLowerCase();
+  return candidates.find((room) => room.name.toLowerCase() === target) ?? null;
 }
 
 export async function create(data: RoomCreateData): Promise<Room> {

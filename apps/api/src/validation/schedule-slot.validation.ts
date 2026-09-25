@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { DayOfWeek } from '@prisma/client';
 import { TIME_OF_DAY_PATTERN, timeOfDayToMinutes } from '../utils/time.js';
 
 /** Shared UUID param validation (same contract as subject.validation.ts). */
@@ -47,7 +46,9 @@ const sessionTypeSchema = z.enum(['LECTURE', 'LAB'], {
 
 export const dayOfWeekSchema = z.preprocess(
   (value) => (value === undefined || value === null || value === '' ? undefined : value),
-  z.nativeEnum(DayOfWeek, { errorMap: () => ({ message: 'Day must be MON, TUE, WED, THU, FRI or SAT' }) }),
+  z.enum(['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'], {
+    errorMap: () => ({ message: 'Day must be MON, TUE, WED, THU, FRI or SAT' }),
+  }),
 );
 
 /** database-specification.md: `end_time > start_time`. */

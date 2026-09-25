@@ -3,25 +3,18 @@
 Monorepo foundation (Phase 1). Two apps plus one shared package:
 
 - `apps/web` — React + TypeScript frontend (Vite, Tailwind CSS, React Router, Zustand).
-- `apps/api` — Express + TypeScript backend (Prisma + PostgreSQL, Zod validation, JWT-ready).
+- `apps/api` — Express + TypeScript backend (Prisma + SQLite for local dev / PostgreSQL for production, Zod validation, JWT-ready).
 - `packages/shared` — shared TypeScript enums/types (`Role`, `EmploymentStatus`, `DayOfWeek`, `Semester`).
 
 ## Prerequisites
 
 - Node.js >= 20, npm >= 10
-- Docker Desktop (for the local Postgres container)
+
+No Docker or database server is needed for local development — the API uses a local SQLite file.
 
 ## Quickstart
 
-1. Start Postgres (Docker):
-
-   ```powershell
-   docker run -d --name flowsched-postgres `
-     -e POSTGRES_USER=flowsched `
-     -e POSTGRES_PASSWORD=flowsched `
-     -e POSTGRES_DB=flowsched `
-     -p 5433:5432 postgres:17
-   ```
+1. No database server needed — local dev uses the SQLite file (`apps/api/prisma/dev.db`) that Prisma creates in step 3.
 
 2. Configure environment:
 
@@ -32,7 +25,6 @@ Monorepo foundation (Phase 1). Two apps plus one shared package:
 
    | Variable | Used by | Purpose |
    |---|---|---|
-   | `DATABASE_URL` | `apps/api` (Prisma) | PostgreSQL connection string |
    | `JWT_SECRET` | `apps/api` (Phase 2) | Signs short-lived access tokens |
    | `JWT_REFRESH_SECRET` | `apps/api` (Phase 2) | Signs long-lived refresh tokens |
    | `PORT` | `apps/api` | Port the Express server listens on (default `4000`) |

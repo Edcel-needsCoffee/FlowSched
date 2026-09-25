@@ -25,15 +25,15 @@ let facultyToken = '';
 
 async function cleanFixtures(): Promise<void> {
   await prisma.workloadAssignment.deleteMany({
-    where: { section: { name: { startsWith: PREFIX, mode: 'insensitive' } } },
+    where: { section: { name: { startsWith: PREFIX } } },
   });
   await prisma.faculty.deleteMany({
-    where: { employee_no: { startsWith: PREFIX, mode: 'insensitive' } },
+    where: { employee_no: { startsWith: PREFIX } },
   });
-  await prisma.subject.deleteMany({ where: { code: { startsWith: PREFIX, mode: 'insensitive' } } });
-  await prisma.section.deleteMany({ where: { name: { startsWith: PREFIX, mode: 'insensitive' } } });
+  await prisma.subject.deleteMany({ where: { code: { startsWith: PREFIX } } });
+  await prisma.section.deleteMany({ where: { name: { startsWith: PREFIX } } });
   await prisma.academicTerm.deleteMany({
-    where: { school_year: { startsWith: PREFIX, mode: 'insensitive' } },
+    where: { school_year: { startsWith: PREFIX } },
   });
 }
 

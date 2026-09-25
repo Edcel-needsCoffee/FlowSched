@@ -1,136 +1,93 @@
-# Technology Stack
+﻿# Technology Stack
+
+> **Current implementation status (2026-09-25):** This stack reflects dependencies and code currently in the repository. Socket.IO, Redis, BullMQ, S3/MinIO, Nginx/Docker deployment, and a dedicated Playwright E2E suite are not currently implemented; they are future/production options only.
 
 ## Frontend
 
-Framework:
-React
-
-Language:
-TypeScript
-
-Build Tool:
-Vite
-
-UI Framework:
-Tailwind CSS
-
-State Management:
-Zustand
-
-Routing:
-React Router
-
----
+- React 18 + TypeScript
+- Vite
+- Tailwind CSS
+- React Router
+- Zustand
+- dnd-kit (`@dnd-kit/core` and utilities)
+- Framer Motion
+- Zod
 
 ## Backend
 
-Language:
-Node.js
-
-Framework:
-Express
-
-ORM:
-Prisma
-
-Validation:
-Zod
-
----
+- Node.js 20+ and TypeScript
+- Express 4
+- Prisma 6
+- Zod
+- JWT via `jsonwebtoken`
+- Password hashing via `bcrypt`
+- CORS and local Multer-based avatar uploads
 
 ## Database
 
-Database:
-PostgreSQL
-
-Migration:
-Prisma Migrate
-
----
+- Local development: SQLite at `apps/api/prisma/dev.db`; no Docker or database server required.
+- Schema storage: SQLite-compatible `String`/`Float` equivalents for enums, UUIDs, times, and decimals, with API-layer Zod validation.
+- Production target: PostgreSQL, documented but not configured in the current application.
+- Migrations: Prisma Migrate; run with the API workspace scripts.
 
 ## Real-Time
 
-Technology:
-Socket.IO
+**Current implementation:** None. Schedule changes are saved and rendered through REST/API state updates; open views do not currently receive live push events.
 
-Purpose:
-Broadcasting live schedule-grid updates (a chairman moving a class updates any open instructor views instantly), instant conflict-warning notifications, and room-maintenance status changes — without requiring a page refresh or polling.
-
----
+**Future option:** Socket.IO could be added for live schedule, conflict, and room-maintenance notifications. It is not a current dependency or runtime component.
 
 ## Cache / Queue
 
-Cache:
-Redis
+**Current implementation:** None. No Redis, BullMQ, or worker service is configured.
 
-Queue:
-Redis + BullMQ
-
-Workers:
-Node.js (BullMQ workers) — handle Excel schedule exports, bulk subject-catalog imports, and workload report generation.
-
----
+**Future options:** Redis, BullMQ, and Node.js workers could support caching, bulk imports, and report/export jobs when those features are introduced. The database remains the source of truth.
 
 ## Authentication
 
-Authentication:
-JWT (access + refresh tokens)
-
-Authorization:
-RBAC — three roles: Department Head / Program Chair, Faculty Member, Academic Administrator.
-
----
+- JWT access + refresh tokens
+- bcrypt password verification
+- Three roles: `CHAIR`, `FACULTY`, `ACADEMIC_ADMIN`
+- Access token is held in memory; refresh token is persisted in browser local storage for session restore.
 
 ## File Storage
 
-Development:
-LOCAL
+**Current implementation:** LOCAL avatar storage. Uploads are written under the configured upload directory and served at `/uploads/avatars/*`.
 
-Production:
-S3-compatible (MinIO) — stores generated Excel schedule exports and workload reports.
-
----
+**Future option:** S3-compatible storage (for example MinIO) may replace local storage for production; it is not currently implemented.
 
 ## Testing
 
-Unit:
-Vitest
+- Unit/component tests: Vitest
+- API route tests: Supertest
+- Web component tests: Testing Library
+- Playwright is installed as a dependency, but no maintained E2E suite/config is currently present.
 
-Integration:
-Supertest (API route/service-layer tests)
+## Deployment and Commands
 
-E2E:
-Playwright — covers the drag-and-drop schedule flow, role-based access, and conflict detection.
+Local development runs directly on Node.js + SQLite and does not require Docker or a database server.
 
----
-
-## Deployment
-
-Runtime:
-Node.js (Docker container)
-
-Reverse Proxy:
-Nginx
-
-Environment:
-Docker (Linux containers), deployable on-prem or on a single department server.
-
----
-
-### Stack summary
-
+```powershell
+npm install
+npm run migrate:dev --workspace apps/api
+npm run seed --workspace apps/api
+npm run dev:api
+npm run dev:web
+npm run build
+npm run test
 ```
-React + TypeScript
-+
-Tailwind CSS
+
+Production Docker/Nginx deployment is a future deployment plan, not a current repository feature.
+
+## Stack summary
+
+```text
+React + TypeScript + Vite
+Tailwind CSS + React Router + Zustand + dnd-kit
 +
 Express + TypeScript
-+
-PostgreSQL (Prisma)
-+
-Redis + BullMQ
-+
-Socket.IO
-+
-Playwright
+Prisma + SQLite
+Zod + JWT + bcrypt
+Vitest + Supertest + Testing Library
 ```
+
+Future additions may include PostgreSQL, Socket.IO, Redis/BullMQ, S3, Playwright E2E, and Docker/Nginx deployment.

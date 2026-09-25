@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { EmploymentStatus } from '@prisma/client';
 
 /** Shared UUID param validation (same contract as subject.validation.ts). */
 export { uuidIdSchema } from './subject.validation.js';
@@ -55,9 +54,12 @@ export const maxUnitsSchema = intFrom('Max units')
   .refine((n) => n > 0, 'Max units must be greater than 0')
   .refine((n) => n <= 99, 'Max units must be 99 or less');
 
+/** Mirrors the schema's `employment_status` string field (the Prisma
+ *  EmploymentStatus enum was dropped in the SQLite migration; z.enum keeps
+ *  the API-layer check exactly as strict). */
 export const employmentStatusSchema = z.preprocess(
   (value) => (value === undefined || value === null || value === '' ? undefined : value),
-  z.nativeEnum(EmploymentStatus, {
+  z.enum(['FULL_TIME', 'PART_TIME'], {
     errorMap: () => ({ message: 'Employment status must be FULL_TIME or PART_TIME' }),
   }),
 );
@@ -68,7 +70,7 @@ export const createFacultySchema = z
     first_name: presentString('First name', 120),
     last_name: presentString('Last name', 120),
     rank: optionalText('Rank', 120),
-    employment_status: employmentStatusSchema.default(EmploymentStatus.FULL_TIME),
+    employment_status: employmentStatusSchema.default('FULL_TIME'),
     max_units: maxUnitsSchema.default(24),
   })
   .strict();

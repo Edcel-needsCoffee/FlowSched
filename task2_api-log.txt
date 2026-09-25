@@ -1,0 +1,41 @@
+
+> api@0.1.0 dev
+> tsx watch src/server.ts
+
+(node:34180) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[api] listening on http://localhost:4000
+[api] unhandled error: SyntaxError: Expected property name or '}' in JSON at position 1 (line 1 column 2)
+    at JSON.parse (<anonymous>)
+    at parse (C:\FLOWSCHED\node_modules\body-parser\lib\types\json.js:96:19)
+    at C:\FLOWSCHED\node_modules\body-parser\lib\read.js:128:18
+    at AsyncResource.runInAsyncScope (node:async_hooks:228:14)
+    at invokeCallback (C:\FLOWSCHED\node_modules\raw-body\index.js:238:16)
+    at done (C:\FLOWSCHED\node_modules\raw-body\index.js:227:7)
+    at IncomingMessage.onEnd (C:\FLOWSCHED\node_modules\raw-body\index.js:287:7)
+    at IncomingMessage.emit (node:events:508:28)
+    at endReadableNT (node:internal/streams/readable:1729:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+  expose: true,
+  statusCode: 400,
+  status: 400,
+  body: '{workload_assignment_id:d3f7b707-66ca-4112-aa28-b2393a16ce4b,day_of_week:SAT,start_time:18:00,end_time:19:00,room_id:null,session_type:LAB}',
+  type: 'entity.parse.failed'
+}
+[api] unhandled error: SyntaxError: Expected property name or '}' in JSON at position 1 (line 1 column 2)
+    at JSON.parse (<anonymous>)
+    at parse (C:\FLOWSCHED\node_modules\body-parser\lib\types\json.js:96:19)
+    at C:\FLOWSCHED\node_modules\body-parser\lib\read.js:128:18
+    at AsyncResource.runInAsyncScope (node:async_hooks:228:14)
+    at invokeCallback (C:\FLOWSCHED\node_modules\raw-body\index.js:238:16)
+    at done (C:\FLOWSCHED\node_modules\raw-body\index.js:227:7)
+    at IncomingMessage.onEnd (C:\FLOWSCHED\node_modules\raw-body\index.js:287:7)
+    at IncomingMessage.emit (node:events:508:28)
+    at endReadableNT (node:internal/streams/readable:1729:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+  expose: true,
+  statusCode: 400,
+  status: 400,
+  body: '{workload_assignment_id:d3f7b707-66ca-4112-aa28-b2393a16ce4b,day_of_week:SAT,start_time:19:00,end_time:20:00,room_id:null,session_type:LECTURE}',
+  type: 'entity.parse.failed'
+}

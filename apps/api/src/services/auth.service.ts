@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import bcrypt from 'bcrypt';
 import jwt, { type JwtPayload } from 'jsonwebtoken';
-import type { Role } from '@prisma/client';
+import type { Role } from '../types/domain.js';
 
 /**
  * Token payload carried by both access and refresh JWTs.

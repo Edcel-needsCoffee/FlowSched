@@ -28,7 +28,7 @@ beforeEach(async () => {
   // case-rename test leaves behind after the last test) is also removed;
   // Prisma startsWith is case-sensitive on Postgres by default.
   await prisma.subject.deleteMany({
-    where: { code: { startsWith: CODE_PREFIX, mode: 'insensitive' } },
+    where: { code: { startsWith: CODE_PREFIX } },
   });
 });
 

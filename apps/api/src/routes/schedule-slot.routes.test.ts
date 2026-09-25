@@ -44,16 +44,16 @@ interface Fixtures {
 
 async function cleanFixtures(): Promise<void> {
   await prisma.workloadAssignment.deleteMany({
-    where: { faculty: { employee_no: { startsWith: PREFIX, mode: 'insensitive' } } },
+    where: { faculty: { employee_no: { startsWith: PREFIX } } },
   });
   await prisma.faculty.deleteMany({
-    where: { employee_no: { startsWith: PREFIX, mode: 'insensitive' } },
+    where: { employee_no: { startsWith: PREFIX } },
   });
-  await prisma.subject.deleteMany({ where: { code: { startsWith: PREFIX, mode: 'insensitive' } } });
-  await prisma.section.deleteMany({ where: { name: { startsWith: PREFIX, mode: 'insensitive' } } });
-  await prisma.room.deleteMany({ where: { name: { startsWith: PREFIX, mode: 'insensitive' } } });
+  await prisma.subject.deleteMany({ where: { code: { startsWith: PREFIX } } });
+  await prisma.section.deleteMany({ where: { name: { startsWith: PREFIX } } });
+  await prisma.room.deleteMany({ where: { name: { startsWith: PREFIX } } });
   await prisma.academicTerm.deleteMany({
-    where: { school_year: { startsWith: PREFIX, mode: 'insensitive' } },
+    where: { school_year: { startsWith: PREFIX } },
   });
 }
 
@@ -459,7 +459,7 @@ describe('ScheduleSlot API — override, move, roles', () => {
     // Nothing moved: the slot is still on WED 07:00–09:00.
     const after = await prisma.scheduleSlot.findUnique({ where: { id: baselineSlotId } });
     expect(after?.day_of_week).toBe('WED');
-    expect(after?.start_time.toISOString()).toContain('T07:00:00');
+    expect(after?.start_time).toBe('07:00');
 
     // Override the move (slot_id + the placement that was just rejected).
     const overrideMove = await request(createApp())

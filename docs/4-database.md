@@ -1,9 +1,24 @@
 # Database Specification
 
+> **Current implementation status (2026-09-25):** This document describes the live Prisma schema and SQLite migration. PostgreSQL is a documented production target only; no PostgreSQL-specific constraints are active in the current local SQLite database. The API also supports avatar uploads and schedule session types/colors, which are listed below.
+
+
 ## 1. Database
 
 Database:
-PostgreSQL
+PostgreSQL (production target)
+
+Local development runs on SQLite (single file `apps/api/prisma/dev.db`, no container or DB server). Both use the same Prisma schema; where SQLite lacks a native type, the schema stores a portable equivalent:
+
+| Concept | PostgreSQL (production) | SQLite (local dev) |
+|---|---|---|
+| `enum` columns | native `enum` | `TEXT`, with valid values documented in `schema.prisma` and enforced by Zod `z.enum` at the API layer |
+| `UUID` columns | `uuid` (`@db.Uuid`) | `TEXT` (Prisma `uuid()` default, provider-independent) |
+| `time` columns | `time` (`@db.Time`) | `TEXT` as canonical `"HH:MM"` (the API wire format) |
+| `decimal` columns | `decimal(5, 2)` | `REAL` (`Float` — precision tradeoff acceptable for department-scale unit/hour counts) |
+| `timestamptz` | `timestamptz` | `DATETIME` |
+
+Tradeoff: local dev needs no Docker/DB server, but does not exercise Postgres-specific behavior (native enum ordering, exact decimal arithmetic, `EXCLUDE` constraints) — those remain production-time concerns.
 
 ORM:
 Prisma
@@ -25,6 +40,7 @@ Prisma Migrate
 | role | enum(`CHAIR`, `FACULTY`, `ACADEMIC_ADMIN`) | Yes | `FACULTY` | Drives RBAC checks |
 | faculty_id | UUID (FK) | No | null | Links a login to a Faculty profile; null for Chair/Admin accounts not tied to a faculty record |
 | is_active | boolean | Yes | true | Disables login without deleting the account |
+| avatar_url | string | No | null | Local or future S3 profile-photo URL |
 | created_at | timestamp (UTC) | Yes | now() | |
 | updated_at | timestamp (UTC) | Yes | now() | |
 
@@ -41,6 +57,7 @@ Prisma Migrate
 | rank | string | No | null | e.g. Instructor I, Assistant Professor |
 | employment_status | enum(`FULL_TIME`, `PART_TIME`) | Yes | `FULL_TIME` | |
 | max_units | integer | Yes | 24 | Used by conflict/overload detection |
+| avatar_url | string | No | null | Denormalized profile-photo URL for faculty lists/load panels |
 | created_at | timestamp (UTC) | Yes | now() | |
 | updated_at | timestamp (UTC) | Yes | now() | |
 | deleted_at | timestamp (UTC) | No | null | Soft delete |
@@ -114,6 +131,7 @@ Links a faculty member to a subject and section for a given term. This is the ro
 | subject_id | UUID (FK) | Yes | — | References Subject |
 | section_id | UUID (FK) | Yes | — | References Section |
 | term_id | UUID (FK) | Yes | — | References AcademicTerm |
+| color | string | No | null | Optional `#RRGGBB` schedule-block color |
 | created_at | timestamp (UTC) | Yes | now() | |
 | updated_at | timestamp (UTC) | Yes | now() | |
 | deleted_at | timestamp (UTC) | No | null | Soft delete — preserves historical workload records |
@@ -131,6 +149,7 @@ The actual weekly-grid placement(s) for a workload assignment. One assignment ca
 | id | UUID | Yes | auto | Primary key |
 | workload_assignment_id | UUID (FK) | Yes | — | References WorkloadAssignment |
 | room_id | UUID (FK) | No | null | References Room; null allowed for TBA |
+| session_type | enum(`LECTURE`, `LAB`) | Yes | — | Type of class session |
 | day_of_week | enum(`MON`…`SAT`) | Yes | — | |
 | start_time | time | Yes | — | |
 | end_time | time | Yes | — | Must be after `start_time` |
@@ -240,6 +259,19 @@ An already-released migration is never edited to accommodate a new change — a 
 Database constraints protect the rules that matter most, in addition to application-level validation performed by the service layer:
 
 - The unique constraint on `WorkloadAssignment(faculty_id, subject_id, section_id, term_id)` prevents duplicate assignments at the database level, even if application-level validation is ever bypassed or has a bug.
-- The `end_time > start_time` check constraint guarantees no schedule slot is stored backwards.
-- Foreign keys guarantee a `ScheduleSlot` or `WorkloadAssignment` can never reference a faculty member, subject, section, term, or room that doesn't exist.
-- For stronger protection against double-booking, an optional PostgreSQL `EXCLUDE` constraint (via the `btree_gist` extension) can be added on `ScheduleSlot(room_id, day_of_week, time-range)` to reject overlapping room bookings at the database level, as a backstop to the application-level conflict detection (FR-05).
+- The `end_time > start_time` rule is enforced by API validation/service logic for the current SQLite schema. A database-level check or PostgreSQL `EXCLUDE` constraint remains a future production hardening option, not a current SQLite guarantee.
+- Foreign keys guarantee that a `ScheduleSlot` or `WorkloadAssignment` cannot reference a missing faculty, subject, section, term, or room.
+- For stronger protection against double-booking, an optional PostgreSQL `EXCLUDE` constraint (via the `btree_gist` extension) can be added on `ScheduleSlot(room_id, day_of_week, time-range)` to reject overlapping room bookings at the database level, as a backstop to the application-level conflict detection (FR-05). (PostgreSQL-only: this constraint cannot run on the SQLite local-dev database; the application-level conflict checks remain the backstop there.)
+---
+
+## 11. Current API and Schema Notes
+
+The current Prisma schema also includes these fields/features:
+
+- `User.avatar_url` and `Faculty.avatar_url` store local profile-photo URLs; `POST /api/users/me/avatar` accepts JPG, PNG, or WebP up to 2 MB.
+- `WorkloadAssignment.color` stores an optional `#RRGGBB` schedule-block color.
+- `ScheduleSlot.session_type` is `LECTURE` or `LAB`.
+- The current `end_time > start_time` rule is enforced by API validation/service logic for SQLite. A database-level check or PostgreSQL `EXCLUDE` constraint remains a future production hardening option.
+- `PATCH /api/rooms/:id` also toggles `is_under_maintenance`.
+- `POST /api/schedule-slots/:id/confirm-override` is the Chair-only explicit override path after a conflict response.
+- `GET /api/schedule-views/*` provides section, faculty, room, and rooms-overview read views; Faculty callers are restricted to their own faculty schedule where applicable.

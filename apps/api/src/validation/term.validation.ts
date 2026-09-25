@@ -1,5 +1,4 @@
 import { z } from 'zod';
-import { Semester } from '@prisma/client';
 
 /** Shared UUID param validation (same contract as subject.validation.ts). */
 export { uuidIdSchema } from './subject.validation.js';
@@ -33,10 +32,11 @@ export const schoolYearSchema = presentString('School year', 20).refine(
   'School year must look like 2026-2027',
 );
 
-/** Mirrors the Prisma Semester enum (same pattern as faculty.validation.ts). */
+/** Mirrors the schema's `semester` string field (same pattern as
+ *  faculty.validation.ts); z.enum replaces the dropped Prisma enum. */
 export const semesterSchema = z.preprocess(
   (value) => (value === undefined || value === null || value === '' ? undefined : value),
-  z.nativeEnum(Semester, {
+  z.enum(['FIRST', 'SECOND', 'SUMMER'], {
     errorMap: () => ({ message: 'Semester must be FIRST, SECOND or SUMMER' }),
   }),
 );

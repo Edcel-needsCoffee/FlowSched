@@ -17,7 +17,7 @@ export const authRouter = Router();
 function toPublicUser(user: {
   id: string;
   email: string;
-  role: AuthTokenPayload['role'];
+  role: string;
   faculty_id: string | null;
   avatar_url?: string | null;
 }): {
@@ -30,7 +30,7 @@ function toPublicUser(user: {
   return {
     id: user.id,
     email: user.email,
-    role: user.role,
+    role: user.role as AuthTokenPayload['role'],
     facultyId: user.faculty_id,
     avatar_url: user.avatar_url ?? null,
   };
@@ -70,7 +70,7 @@ authRouter.post('/auth/login', asyncHandler(async (req: Request, res: Response) 
 
   const payload: AuthTokenPayload = {
     userId: user.id,
-    role: user.role,
+    role: user.role as AuthTokenPayload['role'],
     facultyId: user.faculty_id,
   };
   res.status(200).json({
@@ -113,7 +113,7 @@ authRouter.post('/auth/refresh', asyncHandler(async (req: Request, res: Response
 
   const freshPayload: AuthTokenPayload = {
     userId: user.id,
-    role: user.role,
+    role: user.role as AuthTokenPayload['role'],
     facultyId: user.faculty_id,
   };
   // `user` is included so the web app can fully restore an in-memory session

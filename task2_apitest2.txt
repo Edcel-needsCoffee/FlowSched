@@ -1,0 +1,31 @@
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mc:/FLOWSCHED/apps/api[39m
+
+(node:27836) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[90mstderr[2m | src/routes/schedule-slot.routes.test.ts[2m > [22m[2mScheduleSlot API — override, move, roles[2m > [22m[2mcreates the conflicting slot anyway when the override is confirmed
+[22m[39m[schedule-slot] override {"action":"created","actor_user_id":"a62cb51b-a380-4a1b-812f-d134b19dd43d","actor_role":"CHAIR","workload_assignment_id":"394f0ab0-feed-44a4-8a4d-8decdcc0a5ad","slot_id":"287aa464-c100-4768-92da-e79973aed5c1","day_of_week":"MON","start_time":"08:00","end_time":"09:00","room_id":"373775ad-f915-435a-96e2-c0890caac40c","overridden_code":"FACULTY_CONFLICT","overridden_message":"Faculty conflict: Ada Lovelace is already scheduled 7:00 AM–9:00 AM on MON (SLFX-1 · SLFX-1A).","overridden_slot_ids":["2d37ed94-6286-405c-99e3-373492649672"],"reason":"Approved by the Dean (test)"}
+
+[90mstderr[2m | src/routes/schedule-slot.routes.test.ts[2m > [22m[2mScheduleSlot API — override, move, roles[2m > [22m[2moverrides a maintenance block when confirmed
+[22m[39m[schedule-slot] override {"action":"created","actor_user_id":"a62cb51b-a380-4a1b-812f-d134b19dd43d","actor_role":"CHAIR","workload_assignment_id":"70f77f11-949d-4dc6-926a-6340dee91f44","slot_id":"8bf44e05-8acb-441a-9974-56aa115bd329","day_of_week":"FRI","start_time":"15:00","end_time":"16:00","room_id":"6d4821f0-7ef5-4582-8689-dec501d80942","overridden_code":"ROOM_MAINTENANCE","overridden_message":"Room maintenance: SLFX-Room B is currently flagged as under maintenance.","overridden_slot_ids":[],"reason":null}
+
+[90mstderr[2m | src/routes/schedule-slot.routes.test.ts[2m > [22m[2mScheduleSlot API — override, move, roles[2m > [22m[2mmoves a placed block: clean move succeeds, conflicting move 409s and persists nothing
+[22m[39m[schedule-slot] override {"action":"moved","actor_user_id":"a62cb51b-a380-4a1b-812f-d134b19dd43d","actor_role":"CHAIR","workload_assignment_id":"b10ebcc7-0e8c-404d-a4a2-cfef4db54ae5","slot_id":"fc76f47f-4728-4a13-b50d-61f586fbd0b4","day_of_week":"TUE","start_time":"10:30","end_time":"11:30","room_id":"a44295de-ad1d-4cb6-928b-950db3c88151","overridden_code":"ROOM_CONFLICT","overridden_message":"Room conflict: SLFX-Room A is already booked 10:00 AM–11:00 AM on TUE by SLFX-2 · SLFX-1A.","overridden_slot_ids":["d4aeba45-6999-4b05-b54e-525fd3295c28"],"reason":null}
+
+ [32m✓[39m src/routes/schedule-slot.routes.test.ts [2m([22m[2m13 tests[22m[2m)[22m[33m 5815[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — placement + conflict detection[2m > [22mdetects an overlapping faculty booking and writes nothing [33m840[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — placement + conflict detection[2m > [22mdetects an overlapping room booking for a different faculty [33m626[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — placement + conflict detection[2m > [22mflags a room under maintenance [33m355[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — override, move, roles[2m > [22mcreates the conflicting slot anyway when the override is confirmed [33m400[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — override, move, roles[2m > [22mmoves a placed block: clean move succeeds, conflicting move 409s and persists nothing [33m490[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — override, move, roles[2m > [22mdeletes a placed block [33m343[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — override, move, roles[2m > [22mblocks Faculty from every write path but allows reads [33m425[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — override, move, roles[2m > [22mvalidates the time range and unknown references [33m454[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — partial durations (custom block sizes)[2m > [22mplaces a partial 1.5h LAB block, then the remaining 1.5h separately, without exceeding the 3h budget [33m371[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[32m13 passed[39m[22m[90m (13)[39m
+[2m   Start at [22m 14:42:59
+[2m   Duration [22m 8.06s[2m (transform 496ms, setup 0ms, collect 1.53s, tests 5.82s, environment 0ms, prepare 289ms)[22m
+
+COMPLETE_MARKER_APISLOT2 

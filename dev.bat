@@ -61,38 +61,27 @@ if not exist "%~dp0node_modules\framer-motion\" (
     exit /b 1
 )
 
-REM --- 2) Database: needs Docker Desktop running + the flowsched-postgres container ---
-where docker >nul 2>&1
-if errorlevel 1 (
-    echo [FlowSched] ERROR: 'docker' not found on PATH. Start Docker Desktop first.
-    echo.
-    pause
-    exit /b 1
+REM --- 2) Database: SQLite file (apps\api\prisma\dev.db) — no Docker needed. ---
+REM Create + seed the database on first run; afterwards the file just exists.
+if not exist "%~dp0apps\api\prisma\dev.db" (
+    echo [FlowSched] First run: creating the SQLite database from migrations ...
+    call npm run migrate:deploy --workspace apps/api
+    if errorlevel 1 (
+        echo [FlowSched] ERROR: database migration failed. See output above.
+        echo.
+        pause
+        exit /b 1
+    )
+    echo [FlowSched] Seeding dev data ...
+    call npm run seed --workspace apps/api
+    if errorlevel 1 (
+        echo [FlowSched] ERROR: database seed failed. See output above.
+        echo.
+        pause
+        exit /b 1
+    )
+    echo [FlowSched] SQLite database ready at apps\api\prisma\dev.db.
 )
-docker info >nul 2>&1
-if errorlevel 1 (
-    echo [FlowSched] ERROR: Docker daemon not reachable. Open Docker Desktop and wait until it says "running".
-    echo.
-    pause
-    exit /b 1
-)
-REM NOTE: `docker start` on an already-running container is a harmless no-op
-REM (it just re-prints the name, exit code 0), so don't try to parse
-REM `docker inspect` output here — the Go-template braces + pipe parsing
-REM proved fragile across shells. Start unconditionally, then verify.
-echo [FlowSched] Ensuring Postgres container is running...
-docker start flowsched-postgres
-if errorlevel 1 (
-    echo [FlowSched] ERROR: could not start flowsched-postgres.
-    echo [FlowSched] Create it once with:
-    echo [FlowSched]     docker run -d --name flowsched-postgres -e POSTGRES_USER=flowsched -e POSTGRES_PASSWORD=flowsched -e POSTGRES_DB=flowsched -p 5433:5432 postgres:17
-    echo.
-    pause
-    exit /b 1
-)
-echo [FlowSched] Postgres is running. Waiting 6s for connections...
-timeout /t 6 /nobreak
-echo [FlowSched] Postgres ready.
 
 REM --- 3) API dev server in its own window (skip if port 4000 already listening) ---
 REM Two-stage check: only LISTENING lines, then a literal ":4000 " match.

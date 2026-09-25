@@ -44,8 +44,8 @@ function listWhere(search: string | null): Prisma.SubjectWhereInput {
   return {
     deleted_at: null,
     OR: [
-      { code: { contains: trimmed, mode: 'insensitive' } },
-      { title: { contains: trimmed, mode: 'insensitive' } },
+      { code: { contains: trimmed } },
+      { title: { contains: trimmed } },
     ],
   };
 }
@@ -90,14 +90,15 @@ export async function findActiveByCode(
   code: string,
   excludeId?: string,
 ): Promise<{ id: string; code: string } | null> {
-  return prisma.subject.findFirst({
-    where: {
-      code: { equals: code, mode: 'insensitive' },
-      deleted_at: null,
-      ...(excludeId ? { id: { not: excludeId } } : {}),
-    },
+  // Case-insensitive compare in JS (see faculty.repository.findActiveByEmployeeNo:
+  // SQLite has no `mode: 'insensitive'` filter). Active rows only, mirroring
+  // the partial unique index scope.
+  const candidates = await prisma.subject.findMany({
+    where: { deleted_at: null, ...(excludeId ? { id: { not: excludeId } } : {}) },
     select: { id: true, code: true },
   });
+  const target = code.toLowerCase();
+  return candidates.find((row) => row.code.toLowerCase() === target) ?? null;
 }
 
 export async function create(data: SubjectCreateData): Promise<Subject> {

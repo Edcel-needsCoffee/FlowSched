@@ -17,7 +17,7 @@ export type SectionUpdateData = Partial<SectionCreateData>;
 function listWhere(params: SectionListParams): Prisma.SectionWhereInput {
   const trimmed = params.search?.trim();
   return {
-    ...(trimmed ? { name: { contains: trimmed, mode: 'insensitive' } } : {}),
+    ...(trimmed ? { name: { contains: trimmed } } : {}),
     ...(params.yearLevel !== null ? { year_level: params.yearLevel } : {}),
   };
 }
@@ -39,13 +39,13 @@ export async function findByYearLevelAndName(
   name: string,
   excludeId?: string,
 ): Promise<Section | null> {
-  return prisma.section.findFirst({
-    where: {
-      year_level: yearLevel,
-      name: { equals: name, mode: 'insensitive' },
-      ...(excludeId ? { id: { not: excludeId } } : {}),
-    },
+  // Case-insensitive name compare in JS (see faculty.repository — SQLite has
+  // no `mode: 'insensitive'` filter); year_level matches exactly.
+  const candidates = await prisma.section.findMany({
+    where: { year_level: yearLevel, ...(excludeId ? { id: { not: excludeId } } : {}) },
   });
+  const target = name.toLowerCase();
+  return candidates.find((section) => section.name.toLowerCase() === target) ?? null;
 }
 
 export async function create(data: SectionCreateData): Promise<Section> {

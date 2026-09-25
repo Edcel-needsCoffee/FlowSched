@@ -34,17 +34,17 @@ beforeEach(async () => {
   // Order matters: assignments → unlink/delete linked users → faculty rows,
   // then the FK-scenario rows (subject/section/term).
   await prisma.workloadAssignment.deleteMany({
-    where: { faculty: { employee_no: { startsWith: NO_PREFIX, mode: 'insensitive' } } },
+    where: { faculty: { employee_no: { startsWith: NO_PREFIX } } },
   });
   await prisma.user.updateMany({
-    where: { faculty: { employee_no: { startsWith: NO_PREFIX, mode: 'insensitive' } } },
+    where: { faculty: { employee_no: { startsWith: NO_PREFIX } } },
     data: { faculty_id: null },
   });
   await prisma.user.deleteMany({
-    where: { email: { startsWith: 'linked-tst-', mode: 'insensitive' } },
+    where: { email: { startsWith: 'linked-tst-' } },
   });
   await prisma.faculty.deleteMany({
-    where: { employee_no: { startsWith: NO_PREFIX, mode: 'insensitive' } },
+    where: { employee_no: { startsWith: NO_PREFIX } },
   });
   await prisma.subject.deleteMany({ where: { code: 'FKTST-E' } });
   await prisma.section.deleteMany({ where: { name: 'FKTST-E 1A' } });

@@ -1,0 +1,151 @@
+
+> api@0.1.0 test
+> vitest run
+
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mc:/FLOWSCHED/apps/api[39m
+
+(node:5804) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ [32m✓[39m src/services/auth.service.test.ts [2m([22m[2m3 tests[22m[2m)[22m[33m 1944[2mms[22m[39m
+   [33m[2m✓[22m[39m auth.service password hashing[2m > [22mverifies a correct password and rejects a wrong one [33m1736[2mms[22m[39m
+(node:26848) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:31656) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:27144) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:28556) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:27204) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:5852) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:27472) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:32008) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:6568) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:23128) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:32756) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ [32m✓[39m src/health.test.ts [2m([22m[2m1 test[22m[2m)[22m[90m 196[2mms[22m[39m
+ [32m✓[39m src/auth.test.ts [2m([22m[2m11 tests[22m[2m)[22m[33m 4788[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/login[2m > [22mreturns tokens on success [33m1074[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/login[2m > [22mreturns 401 with a generic message for a wrong password [33m914[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/login[2m > [22mreturns 401 for an inactive account [33m604[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/refresh + logout[2m > [22missues a new access token and returns the current user [33m379[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/refresh + logout[2m > [22mrejects a refresh token after logout [33m1676[2mms[22m[39m
+ [32m✓[39m src/routes/dashboard.routes.test.ts [2m([22m[2m3 tests[22m[2m)[22m[33m 10857[2mms[22m[39m
+   [33m[2m✓[22m[39m Dashboard summary API[2m > [22mchair gets live department numbers scoped to the term [33m2711[2mms[22m[39m
+   [33m[2m✓[22m[39m Dashboard summary API[2m > [22mrequires auth and rejects a malformed termId [33m1334[2mms[22m[39m
+   [33m[2m✓[22m[39m Dashboard summary API[2m > [22mfaculty gets only their own summary, never another faculty data [33m5879[2mms[22m[39m
+ [32m✓[39m src/routes/term.routes.test.ts [2m([22m[2m5 tests[22m[2m)[22m[33m 11262[2mms[22m[39m
+   [33m[2m✓[22m[39m AcademicTerm API[2m > [22mcreates a term (inactive by default) with a display label [33m361[2mms[22m[39m
+   [33m[2m✓[22m[39m AcademicTerm API[2m > [22mkeeps exactly one active term: activating one deactivates the other [33m3699[2mms[22m[39m
+   [33m[2m✓[22m[39m AcademicTerm API[2m > [22mblocks Faculty from writes but allows reads [33m3373[2mms[22m[39m
+ [32m✓[39m src/routes/room.routes.test.ts [2m([22m[2m7 tests[22m[2m)[22m[33m 11752[2mms[22m[39m
+   [33m[2m✓[22m[39m Rooms API[2m > [22mcreates a room with a default (off) maintenance flag [33m335[2mms[22m[39m
+   [33m[2m✓[22m[39m Rooms API[2m > [22mtoggles maintenance with a single-field PATCH and back again [33m1440[2mms[22m[39m
+   [33m[2m✓[22m[39m Rooms API[2m > [22mrejects a rename that collides with another room [33m5384[2mms[22m[39m
+   [33m[2m✓[22m[39m Rooms API[2m > [22mrequires authentication to read and blocks Faculty from writing [33m834[2mms[22m[39m
+   [33m[2m✓[22m[39m Rooms API[2m > [22mreturns 400 for an empty name and 404 for an unknown id [33m923[2mms[22m[39m
+[90mstderr[2m | src/routes/schedule-slot.routes.test.ts[2m > [22m[2mScheduleSlot API — override, move, roles[2m > [22m[2mcreates the conflicting slot anyway when the override is confirmed
+[22m[39m[schedule-slot] override {"action":"created","actor_user_id":"a3f5567f-a6d8-492e-9a72-30e42b931bb8","actor_role":"CHAIR","workload_assignment_id":"f7e366ce-44fd-47df-abd2-b1321a60081d","slot_id":"cf3db721-56c7-44d5-96f4-7f345157cab5","day_of_week":"MON","start_time":"08:00","end_time":"09:00","room_id":"cdf24aff-ea15-4640-8aba-c4bbfa3ec7b3","overridden_code":"FACULTY_CONFLICT","overridden_message":"Faculty conflict: Ada Lovelace is already scheduled 7:00 AM–9:00 AM on MON (SLFX-1 · SLFX-1A).","overridden_slot_ids":["4adb4e7d-b5d1-424d-9d9e-7597676dd6fc"],"reason":"Approved by the Dean (test)"}
+
+[90mstderr[2m | src/routes/schedule-slot.routes.test.ts[2m > [22m[2mScheduleSlot API — override, move, roles[2m > [22m[2moverrides a maintenance block when confirmed
+[22m[39m[schedule-slot] override {"action":"created","actor_user_id":"a3f5567f-a6d8-492e-9a72-30e42b931bb8","actor_role":"CHAIR","workload_assignment_id":"1ea5e789-50d0-4533-ab3b-1bcba3b6a8d7","slot_id":"451f7167-8c26-4d1d-8aa0-c9b355fd8068","day_of_week":"FRI","start_time":"15:00","end_time":"16:00","room_id":"78ea8be4-b239-4871-87d1-95013c71bd03","overridden_code":"ROOM_MAINTENANCE","overridden_message":"Room maintenance: SLFX-Room B is currently flagged as under maintenance.","overridden_slot_ids":[],"reason":null}
+
+ [32m✓[39m src/routes/section.routes.test.ts [2m([22m[2m6 tests[22m[2m)[22m[33m 16284[2mms[22m[39m
+   [33m[2m✓[22m[39m Sections API[2m > [22mcreates a section with a display label [33m428[2mms[22m[39m
+   [33m[2m✓[22m[39m Sections API[2m > [22mrejects a duplicate (year_level, name) but allows the same name in another year [33m715[2mms[22m[39m
+   [33m[2m✓[22m[39m Sections API[2m > [22mvalidates the year level and name [33m387[2mms[22m[39m
+   [33m[2m✓[22m[39m Sections API[2m > [22mlists and filters sections by year level [33m7704[2mms[22m[39m
+   [33m[2m✓[22m[39m Sections API[2m > [22mupdates, blocks deletion while in use, then deletes when free [33m4163[2mms[22m[39m
+ [32m✓[39m src/routes/workload-assignment.routes.test.ts [2m([22m[2m9 tests[22m[2m)[22m[33m 16902[2mms[22m[39m
+   [33m[2m✓[22m[39m WorkloadAssignment API[2m > [22mcreates an assignment with nested display data and hour totals [33m2377[2mms[22m[39m
+   [33m[2m✓[22m[39m WorkloadAssignment API[2m > [22mrejects a duplicate with a 409 that names the existing assignment [33m584[2mms[22m[39m
+   [33m[2m✓[22m[39m WorkloadAssignment API[2m > [22mrejects unknown references with the offending field [33m991[2mms[22m[39m
+   [33m[2m✓[22m[39m WorkloadAssignment API[2m > [22mfilters by term, faculty and section, and soft-deletes [33m1436[2mms[22m[39m
+   [33m[2m✓[22m[39m WorkloadAssignment API[2m > [22mblocks Faculty from writes but allows reads [33m438[2mms[22m[39m
+   [33m[2m✓[22m[39m WorkloadAssignment API[2m > [22mre-points subject and section via PATCH and refuses faculty/term drift [33m4029[2mms[22m[39m
+   [33m[2m✓[22m[39m WorkloadAssignment API[2m > [22mblocks deleting an assignment that already has scheduled slots [33m2255[2mms[22m[39m
+   [33m[2m✓[22m[39m WorkloadAssignment API[2m > [22mpaginates the list and matches the search term across related rows [33m1916[2mms[22m[39m
+[90mstderr[2m | src/routes/schedule-slot.routes.test.ts[2m > [22m[2mScheduleSlot API — override, move, roles[2m > [22m[2mmoves a placed block: clean move succeeds, conflicting move 409s and persists nothing
+[22m[39m[schedule-slot] override {"action":"moved","actor_user_id":"a3f5567f-a6d8-492e-9a72-30e42b931bb8","actor_role":"CHAIR","workload_assignment_id":"2866f7e6-e26a-40f2-acc6-73fed97163ad","slot_id":"322b369d-bc66-413c-9db6-2d203f27ab91","day_of_week":"TUE","start_time":"10:30","end_time":"11:30","room_id":"ab925134-cf69-4a84-9628-3d123d3226b8","overridden_code":"ROOM_CONFLICT","overridden_message":"Room conflict: SLFX-Room A is already booked 10:00 AM–11:00 AM on TUE by SLFX-2 · SLFX-1A.","overridden_slot_ids":["a9f8fc22-42a9-402a-9ec9-7f559cf39c23"],"reason":null}
+
+ [32m✓[39m src/routes/subject.routes.test.ts [2m([22m[2m31 tests[22m[2m)[22m[33m 21403[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/subjects[2m > [22mcreates a subject and returns 201 with the stored row [33m363[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/subjects[2m > [22mreturns 409 for a duplicate code (exact match) [33m822[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/subjects[2m > [22mreturns 409 for a duplicate code (case-insensitive) [33m810[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/subjects[2m > [22mallows re-creating the code of a soft-deleted subject (spec §7) [33m1317[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/subjects[2m > [22mreturns 200 for any authenticated role [33m1699[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/subjects[2m > [22mreturns 401 without a token [33m3586[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/subjects[2m > [22mpaginates and reports meta totals [33m1339[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/subjects[2m > [22msearches by code and title, case-insensitively [33m616[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/subjects[2m > [22mexcludes soft-deleted subjects from the default list [33m838[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/subjects[2m > [22msorts by title asc when requested [33m1020[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/subjects[2m > [22mreturns 400 for an out-of-range page [33m353[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/subjects/:id[2m > [22mreturns the subject for a known id [33m453[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/subjects/:id[2m > [22mreturns 404 for a soft-deleted id [33m1220[2mms[22m[39m
+   [33m[2m✓[22m[39m PATCH /api/subjects/:id[2m > [22mrejects a code change that collides with another subject [33m342[2mms[22m[39m
+   [33m[2m✓[22m[39m PATCH /api/subjects/:id[2m > [22mrejects invalid values with 400 [33m387[2mms[22m[39m
+   [33m[2m✓[22m[39m DELETE /api/subjects/:id[2m > [22msoft-deletes: row stays in DB, disappears from reads [33m381[2mms[22m[39m
+   [33m[2m✓[22m[39m DELETE /api/subjects/:id[2m > [22mreturns 404 for an already-deleted subject [33m1406[2mms[22m[39m
+   [33m[2m✓[22m[39m DELETE /api/subjects/:id[2m > [22mreturns 403 for a non-CHAIR role [33m430[2mms[22m[39m
+ [32m✓[39m src/routes/schedule-slot.routes.test.ts [2m([22m[2m13 tests[22m[2m)[22m[33m 23944[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — placement + conflict detection[2m > [22mplaces a clean slot and round-trips the times exactly [33m4329[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — placement + conflict detection[2m > [22mallows back-to-back blocks (touching ends are not an overlap) [33m2551[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — placement + conflict detection[2m > [22mdetects an overlapping faculty booking and writes nothing [33m2241[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — placement + conflict detection[2m > [22mdetects an overlapping room booking for a different faculty [33m2008[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — placement + conflict detection[2m > [22mflags a room under maintenance [33m1302[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — override, move, roles[2m > [22mcreates the conflicting slot anyway when the override is confirmed [33m1301[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — override, move, roles[2m > [22moverrides a maintenance block when confirmed [33m748[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — override, move, roles[2m > [22mmoves a placed block: clean move succeeds, conflicting move 409s and persists nothing [33m2164[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — override, move, roles[2m > [22mdeletes a placed block [33m1896[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — override, move, roles[2m > [22mblocks Faculty from every write path but allows reads [33m910[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — override, move, roles[2m > [22mvalidates the time range and unknown references [33m482[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — partial durations (custom block sizes)[2m > [22mplaces a partial 1.5h LAB block, then the remaining 1.5h separately, without exceeding the 3h budget [33m1860[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — partial durations (custom block sizes)[2m > [22mrejects a single placement larger than the remaining session hours and writes nothing [33m583[2mms[22m[39m
+ [32m✓[39m src/routes/faculty.routes.test.ts [2m([22m[2m26 tests[22m[2m)[22m[33m 24065[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/faculty[2m > [22mcreates a faculty member and returns 201 with defaults applied [33m510[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/faculty[2m > [22mreturns 409 for a duplicate employee_no (exact match) [33m1314[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/faculty[2m > [22mreturns 409 for a duplicate employee_no (case-insensitive) [33m3090[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/faculty[2m > [22mrejects invalid values with 400 [33m1134[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/faculty[2m > [22mreturns 401 without a token [33m4271[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/faculty[2m > [22mreturns 403 for a FACULTY role [33m772[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/faculty[2m > [22mlists faculty with pagination metadata (counts scoped to this suite prefix) [33m2524[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/faculty[2m > [22msearches by employee_no and by name [33m657[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/faculty[2m > [22mreturns 401 without a token [33m604[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/faculty/:id[2m > [22mreturns the faculty member with their linked login (null when absent) [33m353[2mms[22m[39m
+   [33m[2m✓[22m[39m PATCH /api/faculty/:id[2m > [22mreturns 409 when renaming to an employee_no used by another faculty member [33m1104[2mms[22m[39m
+   [33m[2m✓[22m[39m PATCH /api/faculty/:id[2m > [22mrejects invalid values with 400 [33m325[2mms[22m[39m
+   [33m[2m✓[22m[39m PATCH /api/faculty/:id[2m > [22mreturns 403 for a non-CHAIR role [33m991[2mms[22m[39m
+   [33m[2m✓[22m[39m DELETE /api/faculty/:id[2m > [22msoft-deletes only: the row stays in the DB and disappears from reads [33m880[2mms[22m[39m
+   [33m[2m✓[22m[39m DELETE /api/faculty/:id[2m > [22mblocks deleting a faculty member with active WorkloadAssignment rows (409, clear message) [33m306[2mms[22m[39m
+   [33m[2m✓[22m[39m DELETE /api/faculty/:id[2m > [22mblocks deleting a faculty member with an active login unless confirmed [33m522[2mms[22m[39m
+   [33m[2m✓[22m[39m DELETE /api/faculty/:id[2m > [22mallows a faculty member without an active login to be deleted without confirmation [33m829[2mms[22m[39m
+ [32m✓[39m src/routes/schedule-view.routes.test.ts [2m([22m[2m14 tests[22m[2m)[22m[33m 25538[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/section/:sectionId (Student Class Program)[2m > [22mreturns the section slots sorted by day then time in the flat row shape [33m3549[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/section/:sectionId (Student Class Program)[2m > [22mfilters by term; without termId it returns the raw cross-term schedule [33m2286[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/section/:sectionId (Student Class Program)[2m > [22mdoes not leak other sections' slots into the section program [33m3512[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/section/:sectionId (Student Class Program)[2m > [22m404s unknown sections and 400s malformed ids / termIds [33m1847[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/faculty/:facultyId (Faculty Class Program)[2m > [22maggregates one faculty member's slots across all their sections [33m1609[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/faculty/:facultyId (Faculty Class Program)[2m > [22mlets a FACULTY-role account view its own schedule but 403s on anyone else [33m2901[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/faculty/:facultyId (Faculty Class Program)[2m > [22mlets management roles view any faculty member [33m1755[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/faculty/:facultyId (Faculty Class Program)[2m > [22m404s unknown faculty ids and 400s malformed ones [33m944[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/room/:roomId (Classroom Utilization tab)[2m > [22mreturns every slot booked into the room across sections and faculty [33m1303[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/room/:roomId (Classroom Utilization tab)[2m > [22mrespects the term filter [33m837[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/room/:roomId (Classroom Utilization tab)[2m > [22m404s unknown rooms and 400s malformed ids [33m1193[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/rooms-overview (all utilization tabs at once)[2m > [22mreturns all rooms with their booked slots in one call [33m744[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/rooms-overview (all utilization tabs at once)[2m > [22mrespects the term filter and is open to every authenticated role [33m503[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mrequires authentication on every view endpoint [33m385[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m12 passed[39m[22m[90m (12)[39m
+[2m      Tests [22m [1m[32m129 passed[39m[22m[90m (129)[39m
+[2m   Start at [22m 12:23:17
+[2m   Duration [22m 35.82s[2m (transform 9.02s, setup 0ms, collect 87.23s, tests 168.94s, environment 8ms, prepare 11.37s)[22m
+
+COMPLETE_MARKER_APITEST4 

@@ -47,12 +47,12 @@ function listWhere(filters: WorkloadAssignmentListFilters): Prisma.WorkloadAssig
   const trimmed = filters.search?.trim();
   const searchOr: Prisma.WorkloadAssignmentWhereInput[] = trimmed
     ? [
-        { faculty: { first_name: { contains: trimmed, mode: 'insensitive' } } },
-        { faculty: { last_name: { contains: trimmed, mode: 'insensitive' } } },
-        { faculty: { employee_no: { contains: trimmed, mode: 'insensitive' } } },
-        { subject: { code: { contains: trimmed, mode: 'insensitive' } } },
-        { subject: { title: { contains: trimmed, mode: 'insensitive' } } },
-        { section: { name: { contains: trimmed, mode: 'insensitive' } } },
+        { faculty: { first_name: { contains: trimmed } } },
+        { faculty: { last_name: { contains: trimmed } } },
+        { faculty: { employee_no: { contains: trimmed } } },
+        { subject: { code: { contains: trimmed } } },
+        { subject: { title: { contains: trimmed } } },
+        { section: { name: { contains: trimmed } } },
       ]
     : [];
   return {

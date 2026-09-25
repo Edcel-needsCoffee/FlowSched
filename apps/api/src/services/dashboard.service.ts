@@ -2,7 +2,7 @@ import { z } from 'zod';
 import { ApiError } from '../errors/apiError.js';
 import type { AuthTokenPayload } from '../services/auth.service.js';
 import { prisma } from '../config/prisma.js';
-import { formatTimeOfDay } from '../utils/time.js';
+import { formatTimeOfDay, timeOfDayToMinutes } from '../utils/time.js';
 import { dashboardSummaryQuerySchema } from '../validation/dashboard.validation.js';
 
 /** Faculty load band thresholds (FR-06): >=90% = near, >=100% = over. */
@@ -155,9 +155,9 @@ function round2(value: number): number {
   return Math.round(value * 100) / 100;
 }
 
-function slotHours(start: Date, end: Date): number {
-  const startMin = start.getUTCHours() * 60 + start.getUTCMinutes();
-  const endMin = end.getUTCHours() * 60 + end.getUTCMinutes();
+function slotHours(start: string, end: string): number {
+  const startMin = timeOfDayToMinutes(start);
+  const endMin = timeOfDayToMinutes(end);
   return Math.round(((endMin - startMin) / 60) * 100) / 100;
 }
 
@@ -184,8 +184,8 @@ function dayRank(day: string): number {
 
 type PersonalClassRow = {
   day_of_week: string;
-  start_time: Date;
-  end_time: Date;
+  start_time: string;
+  end_time: string;
   workload_assignment: {
     subject: { code: string; title: string };
     section: { name: string; year_level: number };
@@ -230,9 +230,9 @@ type SlotRow = {
   room_id: string | null;
   room: { name: string; is_under_maintenance: boolean } | null;
   day_of_week: string;
-  start_time: Date;
-  end_time: Date;
-  session_type: 'LECTURE' | 'LAB';
+  start_time: string;
+  end_time: string;
+  session_type: string;
   workload_assignment: {
     subject: { code: string };
     section: { name: string; year_level: number };
@@ -244,8 +244,8 @@ function slotCoversNow(row: SlotRow, now: Date): boolean {
   const enumToday = JS_DAY_TO_ENUM[now.getDay()];
   if (row.day_of_week !== enumToday) return false;
   const nowMin = now.getHours() * 60 + now.getMinutes();
-  const startMin = row.start_time.getUTCHours() * 60 + row.start_time.getUTCMinutes();
-  const endMin = row.end_time.getUTCHours() * 60 + row.end_time.getUTCMinutes();
+  const startMin = timeOfDayToMinutes(row.start_time);
+  const endMin = timeOfDayToMinutes(row.end_time);
   return nowMin >= startMin && nowMin < endMin;
 }
 
@@ -300,7 +300,7 @@ async function getDepartmentSummary(
   for (const assignment of assignments) {
     let total = 0;
     for (const slot of assignment.slots) {
-      total += (slot.end_time.getTime() - slot.start_time.getTime()) / 3_600_000;
+      total += slotHours(slot.start_time, slot.end_time);
     }
     scheduledByFaculty.set(
       assignment.faculty_id,
@@ -349,7 +349,7 @@ async function getDepartmentSummary(
     let scheduledLecture = 0;
     let scheduledLab = 0;
     for (const slot of assignment.slots) {
-      const hours = round2((slot.end_time.getTime() - slot.start_time.getTime()) / 3_600_000);
+      const hours = round2(slotHours(slot.start_time, slot.end_time));
       if (slot.session_type === 'LECTURE') scheduledLecture = round2(scheduledLecture + hours);
       else scheduledLab = round2(scheduledLab + hours);
     }
@@ -363,7 +363,7 @@ async function getDepartmentSummary(
   }
 
   const totalScheduledHours = slots.reduce(
-    (sum, slot) => sum + (slot.end_time.getTime() - slot.start_time.getTime()) / 3_600_000,
+    (sum, slot) => sum + slotHours(slot.start_time, slot.end_time),
     0,
   );
   const term_scheduled_percent =
@@ -433,7 +433,7 @@ async function getDepartmentSummary(
             .sort(
               (a, b) =>
                 dayRank(a.day_of_week) - dayRank(b.day_of_week) ||
-                a.start_time.getTime() - b.start_time.getTime(),
+                a.start_time.localeCompare(b.start_time),
             )
             .map((slot) => ({
               day_of_week: slot.day_of_week,
@@ -441,7 +441,7 @@ async function getDepartmentSummary(
               end_time: formatTimeOfDay(slot.end_time),
               subject_code: slot.workload_assignment.subject.code,
               section_label: `${slot.workload_assignment.section.name} (Year ${slot.workload_assignment.section.year_level})`,
-              session_type: slot.session_type,
+              session_type: slot.session_type as 'LECTURE' | 'LAB',
             })),
         }
       : null;
@@ -533,7 +533,7 @@ async function getPersonalSummary(
     const budget = lecture + lab > 0 ? lecture + lab : Number(assignment.subject.units ?? 0) || 0;
     weeklyTotal = round2(weeklyTotal + budget);
     for (const slot of assignment.slots) {
-      scheduled = round2(scheduled + (slot.end_time.getTime() - slot.start_time.getTime()) / 3_600_000);
+      scheduled = round2(scheduled + slotHours(slot.start_time, slot.end_time));
     }
   }
   scheduled = round2(scheduled);

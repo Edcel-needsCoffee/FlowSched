@@ -1,0 +1,9 @@
+NEW_ASSIGNMENT=41034955-bef2-433a-b7c3-60ae908f43c4 subject=IE 322 section=BSIE 2A (Year 2) lec_remaining=2 lab_remaining=2
+PAYLOAD={"workload_assignment_id":"41034955-bef2-433a-b7c3-60ae908f43c4","day_of_week":"FRI","end_time":"10:00","session_type":"LECTURE","room_id":null,"start_time":"09:00"}
+--- B_TEXT_PLAIN (what the web client sent BEFORE the fix)
+B_STATUS=400
+B_BODY=
+--- A_APPLICATION_JSON (what the web client sends AFTER the fix)
+A_STATUS=201
+A_BODY={"slot":{"id":"3142c8a3-ece8-45ca-beff-a19be2c3ea98","workload_assignment_id":"41034955-bef2-433a-b7c3-60ae908f43c4","room_id":null,"room_name":null,"session_type":"LECTURE","day_of_week":"FRI","start
+COMPLETE_MARKER_AB
