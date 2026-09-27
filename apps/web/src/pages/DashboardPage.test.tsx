@@ -1,18 +1,16 @@
 /**
  * Module — Dashboard page UI tests.
- * Chair / Academic Admin get the new mockup-matching department dashboard
- * (header + profile + weekly bars + term ring + utilization + load panel +
- * week preview + rooms list); FACULTY gets only the personal summary; the
- * profile-card photo upload, loading, error-with-retry and empty states.
+ * Chair / Academic Admin get the department dashboard (header + weekly
+ * bars + term ring + utilization + load panel + week preview + rooms list);
+ * FACULTY gets only the personal summary; loading, error-with-retry and
+ * empty states.
  */
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { cleanup, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import { ToastProvider } from '../components/Toast';
 import {
   getDashboardSummary,
-  uploadAvatar,
-  validateAvatarFile,
   type DepartmentSummary,
   type PersonalSummary,
 } from '../lib/dashboard';
@@ -27,12 +25,10 @@ vi.mock('../lib/dashboard', async (importOriginal) => {
   return {
     ...actual,
     getDashboardSummary: vi.fn(),
-    uploadAvatar: vi.fn(),
   };
 });
 
 const getDashboardSummaryMock = vi.mocked(getDashboardSummary);
-const uploadAvatarMock = vi.mocked(uploadAvatar);
 
 const TERM: Term = {
   id: 'term-1',

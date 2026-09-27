@@ -19,6 +19,7 @@ import {
   useSensors,
   type CollisionDetection,
   type DragEndEvent,
+  type DragMoveEvent,
   type DragOverEvent,
   type DragStartEvent,
 } from '@dnd-kit/core';
@@ -38,6 +39,12 @@ import {
   stepChunkHours,
 } from './schedule-duration';
 import { listRooms, type Room } from '../../lib/rooms';
+import {
+  buildScheduleWorkbook,
+  downloadWorkbook,
+  exportFileName,
+  loadSchoolLogo,
+} from '../../lib/schedule-export';
 import { listFaculty, type FacultyMember } from '../../lib/faculty';
 import { listSections, type Section } from '../../lib/sections';
 import { listSubjects, type Subject } from '../../lib/subjects';
@@ -75,14 +82,23 @@ import {
   HOUR_HEIGHT,
   cellId,
   formatTime12h,
-  hourLabel,
+  halfHourRows,
   parseCellId,
   placementRange,
   previewCellIds,
+  rangeLabel,
   slotHeight,
   slotTop,
   timeToMinutes,
 } from './schedule-time';
+
+/**
+ * Width of the drag details card, and the breathing room kept between it and the
+ * viewport edge. Together they decide which side of the cursor the card opens
+ * on during a drag (see `detailsOnLeft`).
+ */
+const DRAG_DETAILS_CARD_WIDTH = 256; // w-64
+const GRID_EDGE_MARGIN = 24;
 
 /**
  * Combined collision detection (dnd-kit's documented multi-sensor pattern):
@@ -287,11 +303,25 @@ export function SchedulePage(): JSX.Element {
   /** Cell id under the pointer mid-drag — anchors the multi-cell drop preview. */
   const [dragOverCell, setDragOverCell] = useState<string | null>(null);
   const [shakeCell, setShakeCell] = useState<string | null>(null);
+  /**
+   * Whether the drag details card should open to the LEFT of the cursor.
+   * The card is ~256px wide and hangs off the cursor, so a drag near the right
+   * edge of the viewport (the Sat column) would push it off-screen. Flipping
+   * keeps every field readable wherever the block is dropped.
+   */
+  const [detailsOnLeft, setDetailsOnLeft] = useState(false);
   const [flashIds, setFlashIds] = useState<string[]>([]);
   const [override, setOverride] = useState<OverrideState | null>(null);
   const [overrideReason, setOverrideReason] = useState('');
   const [overrideBusy, setOverrideBusy] = useState(false);
   const [deletingSlot, setDeletingSlot] = useState<ScheduleSlot | null>(null);
+  /**
+   * Block opened by a click (not a drag) so its full record can be read in
+   * place. Null when nothing is being inspected.
+   */
+  const [inspectedSlotId, setInspectedSlotId] = useState<string | null>(null);
+  /** True while the .xlsx is being generated (exceljs is a lazy import). */
+  const [exporting, setExporting] = useState(false);
   const [deleteBusy, setDeleteBusy] = useState(false);
 
   // Quick-assign mini-form (stand-in until the full Workload Assignment page).
@@ -367,6 +397,25 @@ export function SchedulePage(): JSX.Element {
     return map;
   }, [visibleSlots, assignments]);
 
+  /**
+   * The clicked block being inspected, looked up through `slotsByDay` so it
+   * carries the same live color the block on the grid is painted with. Resolved
+   * from the id rather than held as a slot so a reload (or a move) can never
+   * leave a stale copy in the dialog.
+   */
+  const inspectedSlot = useMemo(() => {
+    if (!inspectedSlotId) {
+      return null;
+    }
+    for (const bucket of slotsByDay.values()) {
+      const found = bucket.find((slot) => slot.id === inspectedSlotId);
+      if (found) {
+        return found;
+      }
+    }
+    return null;
+  }, [inspectedSlotId, slotsByDay]);
+
   // Auto-open quick-assign only when there is nothing to drag yet.
   useEffect(() => {
     setQuickAssignOpen(assignments.length === 0);
@@ -377,6 +426,23 @@ export function SchedulePage(): JSX.Element {
     if (info) {
       setActiveDrag(info);
     }
+    // Seed the side from where the drag began, so the details card never opens
+    // off-screen before the first onDragMove fires.
+    const x = event.active.rect.current.initial?.left ?? 0;
+    setDetailsOnLeft(x > window.innerWidth - DRAG_DETAILS_CARD_WIDTH - GRID_EDGE_MARGIN);
+  }
+
+  /**
+   * Keep the details card on whichever side of the cursor has room. Uses the
+   * overlay's live left edge (viewport coordinates) rather than the raw pointer,
+   * so it stays correct for keyboard drags too.
+   */
+  function handleDragMove(event: DragMoveEvent): void {
+    const left = event.active.rect.current.translated?.left;
+    if (typeof left !== 'number') {
+      return;
+    }
+    setDetailsOnLeft(left > window.innerWidth - DRAG_DETAILS_CARD_WIDTH - GRID_EDGE_MARGIN);
   }
 
   /**
@@ -391,12 +457,14 @@ export function SchedulePage(): JSX.Element {
   function handleDragCancel(): void {
     setActiveDrag(null);
     setDragOverCell(null);
+    setDetailsOnLeft(false);
   }
 
   async function handleDragEnd(event: DragEndEvent): Promise<void> {
     const info = activeDrag;
     setActiveDrag(null);
     setDragOverCell(null);
+    setDetailsOnLeft(false);
     if (!info || !canEdit) {
       return;
     }
@@ -636,8 +704,75 @@ export function SchedulePage(): JSX.Element {
     }
   }
 
+  /** Live assignment color per assignment id — the same source the grid uses. */
+  const colorByAssignmentId = useMemo(
+    () => new Map(assignments.map((a) => [a.id, a.color])),
+    [assignments],
+  );
+
+  /** Distinct section programs on the grid, for the form's "Program:" field. */
+  const programLabel = useMemo(() => {
+    const programs = new Set(
+      visibleSlots
+        .map((slot) => slot.section_label.match(/^([A-Z]+)/)?.[1])
+        .filter((code): code is string => Boolean(code)),
+    );
+    return [...programs].sort().join(', ') || 'BSIE';
+  }, [visibleSlots]);
+
   function clearFlash(id: string): void {
     setFlashIds((ids) => ids.filter((flashId) => flashId !== id));
+  }
+
+  /**
+   * Export the visible room's schedule as the printed Classroom Utilization
+   * form, as a real .xlsx so Windows opens it in Excel.
+   *
+   * Uses the *filtered* slots (what is on screen right now) and the live
+   * assignment colors, so the sheet matches both the current view and the
+   * colors chosen for each subject.
+   */
+  async function handleExport(): Promise<void> {
+    if (exporting) {
+      return;
+    }
+    setExporting(true);
+    try {
+      // The seal lives in apps/web/public; several filenames are tried, and if
+      // none are present the sheet is simply exported without it.
+      const logo = await loadSchoolLogo();
+      const buffer = await buildScheduleWorkbook({
+        header: {
+          title: 'CLASSROOM UTILIZATION',
+          subtitle: term?.label ?? 'Active term',
+          institution: [
+            'Republic of the Philippines',
+            'Palompon Institute of Technology',
+            'Palompon, Leyte',
+          ],
+          college: 'College of Technology and Engineering',
+          room: selectedRoom?.name ?? '—',
+          program: programLabel,
+          major: '',
+          yearSection: '',
+        },
+        slots: visibleSlots,
+        days: DAYS,
+        startHour: DAY_START_HOUR,
+        endHour: DAY_END_HOUR,
+        colorFor: (slot) => colorByAssignmentId.get(slot.workload_assignment_id) ?? slot.color,
+        logo,
+      });
+      downloadWorkbook(
+        buffer,
+        `${exportFileName('Classroom Utilization', selectedRoom?.name, term?.label)}.xlsx`,
+      );
+      pushToast('success', 'Excel file downloaded.');
+    } catch {
+      pushToast('error', 'Could not build the Excel file.');
+    } finally {
+      setExporting(false);
+    }
   }
 
 
@@ -648,6 +783,8 @@ export function SchedulePage(): JSX.Element {
     { length: DAY_END_HOUR - DAY_START_HOUR },
     (_, index) => DAY_START_HOUR + index,
   );
+  // The gutter renders a range label per half-hour row, not one per hour.
+  const rows = useMemo(() => halfHourRows(), []);
 
   /**
    * Cells the drop preview lights up: the anchor cell plus however many
@@ -734,6 +871,30 @@ export function SchedulePage(): JSX.Element {
               ))}
             </select>
           </label>
+          {/* Excel export — writes the printed Classroom Utilization form:
+              title block, half-hour gutter, merged colored class blocks. */}
+          <button
+            type="button"
+            onClick={() => void handleExport()}
+            disabled={exporting}
+            className="inline-flex items-center gap-1.5 self-end rounded-lg border border-leaf-200 bg-white px-3 py-1.5 text-xs font-semibold text-ink transition-colors hover:border-leaf-400 hover:bg-leaf-50 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <svg
+              aria-hidden="true"
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <path d="M7 10l5 5 5-5M12 15V3" />
+            </svg>
+            {exporting ? 'Preparing…' : 'Export Excel'}
+          </button>
         </div>
       </div>
 
@@ -776,6 +937,7 @@ export function SchedulePage(): JSX.Element {
           sensors={sensors}
           collisionDetection={scheduleCollision}
           onDragStart={handleDragStart}
+          onDragMove={handleDragMove}
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
           onDragCancel={handleDragCancel}
@@ -862,11 +1024,25 @@ export function SchedulePage(): JSX.Element {
                 stack; placed blocks are absolutely positioned by start/end
                 time (flowsched.html block math). */}
             <div className="flex min-w-0 flex-1 overflow-x-auto rounded-2xl border border-leaf-100 bg-white p-4 shadow-sm">
-              <div className="flex">
-                <div className="w-12 shrink-0 pt-7" aria-hidden="true">
-                  {hours.map((hour) => (
-                    <div key={hour} className="text-right text-[10px] font-medium text-ink/40" style={{ height: HOUR_HEIGHT }}>
-                      {hourLabel(hour)}
+              {/* `flex-1` on the inner row matters: without an explicit width the
+                  flex row collapses to its content and the day columns stop
+                  filling the panel, leaving dead space on the right. */}
+              <div className="flex min-w-full flex-1">
+                {/* Time gutter. One label per HALF-HOUR row, showing the row's
+                    full `start - end` span so the exact drop target is readable
+                    at a glance. `whitespace-nowrap` is load-bearing: without it
+                    the range wraps to two lines and the labels stop lining up
+                    with their rows. Height must match the grid cells exactly. */}
+                {/* Wide enough for the longest label, the 11:30 AM - 12:00 PM row,
+                    which is the one range that carries a marker on both ends. */}
+                <div className="w-[124px] shrink-0 pt-7 pr-3" aria-hidden="true">
+                  {rows.map((row) => (
+                    <div
+                      key={row.key}
+                      className="flex items-center justify-end whitespace-nowrap text-right font-mono text-[11px] leading-none tabular-nums text-ink/70"
+                      style={{ height: HALF_HOUR_HEIGHT }}
+                    >
+                      {rangeLabel(row)}
                     </div>
                   ))}
                 </div>
@@ -875,7 +1051,7 @@ export function SchedulePage(): JSX.Element {
                   return (
                     <motion.div
                       key={day}
-                      className="min-w-[110px] flex-1"
+                      className="min-w-[132px] flex-1"
                       animate={
                         shaking && !reduce ? { x: [0, -6, 6, -4, 4, 0] } : { x: 0 }
                       }
@@ -891,7 +1067,7 @@ export function SchedulePage(): JSX.Element {
                       <div className="pb-1 text-center text-xs font-semibold uppercase tracking-wide text-ink/60">
                         {DAY_LABELS[day]}
                       </div>
-                      <div className="relative border-l border-leaf-50" style={{ height: GRID_HEIGHT }}>
+                      <div className="relative border-l border-leaf-300" style={{ height: GRID_HEIGHT }}>
                         {hours.map((hour) => (
                           <React.Fragment key={`${day}-${hour}`}>
                             {/* :00 half-hour row (top half of the hour) */}
@@ -899,9 +1075,11 @@ export function SchedulePage(): JSX.Element {
                               id={cellId(day, hour, 0)}
                               highlighted={dropPreview?.has(cellId(day, hour, 0)) ?? false}
                             />
-                            {/* Dashed half-hour gridline between :00 and :30 */}
+                            {/* Dashed half-hour gridline between :00 and :30. Kept
+                                lighter than the solid hour line so the hour
+                                boundaries still read as the primary structure. */}
                             <div
-                              className="absolute left-0 right-0 border-t border-dashed border-leaf-300/60"
+                              className="absolute left-0 right-0 border-t border-dashed border-leaf-200"
                               style={{ top: HALF_HOUR_HEIGHT }}
                             />
                             {/* :30 half-hour row (bottom half of the hour) */}
@@ -923,6 +1101,7 @@ export function SchedulePage(): JSX.Element {
                             reducedMotion={Boolean(reduce)}
                             onFlashComplete={() => clearFlash(slot.id)}
                             onRemove={() => setDeletingSlot(slot)}
+                            onInspect={() => setInspectedSlotId(slot.id)}
                           />
                         ))}
                       </div>
@@ -934,36 +1113,47 @@ export function SchedulePage(): JSX.Element {
           </div>
 
           {/* Floating clone that follows the pointer/keyboard focus smoothly.
-              Its height matches the duration that will actually be placed. */}
+              Its height matches the duration that will actually be placed.
+              It is deliberately translucent and outline-only: the whole point of
+              a drag is to line the block up against the grid, so an opaque card
+              would hide the very cells you are trying to aim at. The dashed
+              ring keeps the block's extent readable against the lines showing
+              through it. */}
           <DragOverlay dropAnimation={reduce ? null : { duration: 180, easing: 'cubic-bezier(0.18, 0.67, 0.6, 1.22)' }}>
             {activeDrag ? (
-              <div
-                className="w-56 cursor-grabbing"
-                style={{ height: overlayHeight(activeDrag) }}
-              >
-                <AssignmentCardBody
-                  title={
-                    activeDrag.type === 'new'
-                      ? `${activeDrag.assignment.subject_code} — ${chunkSessionBadge(activeDrag.sessionType)}`
-                      : activeDrag.slot.subject_code
-                  }
-                  subtitle={
-                    overlayHeight(activeDrag) >= 56
-                      ? activeDrag.type === 'new'
-                        ? `${activeDrag.assignment.section_label} · ${activeDrag.assignment.faculty_name}`
-                        : `${activeDrag.slot.section_label} · ${activeDrag.slot.faculty_name}`
-                      : undefined
-                  }
-                  meta={
-                    activeDrag.type === 'new'
-                      ? `${formatHours(activeDrag.duration)}h · ${chunkSessionBadge(activeDrag.sessionType)}`
-                      : `${DAY_LABELS[activeDrag.slot.day_of_week]} ${formatTime12h(activeDrag.slot.start_time)}–${formatTime12h(activeDrag.slot.end_time)}`
-                  }
-                  className="flex h-full flex-col justify-center scale-105 rotate-1 shadow-2xl shadow-leaf-500/30 ring-2 ring-leaf-500/40 transition-transform"
-                  color={
-                    activeDrag.type === 'new' ? activeDrag.assignment.color : activeDrag.slot.color
-                  }
-                />
+              <div className="relative">
+                <div
+                  className="w-56 cursor-grabbing opacity-60"
+                  style={{ height: overlayHeight(activeDrag) }}
+                >
+                  <AssignmentCardBody
+                    title={
+                      activeDrag.type === 'new'
+                        ? `${activeDrag.assignment.subject_code} — ${chunkSessionBadge(activeDrag.sessionType)}`
+                        : activeDrag.slot.subject_code
+                    }
+                    subtitle={
+                      overlayHeight(activeDrag) >= 56
+                        ? activeDrag.type === 'new'
+                          ? `${activeDrag.assignment.section_label} · ${activeDrag.assignment.faculty_name}`
+                          : `${activeDrag.slot.section_label} · ${activeDrag.slot.faculty_name}`
+                        : undefined
+                    }
+                    meta={
+                      activeDrag.type === 'new'
+                        ? `${formatHours(activeDrag.duration)}h · ${chunkSessionBadge(activeDrag.sessionType)}`
+                        : `${DAY_LABELS[activeDrag.slot.day_of_week]} ${formatTime12h(activeDrag.slot.start_time)}–${formatTime12h(activeDrag.slot.end_time)}`
+                    }
+                    // The assignment's own color is kept: the wrapper's opacity
+                    // makes it translucent, so the hue still identifies the class
+                    // while the grid shows through it.
+                    className="flex h-full flex-col justify-center border-2 border-dashed border-leaf-700 shadow-lg"
+                    color={
+                      activeDrag.type === 'new' ? activeDrag.assignment.color : activeDrag.slot.color
+                    }
+                  />
+                </div>
+                <DragDetailsCard info={activeDrag} onLeft={detailsOnLeft} />
               </div>
             ) : null}
           </DragOverlay>
@@ -978,6 +1168,13 @@ export function SchedulePage(): JSX.Element {
           onReasonChange={setOverrideReason}
           onConfirm={() => void handleOverrideConfirm()}
           onClose={() => setOverride(null)}
+        />
+      ) : null}
+
+      {inspectedSlot ? (
+        <BlockDetailsDialog
+          info={{ type: 'move', slot: inspectedSlot }}
+          onClose={() => setInspectedSlotId(null)}
         />
       ) : null}
 
@@ -1011,11 +1208,266 @@ function DropCell({ id, highlighted = false }: { id: string; highlighted?: boole
       data-drop-id={id}
       // Exposed so tests can assert the multi-cell preview without class names.
       data-drop-preview={highlighted ? 'true' : undefined}
-      className={`border-b border-leaf-50 transition-colors duration-150 ${
-        isOver || highlighted ? 'bg-leaf-50 ring-2 ring-inset ring-leaf-400/50' : ''
+      className={`border-b border-leaf-200 transition-colors duration-150 ${
+        // The drop preview must out-read the grid lines underneath it, so the
+        // highlighted state gets both a tint and an inset ring.
+        isOver || highlighted ? 'bg-leaf-100 ring-2 ring-inset ring-leaf-500/70' : ''
       }`}
       style={{ height: HALF_HOUR_HEIGHT }}
     />
+  );
+}
+
+/**
+ * The detail rows shown for a drag, whichever thing is being dragged.
+ *
+ * Extracted (and exported) so the drag overlay card and the click-to-inspect
+ * popup render from exactly one definition — they must never drift apart.
+ *
+ * Deliberately does NOT repeat the "duration · session" meta line for a new
+ * chunk: that text is already printed on the dragged block itself, and
+ * duplicating it makes the card read as a copy rather than a detail view.
+ */
+export function detailRowsFor(info: DragInfo): { label: string; value: string }[] {
+  if (info.type === 'new') {
+    return [
+      { label: 'Subject', value: info.assignment.subject_title },
+      { label: 'Section', value: info.assignment.section_label },
+      { label: 'Faculty', value: info.assignment.faculty_name },
+      { label: 'Units', value: String(info.assignment.subject_units) },
+      { label: 'Placing', value: formatHours(info.duration) },
+      {
+        label: 'Left after',
+        value: `${formatHours(Math.max(0, info.remaining - info.duration))}h`,
+      },
+    ];
+  }
+  return [
+    { label: 'Subject', value: info.slot.subject_title },
+    { label: 'Section', value: info.slot.section_label },
+    { label: 'Faculty', value: info.slot.faculty_name },
+    { label: 'Room', value: info.slot.room_name ?? 'TBA' },
+    { label: 'Units', value: String(info.slot.subject_units) },
+    {
+      label: 'When',
+      value: `${DAY_LABELS[info.slot.day_of_week]} ${formatTime12h(info.slot.start_time)}–${formatTime12h(info.slot.end_time)}`,
+    },
+    {
+      label: 'Session',
+      value: `${chunkSessionBadge(info.slot.session_type)} · ${formatHours(info.slot.session_hours)}h`,
+    },
+  ];
+}
+
+/** The block's custom color, or null when it uses the default leaf card. */
+function detailAccentFor(info: DragInfo): string | null {
+  const custom = info.type === 'new' ? info.assignment.color : info.slot.color;
+  return custom && HEX_COLOR_PATTERN.test(custom) ? custom : null;
+}
+
+/** Subject code shown in the details header. */
+function detailCodeFor(info: DragInfo): string {
+  return info.type === 'new' ? info.assignment.subject_code : info.slot.subject_code;
+}
+
+/**
+ * Field label + value row inside a details card. The label adopts the
+ * assignment color's readable text color context via the card header, and the
+ * value is the part that must stay legible at a glance.
+ */
+function DragDetailRow({
+  label,
+  value,
+  compact,
+}: {
+  label: string;
+  value: string;
+  /** True in the cursor-following drag card, which must stay small. */
+  compact: boolean;
+}): JSX.Element {
+  return (
+    <div
+      className={`flex items-baseline justify-between ${compact ? 'gap-4 py-[3px]' : 'gap-6 py-2'}`}
+    >
+      <span
+        className={`shrink-0 font-medium uppercase tracking-wider opacity-70 ${
+          compact ? 'text-[10px]' : 'text-xs'
+        }`}
+      >
+        {label}
+      </span>
+      <span
+        className={`truncate font-semibold ${compact ? 'text-xs' : 'text-sm'}`}
+        title={value}
+      >
+        {value}
+      </span>
+    </div>
+  );
+}
+
+/**
+ * The expanded details card shown while a block is being dragged.
+ *
+ * Rendered inside `DragOverlay` so it travels with the block under the cursor.
+ * It reuses the block's own color (and its matching readable text color) as the
+ * header, so the popup reads as "the same class, un-folded" rather than a
+ * foreign dialog — the color structure the block already established is carried
+ * straight through.
+ *
+ * `pointer-events-none` is essential: dnd-kit tracks the pointer on the
+ * overlay, and a real hit target under the cursor would swallow the drag.
+ */
+function DragDetailsCard({
+  info,
+  onLeft = false,
+}: {
+  info: DragInfo;
+  /** Open to the left of the cursor instead of the right (viewport edge). */
+  onLeft?: boolean;
+}): JSX.Element {
+  return (
+    <div
+      className={`pointer-events-none absolute top-0 ${onLeft ? 'right-[calc(100%+14px)]' : 'left-[calc(100%+14px)]'}`}
+    >
+      <DetailsCard info={info} />
+    </div>
+  );
+}
+
+/**
+ * The details card itself — colored header in the block's own color, then the
+ * shared detail rows. Shared by the drag overlay and the click-to-inspect popup
+ * so both always show exactly the same fields in the same style.
+ */
+/**
+ * The details card itself — colored header in the block's own color, then the
+ * shared detail rows. Shared by the drag overlay and the click-to-inspect popup
+ * so both always show exactly the same fields in the same style.
+ *
+ * `compact` is for the cursor-following drag card, which must stay small so it
+ * does not cover the very grid cells being aimed at. The click popup renders
+ * full size, where there is no such pressure and the values deserve room.
+ */
+function DetailsCard({ info, compact = true }: { info: DragInfo; compact?: boolean }): JSX.Element {
+  const accent = detailAccentFor(info);
+  const headerText = accent ? readableTextColor(accent) : '#10241A';
+  const rows = detailRowsFor(info);
+  return (
+    <div
+      className={`overflow-hidden bg-white/85 backdrop-blur-md ${
+        compact
+          ? 'w-64 rounded-xl border border-leaf-200 shadow-[0_18px_40px_-12px_rgba(16,36,26,0.4)]'
+          : 'w-full rounded-none'
+      }`}
+    >
+      {/* Header band in the block's own color, mirroring the block's own
+          color structure so the two read as one object. */}
+      <div
+        className={`flex items-center gap-2 ${compact ? 'px-3 py-2' : 'px-5 py-3.5'}`}
+        style={accent ? { backgroundColor: accent, color: headerText } : undefined}
+      >
+        <span
+          className={`shrink-0 rounded-full bg-current opacity-70 ${
+            compact ? 'h-2 w-2' : 'h-2.5 w-2.5'
+          }`}
+          aria-hidden="true"
+        />
+        <span className={`truncate font-bold ${compact ? 'text-sm' : 'text-lg'}`}>
+          {detailCodeFor(info)}
+        </span>
+        <span
+          className={`ml-auto shrink-0 font-semibold uppercase tracking-wide opacity-80 ${
+            compact ? 'text-[10px]' : 'text-xs'
+          }`}
+        >
+          Details
+        </span>
+      </div>
+      <div className={`divide-y divide-leaf-100/70 ${compact ? 'px-3 py-1.5' : 'px-5 py-2.5'}`}>
+        {rows.map((row) => (
+          <DragDetailRow key={row.label} label={row.label} value={row.value} compact={compact} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Click-to-inspect popup for a block already placed on the grid.
+ *
+ * Opened by clicking a placed block, so the full record is readable without
+ * having to pick it up and drag it. Renders the same `DetailsCard` as the drag
+ * overlay — same color structure, same fields — so the two are visually one
+ * feature. Dismissed by Escape, the backdrop, or the close button.
+ */
+function BlockDetailsDialog({
+  info,
+  onClose,
+}: {
+  info: DragInfo;
+  onClose: () => void;
+}): JSX.Element {
+  const reduce = useReducedMotion();
+  const transition = reduce ? { duration: 0 } : { duration: 0.18, ease: 'easeOut' as const };
+
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent): void {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    }
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <motion.div
+        aria-hidden="true"
+        className="absolute inset-0 bg-ink/40 backdrop-blur-sm"
+        onMouseDown={onClose}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={transition}
+      />
+      <motion.div
+        role="dialog"
+        aria-modal="true"
+        aria-label={`${detailCodeFor(info)} details`}
+        className="relative z-10 w-[30rem] max-w-full overflow-hidden rounded-2xl bg-white/95 shadow-[0_30px_70px_-20px_rgba(16,36,26,0.45)] backdrop-blur-md"
+        initial={reduce ? { opacity: 1 } : { opacity: 0, scale: 0.96, y: 8 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={reduce ? { opacity: 1 } : { opacity: 0, scale: 0.96, y: 8 }}
+        transition={transition}
+      >
+        {/* The shared card supplies the color header and the field rows; the
+            close control rides in the same band so the color block stays intact. */}
+        <div className="relative">
+          <DetailsCard info={info} compact={false} />
+          <button
+            type="button"
+            aria-label="Close details"
+            onClick={onClose}
+            className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-lg bg-black/15 text-current transition-colors hover:bg-black/25"
+          >
+            <svg
+              aria-hidden="true"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2.5"
+              strokeLinecap="round"
+            >
+              <path d="M18 6 6 18M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      </motion.div>
+    </div>
   );
 }
 
@@ -1340,6 +1792,7 @@ function PlacedBlock({
   reducedMotion,
   onFlashComplete,
   onRemove,
+  onInspect,
 }: {
   slot: ScheduleSlot;
   justPlaced: boolean;
@@ -1348,6 +1801,8 @@ function PlacedBlock({
   reducedMotion: boolean;
   onFlashComplete: () => void;
   onRemove: () => void;
+  /** Click-to-inspect: open the full record for this block. */
+  onInspect: () => void;
 }): JSX.Element {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: `slot:${slot.id}`,
@@ -1355,6 +1810,16 @@ function PlacedBlock({
   });
   const start = timeToMinutes(slot.start_time);
   const end = timeToMinutes(slot.end_time);
+  // dnd-kit's PointerSensor only starts a drag after 4px of movement, so a
+  // genuine click (press and release in place) still fires onClick. Guarding on
+  // `isDragging` is what keeps the click that follows a real drag — the pointer
+  // is released at the end of every drag — from also opening the dialog.
+  function handleInspect(): void {
+    if (isDragging) {
+      return;
+    }
+    onInspect();
+  }
   const entrance = reducedMotion
     ? { initial: { opacity: 1 }, animate: { opacity: 1 } }
     : {
@@ -1376,8 +1841,9 @@ function PlacedBlock({
           onFlashComplete();
         }
       }}
-      aria-roledescription="Scheduled class. Press space or enter to pick up and move it."
+      aria-roledescription="Scheduled class. Click for details, or press space or enter to pick up and move it."
       aria-label={`${slot.subject_code}, ${slot.section_label}, ${slot.faculty_name}, ${DAY_LABELS[slot.day_of_week]} ${formatTime12h(slot.start_time)} to ${formatTime12h(slot.end_time)}`}
+      onClick={handleInspect}
       className={`absolute left-1 right-1 z-10 cursor-grab touch-none select-none overflow-hidden rounded-md transition-opacity duration-200 ${
         dragging ? 'opacity-40 grayscale-[30%]' : dimmed ? 'opacity-20' : ''
       } ${isDragging ? 'opacity-0' : ''}`}
@@ -1393,7 +1859,11 @@ function PlacedBlock({
       <button
         type="button"
         aria-label={`Remove ${slot.subject_code} from the grid`}
-        onClick={onRemove}
+        onClick={(event) => {
+          // Keep the remove click from also opening the details dialog.
+          event.stopPropagation();
+          onRemove();
+        }}
         className="absolute bottom-0.5 right-0.5 hidden rounded px-1 text-[10px] font-bold text-ink/40 hover:bg-white/70 hover:text-red-600 sm:block"
       >
         ×

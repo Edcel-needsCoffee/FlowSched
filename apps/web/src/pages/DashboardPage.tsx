@@ -1,15 +1,12 @@
 ﻿import { useCallback, useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import {
   getDashboardSummary,
-  uploadAvatar,
   type DashboardSummary,
 } from '../lib/dashboard';
 import { useAuthStore } from '../store/auth.store';
 import { selectSelectedTerm, useTermStore } from '../store/term.store';
 import { DashboardStagger, DashboardStaggerItem } from '../components/dashboard/motion';
 import { DashboardHeader } from '../components/dashboard/DashboardHeader';
-import { ProfileCard } from '../components/dashboard/ProfileCard';
 import { WeeklyPlottingCard } from '../components/dashboard/WeeklyPlottingCard';
 import { TermProgressCard } from '../components/dashboard/TermProgressCard';
 import { RoomUtilizationCard } from '../components/dashboard/RoomUtilizationCard';
@@ -121,8 +118,8 @@ function LoadingSkeleton({ scope }: { scope: 'department' | 'personal' }): JSX.E
 }
 
 /**
- * Chair / Academic Admin dashboard â€” mockup-matching composition with the
- * app's leaf/ink theme: header + profile, weekly bars, term ring, room
+ * Chair / Academic Admin dashboard — mockup-matching composition with the
+ * app's leaf/ink theme: header, weekly bars, term ring, room
  * utilization, dark load panel, week preview and rooms list, all fed from
  * the (real) summary payload and animated in top-to-bottom.
  */
@@ -134,15 +131,6 @@ function ChairDashboard({
   termLabel: string | null;
 }): JSX.Element {
   const user = useAuthStore((s) => s.user);
-  const setAvatarUrl = useAuthStore((s) => s.setAvatarUrl);
-
-  const handleAvatarUpload = useCallback(
-    async (file: File) => {
-      const res = await uploadAvatar(file);
-      setAvatarUrl(res.avatar_url);
-    },
-    [setAvatarUrl],
-  );
 
   return (
     <DashboardStagger className="space-y-4">
@@ -157,9 +145,6 @@ function ChairDashboard({
           subjectCount={summary.subject_count}
           roomCount={summary.room_count}
         />
-      </DashboardStaggerItem>
-      <DashboardStaggerItem>
-        <ProfileCard user={user} termLabel={termLabel} onUpload={handleAvatarUpload} />
       </DashboardStaggerItem>
       <DashboardStaggerItem>
         <div className="grid gap-4 lg:grid-cols-3">

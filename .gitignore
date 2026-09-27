@@ -22,6 +22,9 @@ apps/api/node_modules/.prisma
 *.db-wal
 *.db-shm
 
+# share.bat snapshot of dev.db (restore by copying it back over dev.db)
+apps/api/prisma/dev.share-backup.db
+
 
 # Logs / OS
 npm-debug.log*

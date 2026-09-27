@@ -54,3 +54,43 @@ No Docker or database server is needed for local development — the API uses a 
    ```
 
 6. Inspect data: `npx prisma studio --schema prisma/schema.prisma` from `apps/api`.
+
+## Sharing a temporary remote demo (share.bat)
+
+To let someone view/use the running app over the internet without deploying
+anything, double-click **`share.bat`** (or run it from a terminal). It:
+
+1. Installs `cloudflared` via winget if missing (one-time, free, no account).
+2. Creates and seeds the SQLite database on first run.
+3. Backs up `apps/api/prisma/dev.db` to `dev.share-backup.db`, since anything
+   your guest changes is written to your real local dev database.
+4. Builds the web app with `VITE_API_URL=same-origin`, so the browser calls
+   relative `/api/...` paths instead of `http://localhost:4000` (which would
+   point at the *guest's* machine and fail).
+5. Starts the API with `WEB_DIST` set, which makes it also serve the built SPA
+   from the same origin — so one port, one URL, and no CORS configuration.
+6. Polls `http://localhost:4000/` and **refuses to open the tunnel** if the web
+   app is not being served, so you never get handed a URL that 404s.
+7. Opens a Cloudflare quick tunnel and prints a public
+   `https://<random>.trycloudflare.com` URL.
+
+Send that URL to your guest, along with a login:
+
+| Role | Email | Password |
+|---|---|---|
+| Chair (all features) | `chair.dev@flowsched.local` | `dev-password-change-me` |
+| Academic Admin (all features) | `admin.dev@flowsched.local` | `dev-password-change-me` |
+
+Notes and caveats:
+
+- **There is no view-only role.** The only roles are `CHAIR`, `FACULTY` and
+  `ACADEMIC_ADMIN` (`packages/shared/src/index.ts`); Chair and Academic Admin
+  can reach every page, including all create/edit/delete screens. A guest on
+  either account can modify your seeded data.
+- The tunnel URL is public and unauthenticated at the edge: anyone who has it
+  can log in with the dev credentials above. Close the tunnel when done
+  (Ctrl+C in the `share.bat` window).
+- `JWT_SECRET` is a dev placeholder. Fine for a throwaway link, never for a
+  real deployment.
+- `apps/web/dist` and `WEB_DIST` are only used for this sharing flow; normal
+  `npm run dev` is unaffected.

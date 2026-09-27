@@ -1,6 +1,28 @@
 import { useAuthStore } from '../store/auth.store';
 
-const apiBase = (import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:4000';
+const rawApiBase = (import.meta.env.VITE_API_URL as string | undefined) ?? '';
+
+/**
+ * Resolve the API base URL that the browser talks to.
+ *
+ * - unset/empty  -> `http://localhost:4000`, the default two-port dev setup
+ *   (Vite on :5173, Express on :4000).
+ * - `same-origin` (or `/`) -> `''`, i.e. relative `/api/...` requests. The SPA
+ *   then calls whichever host served the page, which is what a single-origin
+ *   temporary share (share.bat) needs: the tunnel hostname is only known at
+ *   runtime, so it cannot be baked in at build time.
+ *
+ * A trailing slash is stripped so joining with a leading-slash path can never
+ * produce a protocol-relative `//host` URL.
+ */
+function resolveApiBase(raw: string): string {
+  const value = raw.trim();
+  if (value === '' ) return 'http://localhost:4000';
+  if (value === 'same-origin' || value === '/') return '';
+  return value.replace(/\/+$/, '');
+}
+
+const apiBase = resolveApiBase(rawApiBase);
 
 /**
  * Resolve a server-provided asset path (avatar photo) against the API base.

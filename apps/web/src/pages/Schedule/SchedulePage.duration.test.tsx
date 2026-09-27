@@ -24,7 +24,11 @@ import {
   type WorkloadAssignment,
 } from '../../lib/workload-assignments';
 import type { DayOfWeek, ScheduleSlot } from '../../lib/schedule-slots';
-import { listScheduleSlots, createScheduleSlot } from '../../lib/schedule-slots';
+import {
+  listScheduleSlots,
+  createScheduleSlot,
+  updateScheduleSlot,
+} from '../../lib/schedule-slots';
 import { listFaculty } from '../../lib/faculty';
 import { listRooms } from '../../lib/rooms';
 import { listSections } from '../../lib/sections';
@@ -32,7 +36,13 @@ import { listSubjects } from '../../lib/subjects';
 import type { Term } from '../../lib/terms';
 import { useAuthStore } from '../../store/auth.store';
 import { useTermStore } from '../../store/term.store';
-import { HOUR_HEIGHT, cellId, parseCellId, previewCellIds } from './schedule-time';
+import {
+  HALF_HOUR_HEIGHT,
+  HOUR_HEIGHT,
+  cellId,
+  parseCellId,
+  previewCellIds,
+} from './schedule-time';
 import { chunkPlacement, overlayHeight, SchedulePage, type DragInfoChunk } from './SchedulePage';
 import { COLOR_PRESETS, readableTextColor } from '../../lib/colors';
 
@@ -571,14 +581,15 @@ describe('grid structure — half-hour rows and droppable zones', () => {
     expect(dashedLines.length).toBeGreaterThanOrEqual(72);
   });
 
-  it('renders half-hour rows at HALF_HOUR_HEIGHT (24px) each', async () => {
+  it('renders half-hour rows at HALF_HOUR_HEIGHT each', async () => {
     await renderPage();
     await screen.findByText('IE 322 — LEC');
 
     const firstDropCell = document.querySelector('[data-drop-id="cell:MON:7:0"]');
     expect(firstDropCell).not.toBeNull();
-    // Half-hour rows are 24px tall (HOUR_HEIGHT / 2 = 48 / 2)
-    expect(firstDropCell).toHaveStyle({ height: '24px' });
+    // Read the expected height from the shared constant rather than hardcoding
+    // pixels, so resizing the grid (HOUR_HEIGHT) cannot leave this stale.
+    expect(firstDropCell).toHaveStyle({ height: `${HALF_HOUR_HEIGHT}px` });
   });
 
   it('a :30 cell ID parses correctly with parseCellId', () => {
@@ -850,3 +861,88 @@ describe('SchedulePage — card color picker (Part 3)', () => {
     }
   });
 });
+
+describe('SchedulePage — click a placed block to inspect its details', () => {
+  /** One placed block in ROOM, so the grid renders a draggable target. */
+  function oneSlot(slot: ScheduleSlot = makeSlot()): void {
+    vi.mocked(listScheduleSlots).mockResolvedValue({ data: [slot], meta: { total: 1 } });
+  }
+
+  function placedBlock(): HTMLElement {
+    const node = document.querySelector('[aria-roledescription^="Scheduled class"]');
+    expect(node).not.toBeNull();
+    return node as HTMLElement;
+  }
+
+  it('opens a details dialog with the block’s fields on click', async () => {
+    oneSlot();
+    await renderPage();
+
+    expect(screen.queryByRole('dialog')).toBeNull();
+    fireEvent.click(placedBlock());
+
+    const dialog = await screen.findByRole('dialog');
+    // The full record is readable without having to pick the block up.
+    expect(dialog).toHaveTextContent('Plant Layout'); // subject title
+    expect(dialog).toHaveTextContent('BSIE 2A (Year 2)'); // section
+    expect(dialog).toHaveTextContent('Ada Lovelace'); // faculty
+    expect(dialog).toHaveTextContent('IE Room 1'); // room
+    expect(dialog).toHaveTextContent('1:00 PM'); // start time
+  });
+
+  it('paints the dialog header with the block’s own color', async () => {
+    // The color lives on the *assignment*; slotsByDay pulls it live onto the
+    // block, so recoloring an assignment repaints the dialog too.
+    listWorkloadAssignmentsMock.mockResolvedValue({
+      data: [makeAssignment({ color: '#2563EB' })],
+      meta: { total: 1, page: 1, pageSize: 10, pageCount: 1 },
+    });
+    vi.mocked(listScheduleSlots).mockResolvedValue({ data: [makeSlot()], meta: { total: 1 } });
+    await renderPage();
+
+    fireEvent.click(placedBlock());
+    const dialog = await screen.findByRole('dialog');
+    // The header band carries the assignment color inline.
+    const header = dialog.querySelector('div[style*="background-color"]') as HTMLElement | null;
+    expect(header).not.toBeNull();
+    expect(header!.style.backgroundColor).toBe('rgb(37, 99, 235)');
+    expect(dialog).toHaveTextContent('IE 322');
+  });
+
+  it('closes on the close button and on Escape', async () => {
+    oneSlot();
+    await renderPage();
+
+    fireEvent.click(placedBlock());
+    await screen.findByRole('dialog');
+    fireEvent.click(screen.getByLabelText('Close details'));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+
+    fireEvent.click(placedBlock());
+    await screen.findByRole('dialog');
+    fireEvent.keyDown(document, { key: 'Escape' });
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+  });
+
+  it('does not open details when the remove button is clicked', async () => {
+    oneSlot();
+    await renderPage();
+
+    fireEvent.click(screen.getByLabelText('Remove IE 322 from the grid'));
+    // The remove confirm dialog opens; the details dialog must not.
+    expect(await screen.findByText('Remove scheduled class?')).toBeInTheDocument();
+    expect(screen.queryByLabelText(/IE 322 details/)).toBeNull();
+  });
+
+  it('does not move the block when it is only clicked', async () => {
+    oneSlot();
+    await renderPage();
+
+    fireEvent.click(placedBlock());
+    await screen.findByRole('dialog');
+    // A click is an inspection, not a placement.
+    expect(vi.mocked(createScheduleSlot)).not.toHaveBeenCalled();
+    expect(vi.mocked(updateScheduleSlot)).not.toHaveBeenCalled();
+  });
+});
+

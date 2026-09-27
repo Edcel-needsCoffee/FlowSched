@@ -15,8 +15,13 @@ export const DAY_LABELS: Record<DayOfWeek, string> = {
 /** Grid runs 7AM → 8PM (the last droppable half-hour cell starts at 7:30PM). */
 export const DAY_START_HOUR = 7;
 export const DAY_END_HOUR = 20;
-/** Pixels per hour row — the whole grid's top/height math derives from this. */
-export const HOUR_HEIGHT = 48;
+/**
+ * Pixels per hour row — the whole grid's top/height math derives from this.
+ * Taller than a typical calendar hour (24px): these blocks carry three lines of
+ * text (subject / section / instructor) and the Chair drags them around, so the
+ * extra room is what makes the grid readable rather than cramped.
+ */
+export const HOUR_HEIGHT = 64;
 export const HALF_HOUR_HEIGHT = HOUR_HEIGHT / 2;
 export const GRID_HEIGHT = (DAY_END_HOUR - DAY_START_HOUR) * HOUR_HEIGHT;
 
@@ -87,6 +92,100 @@ export function hourLabel(hour: number): string {
   const period = hour >= 12 ? 'PM' : 'AM';
   const h12 = hour % 12 === 0 ? 12 : hour % 12;
   return `${h12} ${period}`;
+}
+
+/**
+ * Every half-hour row in the grid, in order — the axis the time gutter renders.
+ * The gutter labels each of these with its full `start - end` span so a drop
+ * target is unambiguous ("7:30 - 8:00 AM") rather than just the hour it starts in.
+ */
+export interface HalfHourRow {
+  key: string;
+  hour: number;
+  offset: HalfHourOffset;
+  start: string;
+  end: string;
+  /** `7:00` — 12-hour clock, the form a department timetable is read in. */
+  startShort: string;
+  endShort: string;
+  /** `AM` / `PM` — shown once for the whole range, not on both ends. */
+  period: string;
+}
+
+/** 12-hour clock hour for an "HH:MM" 24h string: "07:30" → 7. */
+function to12hHour(time24: string): number {
+  const h = Number(time24.split(':')[0]) ?? 0;
+  return h % 12 === 0 ? 12 : h % 12;
+}
+
+/** 12-hour clock "H:MM" for an "HH:MM" 24h string: "07:30" → "7:30". */
+function to12hTime(time24: string): string {
+  const [, m] = time24.split(':');
+  return `${to12hHour(time24)}:${String(Number(m ?? 0)).padStart(2, '0')}`;
+}
+
+export function halfHourRows(): HalfHourRow[] {
+  const rows: HalfHourRow[] = [];
+  for (let hour = DAY_START_HOUR; hour < DAY_END_HOUR; hour += 1) {
+    for (const offset of [0, 1] as const) {
+      const startMinutes = (hour + offset * 0.5) * 60;
+      const endMinutes = startMinutes + 30;
+      const start = minutesToTime(startMinutes);
+      const end = minutesToTime(endMinutes);
+      rows.push({
+        key: `${hour}:${offset}`,
+        hour,
+        offset,
+        start,
+        end,
+        // Both ends use the same 12h clock, and the AM/PM marker is carried once
+        // on the row so the label can stay short enough not to wrap.
+        startShort: to12hTime(start),
+        endShort: to12hTime(end),
+        period: Number(start.slice(0, 2)) >= 12 ? 'PM' : 'AM',
+      });
+    }
+  }
+  return rows;
+}
+
+/**
+ * The two ends of a range on the 12-hour clock, split so a two-column label can
+ * print them either side of the form's dash: `7:00` | `-` | `7:30 AM`.
+ *
+ * The meridiem is printed once when both ends agree, which keeps the common
+ * label short enough not to wrap. When the range crosses noon or midnight the
+ * single marker would be ambiguous ("11:30 - 12:00 AM" looks like a morning
+ * slot, and "7:00 - 7:30 PM" is indistinguishable from the 7 AM row at a
+ * glance), so both ends are marked in that one case.
+ *
+ * One function owns that rule for both readers of a range: the on-screen gutter
+ * (`rangeLabel`) and the exported sheet's two time columns. Neither the grid nor
+ * the printed form can drift into writing a time differently.
+ */
+export function timeRangeParts(start24: string, end24: string): { start: string; end: string } {
+  const start = to12hTime(start24);
+  const end = to12hTime(end24);
+  // Same meridiem on both ends (the common case) → print it once, keeps the
+  // label short. Different → print both so the row is unambiguous.
+  const startIsPm = Number(start24.slice(0, 2)) >= 12;
+  const endIsPm = Number(end24.slice(0, 2)) >= 12;
+  if (startIsPm === endIsPm) {
+    return { start, end: `${end} ${endIsPm ? 'PM' : 'AM'}` };
+  }
+  return {
+    start: `${start} ${startIsPm ? 'PM' : 'AM'}`,
+    end: `${end} ${endIsPm ? 'PM' : 'AM'}`,
+  };
+}
+
+/**
+ * The gutter's per-row range label, e.g. `7:00 - 7:30 AM`, joined back from the
+ * same split the sheet's two time columns print separately.
+ */
+export function rangeLabel(row: Pick<HalfHourRow, 'start' | 'end'>): string {
+  const { start, end } = timeRangeParts(row.start, row.end);
+  return `${start} - ${end}`;
 }
 
 /** Clamps a drop to the grid and snaps the end time to a half-hour boundary. */

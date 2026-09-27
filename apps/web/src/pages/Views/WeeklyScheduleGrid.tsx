@@ -7,9 +7,11 @@ import {
   DAY_LABELS,
   DAY_START_HOUR,
   GRID_HEIGHT,
+  HALF_HOUR_HEIGHT,
   HOUR_HEIGHT,
   formatTime12h,
-  hourLabel,
+  halfHourRows,
+  rangeLabel,
   slotHeight,
   slotTop,
   timeToMinutes,
@@ -53,6 +55,8 @@ export function WeeklyScheduleGrid({
     { length: DAY_END_HOUR - DAY_START_HOUR },
     (_, index) => DAY_START_HOUR + index,
   );
+  // The gutter labels each half-hour row with its full start - end span.
+  const rows = halfHourRows();
 
   // The API sorts by day then time; regroup per day column and keep the
   // within-day time order defensively (cheap, and makes rendering stable).
@@ -75,26 +79,33 @@ export function WeeklyScheduleGrid({
       aria-label="Weekly schedule grid"
       className="overflow-x-auto rounded-2xl border border-leaf-100 bg-white p-4 shadow-sm"
     >
-      <div className="flex">
-        <div className="w-12 shrink-0 pt-7" aria-hidden="true">
-          {hours.map((hour) => (
+      {/* `flex-1` on the inner row keeps the day columns filling the panel. */}
+      <div className="flex min-w-full flex-1">
+        {/* Same half-hour range labels as the editing grid, so the two read as
+            one surface. `whitespace-nowrap` stops the range wrapping onto two
+            lines and drifting out of alignment with its row. */}
+        {/* Wide enough for the longest label, the 11:30 AM - 12:00 PM row. */}
+        <div className="w-[124px] shrink-0 pt-7 pr-3" aria-hidden="true">
+          {rows.map((row) => (
             <div
-              key={hour}
-              className="text-right text-[10px] font-medium text-ink/40"
-              style={{ height: HOUR_HEIGHT }}
+              key={row.key}
+              className="flex items-center justify-end whitespace-nowrap text-right font-mono text-[11px] leading-none tabular-nums text-ink/70"
+              style={{ height: HALF_HOUR_HEIGHT }}
             >
-              {hourLabel(hour)}
+              {rangeLabel(row)}
             </div>
           ))}
         </div>
         {DAYS.map((day) => (
-          <div key={day} className="min-w-[110px] flex-1">
+          <div key={day} className="min-w-[132px] flex-1">
             <div className="pb-1 text-center text-xs font-semibold uppercase tracking-wide text-ink/60">
               {DAY_LABELS[day]}
             </div>
-            <div className="relative border-l border-leaf-50" style={{ height: GRID_HEIGHT }}>
+            {/* Same line weights as the editing grid in SchedulePage.tsx, so the
+                read-only views and the editor read as one surface. */}
+            <div className="relative border-l border-leaf-300" style={{ height: GRID_HEIGHT }}>
               {hours.map((hour) => (
-                <div key={hour} className="border-b border-leaf-50" style={{ height: HOUR_HEIGHT }} />
+                <div key={hour} className="border-b border-leaf-200" style={{ height: HOUR_HEIGHT }} />
               ))}
               {(slotsByDay.get(day) ?? []).map((slot, index) => {
                 const start = timeToMinutes(slot.start_time);

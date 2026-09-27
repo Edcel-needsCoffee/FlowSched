@@ -12,6 +12,67 @@ import {
   isChunkDurationValid,
   stepChunkHours,
 } from './schedule-duration';
+import {
+  DAY_END_HOUR,
+  DAY_START_HOUR,
+  GRID_HEIGHT,
+  HALF_HOUR_HEIGHT,
+  halfHourRows,
+  rangeLabel,
+} from './schedule-time';
+
+describe('schedule-time — halfHourRows / rangeLabel (time gutter)', () => {
+  it('produces one row per half hour across the whole grid', () => {
+    const rows = halfHourRows();
+    expect(rows).toHaveLength((DAY_END_HOUR - DAY_START_HOUR) * 2);
+  });
+
+  it('labels each row with its full start - end span in 12-hour time', () => {
+    const rows = halfHourRows();
+    expect(rangeLabel(rows[0])).toBe('7:00 - 7:30 AM');
+    expect(rangeLabel(rows[1])).toBe('7:30 - 8:00 AM');
+    const last = rows[rows.length - 1];
+    expect(rangeLabel(last)).toBe('7:30 - 8:00 PM');
+  });
+
+  it('marks both ends when a range crosses noon, so it cannot be misread', () => {
+    // "11:30 - 12:00 AM" would read as a morning slot; the marker on each end
+    // is what keeps it unambiguous.
+    const rows = halfHourRows();
+    const noon = rows.find((row) => row.startShort === '11:30' && row.period === 'AM');
+    expect(noon).toBeDefined();
+    expect(rangeLabel(noon!)).toBe('11:30 AM - 12:00 PM');
+  });
+
+  it('never uses 24-hour time in the gutter', () => {
+    for (const row of halfHourRows()) {
+      expect(row.startShort).toMatch(/^\d{1,2}:\d{2}$/);
+      expect(row.endShort).toMatch(/^\d{1,2}:\d{2}$/);
+      // 13:00, 07:00 etc. must not reach the label.
+      expect(Number(row.startShort.split(':')[0])).toBeLessThanOrEqual(12);
+      expect(Number(row.endShort.split(':')[0])).toBeLessThanOrEqual(12);
+    }
+  });
+
+  it('chains end-to-start with no gaps across an hour boundary', () => {
+    const rows = halfHourRows();
+    for (let i = 1; i < rows.length; i += 1) {
+      expect(rows[i].startShort).toBe(rows[i - 1].endShort);
+    }
+  });
+
+  it('keeps every label short enough to render on one line', () => {
+    // Guards the regression where the range wrapped to two lines and the labels
+    // drifted out of alignment with their rows.
+    for (const row of halfHourRows()) {
+      expect(rangeLabel(row).length).toBeLessThanOrEqual(24);
+    }
+  });
+
+  it('spans the grid height exactly, so the gutter stays aligned to the cells', () => {
+    expect(halfHourRows().length * HALF_HOUR_HEIGHT).toBe(GRID_HEIGHT);
+  });
+});
 
 describe('schedule-duration — clampChunkHours', () => {
   it('keeps a legal duration untouched', () => {
