@@ -53,8 +53,8 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }): JSX.Element {
   return (
     <div className="flex h-full flex-col">
       <div className="flex items-center gap-2 px-5 pb-5 pt-6">
-        <span aria-hidden="true" className="inline-block h-2.5 w-2.5 shrink-0 rounded-full bg-leaf-500 shadow-[0_0_0_4px_rgba(47,191,113,0.25)]" />
-        <span className="sidebar-label truncate font-display text-lg font-bold tracking-tight text-white">FlowSched</span>
+        <span aria-hidden="true" className="inline-block h-2.5 w-2.5 shrink-0 rounded-full bg-signal-300 shadow-[0_0_0_4px_rgba(127,227,255,0.18)]" />
+        <span className="sidebar-label truncate font-display text-lg font-bold tracking-tight text-ink-100">FlowSched</span>
       </div>
       <nav aria-label="Primary" className="flex-1 overflow-y-auto px-3">
         <ul className="space-y-1">
@@ -67,8 +67,8 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }): JSX.Element {
                 className={({ isActive }) =>
                   `sidebar-item group flex items-center gap-3 rounded-r-md border-l-4 px-3 py-2.5 text-sm transition-colors ${
                     isActive
-                      ? 'border-leaf-500 bg-leaf-500/10 font-semibold text-white'
-                      : 'border-transparent font-normal text-white/60 hover:bg-white/5 hover:text-white'
+                      ? 'border-signal-300 bg-white/[0.10] font-semibold text-ink-100 shadow-[0_8px_18px_-14px_rgba(127,227,255,0.45)]'
+                      : 'border-transparent font-normal text-ink-300 hover:bg-white/[0.07] hover:text-ink-100'
                   }`
                 }
               >
@@ -79,20 +79,20 @@ function SidebarBody({ onNavigate }: { onNavigate?: () => void }): JSX.Element {
           ))}
         </ul>
       </nav>
-      <div className="mt-auto border-t border-white/10 p-4">
+      <div className="mt-auto border-t border-glass-border p-4">
         <div className="flex items-center gap-3">
-          <span aria-hidden="true" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-leaf-500/20 text-xs font-bold text-white">
+          <span aria-hidden="true" className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-signal-300/15 text-xs font-bold text-signal-300">
             {initialsFor(user?.email)}
           </span>
           <span className="sidebar-label min-w-0 flex-1">
-            <span className="block truncate text-xs font-semibold text-white">{user?.email ?? ''}</span>
-            <span className="block text-[11px] text-white/50">{user?.role ?? ''}</span>
+            <span className="block truncate text-xs font-semibold text-ink-100">{user?.email ?? ''}</span>
+            <span className="block text-[11px] text-ink-300">{user?.role ?? ''}</span>
           </span>
         </div>
         <button
           type="button"
           onClick={handleLogout}
-          className="sidebar-label mt-3 w-full rounded-md px-3 py-2 text-left text-xs font-medium text-white/60 transition-colors hover:bg-white/5 hover:text-white"
+          className="sidebar-label mt-3 w-full rounded-md px-3 py-2 text-left text-xs font-medium text-ink-300 transition-colors hover:bg-white/[0.07] hover:text-ink-100"
         >
           Log out
         </button>
@@ -112,27 +112,27 @@ export function AppShell(): JSX.Element {
   const pageTitle = navLabelForPath(location.pathname);
 
   return (
-    <div className="flex h-screen bg-surface-muted text-slate-900">
-      <aside aria-label="Sidebar" className="hidden w-16 shrink-0 bg-[#132A1D] md:block lg:w-64 lg:[&_span.sidebar-label]:inline md:max-lg:[&_span.sidebar-label]:hidden">
+    <div className="app-bg flex h-screen">
+      <aside aria-label="Sidebar" className="hidden w-16 shrink-0 border-r border-glass-border bg-gradient-to-b from-navy-900/95 via-navy-950/95 to-navy-950/95 shadow-[12px_0_36px_-24px_rgba(6,11,26,0.9)] backdrop-blur-[18px] md:block lg:w-64 lg:[&_span.sidebar-label]:inline md:max-lg:[&_span.sidebar-label]:hidden">
         <SidebarBody />
       </aside>
       {isSidebarOpen ? (
         <div className="fixed inset-0 z-50 md:hidden">
-          <div aria-hidden="true" data-testid="sidebar-backdrop" onClick={closeSidebar} className="absolute inset-0 bg-ink/40 backdrop-blur-sm" />
-          <aside aria-label="Sidebar" className="absolute inset-y-0 left-0 w-64 bg-[#132A1D]">
+          <div aria-hidden="true" data-testid="sidebar-backdrop" onClick={closeSidebar} className="absolute inset-0 bg-navy-950/60 backdrop-blur-sm" />
+          <aside aria-label="Sidebar" className="absolute inset-y-0 left-0 w-64 border-r border-glass-border bg-gradient-to-b from-navy-900/95 via-navy-950/95 to-navy-950/95 shadow-[12px_0_36px_-24px_rgba(6,11,26,0.9)] backdrop-blur-[18px]">
             <SidebarBody onNavigate={closeSidebar} />
           </aside>
         </div>
       ) : null}
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center gap-3 border-b border-leaf-100 bg-white px-4 py-3">
-          <button type="button" onClick={toggleSidebar} aria-label="Open navigation menu" className="rounded-md p-2 text-ink/60 hover:bg-leaf-50 hover:text-ink md:hidden">
+        <header className="flex items-center gap-3 border-b border-brand-500/15 bg-white/90 px-4 py-3 backdrop-blur-[18px]">
+          <button type="button" onClick={toggleSidebar} aria-label="Open navigation menu" className="rounded-md p-2 text-slate-600 hover:bg-brand-500/10 hover:text-slate-900 md:hidden">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
           </button>
-          <h1 className="truncate text-lg font-semibold text-ink">{pageTitle}</h1>
+          <h1 className="truncate text-lg font-semibold text-slate-900">{pageTitle}</h1>
           <div className="ml-auto flex items-center gap-3">
             <TermSelector />
-            <button type="button" aria-label="Notifications" className="rounded-md p-2 text-ink/60 hover:bg-leaf-50 hover:text-ink">
+            <button type="button" aria-label="Notifications" className="rounded-md p-2 text-slate-600 hover:bg-brand-500/10 hover:text-slate-900">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" /></svg>
             </button>
           </div>
@@ -169,13 +169,13 @@ function TermSelector(): JSX.Element | null {
   }
 
   return (
-    <label className="hidden items-center gap-2 text-xs text-ink/60 sm:flex">
+    <label className="hidden items-center gap-2 text-xs text-slate-600 sm:flex">
       Term
       <select
         aria-label="Active academic term"
         value={selectedTermId ?? ''}
         onChange={(event) => selectTerm(event.target.value)}
-        className="rounded-md border border-leaf-100 bg-white px-2 py-1.5 text-xs text-ink outline-none transition-colors focus:border-leaf-500 focus:ring-4 focus:ring-leaf-500/15"
+        className="rounded-md border border-brand-500/20 bg-white/80 px-2 py-1.5 text-xs text-slate-900 outline-none transition-colors focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15"
       >
         {terms.length === 0 ? (
           <option value="">Loading…</option>

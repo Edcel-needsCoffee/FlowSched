@@ -112,6 +112,39 @@ export async function create(data: FacultyCreateData): Promise<Faculty> {
   return prisma.faculty.create({ data });
 }
 
+/** Look up a user by email (unique) — the duplicate-login guard on create. */
+export async function findUserByEmail(email: string): Promise<{ id: string } | null> {
+  return prisma.user.findUnique({ where: { email }, select: { id: true } });
+}
+
+/**
+ * Create a faculty member AND its linked FACULTY login atomically. Either
+ * both rows commit or neither does, so a chair never ends up with a login
+ * whose faculty record (or vice-versa) is missing. Returns the faculty row
+ * with the `user` relation included so the API can echo the new login back.
+ */
+export async function createWithAccount(
+  data: FacultyCreateData,
+  account: { email: string; password_hash: string },
+): Promise<FacultyWithUser> {
+  return prisma.$transaction(async (tx) => {
+    const faculty = await tx.faculty.create({ data });
+    await tx.user.create({
+      data: {
+        email: account.email,
+        password_hash: account.password_hash,
+        role: 'FACULTY',
+        faculty_id: faculty.id,
+      },
+    });
+    const withUser = await tx.faculty.findUniqueOrThrow({
+      where: { id: faculty.id },
+      include: facultyWithUserInclude,
+    });
+    return withUser;
+  });
+}
+
 export async function update(id: string, data: FacultyUpdateData): Promise<Faculty> {
   return prisma.faculty.update({ where: { id }, data });
 }

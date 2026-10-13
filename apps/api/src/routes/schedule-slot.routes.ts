@@ -7,9 +7,11 @@ import {
   createScheduleSlot,
   deleteScheduleSlot,
   listScheduleSlots,
+  resetSchedule,
   updateScheduleSlot,
 } from '../services/schedule-slot.service.js';
 import { uuidIdSchema } from '../validation/schedule-slot.validation.js';
+import { prisma } from '../config/prisma.js';
 
 export const scheduleSlotRouter = Router();
 
@@ -79,5 +81,30 @@ scheduleSlotRouter.delete(
   asyncHandler(async (req, res) => {
     await deleteScheduleSlot(parseId(req, 'schedule slot'));
     res.status(204).send();
+  }),
+);
+
+// Bulk reset: clear placed blocks for the term, scoped to all / one faculty /
+// one room. CHAIR-only, and the caller's account password is re-verified so
+// an unattended session cannot wipe the grid by accident.
+scheduleSlotRouter.post(
+  '/schedule-slots/reset',
+  requireAuth,
+  requireRole('CHAIR'),
+  asyncHandler(async (req, res) => {
+    const user = req.user;
+    const stored = user
+      ? await prisma.user.findUnique({
+          where: { id: user.userId },
+          select: { password_hash: true },
+        })
+      : null;
+    const body = (req.body ?? {}) as Record<string, unknown>;
+    const result = await resetSchedule(body, {
+      userId: user?.userId ?? 'unknown',
+      passwordHash: stored?.password_hash ?? null,
+      passwordCandidate: typeof body.password === 'string' ? body.password : '',
+    });
+    res.status(200).json(result);
   }),
 );

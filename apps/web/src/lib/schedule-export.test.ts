@@ -125,14 +125,14 @@ describe('schedule-export — colors', () => {
     expect(toArgb('#2563eb')).toBe('FF2563EB');
   });
 
-  it('falls back to the default leaf block when no color is set', () => {
-    expect(toArgb(null)).toBe('FFD7F5E2');
-    expect(toArgb('not-a-color')).toBe('FFD7F5E2');
+  it('falls back to the default blue block when no color is set', () => {
+    expect(toArgb(null)).toBe('FFDBE7FF');
+    expect(toArgb('not-a-color')).toBe('FFDBE7FF');
   });
 
   it('flips the text to white on a dark fill, and keeps ink on a light one', () => {
     expect(textArgbFor('#7C3AED')).toBe('FFFFFFFF'); // purple → white text
-    expect(textArgbFor('#D7F5E2')).toBe('FF10241A'); // pale → dark text
+    expect(textArgbFor('#DBE7FF')).toBe('FF10241A'); // pale → dark text
     expect(textArgbFor(null)).toBe('FF10241A');
   });
 });
@@ -157,15 +157,42 @@ describe('schedule-export — print layout', () => {
   it('outlines every header row separately', async () => {
     // The form boxes each field line, not one frame around the whole header, so
     // College / Room / Program / Major / Yr-Sec each read as their own cell.
+    // The boxes start at the first text column: the seal column is outlined on
+    // its own (see the seal-outline test) so no horizontal rule cuts through
+    // the seal's box.
     const ws = await readBack(await buildScheduleWorkbook({ ...base, slots: [] }));
     for (const row of [1, 2, 3, 4, 5, 6, 7]) {
-      const left = ws.getCell(row, COL_AMPM).border as Record<string, { style?: string }>;
+      const left = ws.getCell(row, COL_TIME_START).border as Record<string, { style?: string }>;
       const right = ws.getCell(row, COL_FIRST_DAY + 5).border as Record<string, { style?: string }>;
       expect(left.top?.style, `row ${row} top`).toBe('medium');
       expect(left.bottom?.style, `row ${row} bottom`).toBe('medium');
       expect(left.left?.style, `row ${row} left`).toBe('medium');
       expect(right.right?.style, `row ${row} right`).toBe('medium');
     }
+  });
+
+  it('outlines the seal down to the Palompon, Leyte line and no further', async () => {
+    // The two vertical rules beside the logo — the sheet's outer left edge and
+    // the seal column's right edge — run from the top of the sheet and stop at
+    // the bottom of the last institution line ("Palompon, Leyte", row 3),
+    // closing the seal's box. Nothing below that row keeps the seal's rules.
+    const ws = await readBack(await buildScheduleWorkbook({ ...base, slots: [] }));
+    const edge = (row: number, side: 'top' | 'bottom' | 'left' | 'right') =>
+      (ws.getCell(row, COL_AMPM).border as Record<string, { style?: string }>)[side]?.style;
+    for (const row of [1, 2, 3]) {
+      expect(edge(row, 'left'), `seal row ${row} left`).toBe('medium');
+      expect(edge(row, 'right'), `seal row ${row} right`).toBe('medium');
+    }
+    // The box closes flush with the Palompon, Leyte line...
+    expect(edge(1, 'top')).toBe('medium');
+    expect(edge(3, 'bottom')).toBe('medium');
+    // ...so the blank gap row under the seal carries neither its vertical
+    // rules nor its closing line. (The outer left edge is the one exception:
+    // the sheet's own frame stays unbroken down to the College row.)
+    expect(edge(4, 'right')).toBeUndefined();
+    expect(edge(4, 'top')).toBeUndefined();
+    expect(edge(4, 'bottom')).toBeUndefined();
+    expect(edge(4, 'left')).toBe('medium');
   });
 
   it('left-aligns every header label and value so the columns line up', async () => {
@@ -423,7 +450,7 @@ describe('schedule-export — workbook', () => {
     expect(ws.getCell(11, COL_FIRST_DAY).value).toBeNull();
   });
 
-  it('uses the default leaf fill when a subject has no color', async () => {
+  it('uses the default blue fill when a subject has no color', async () => {
     const buffer = await buildScheduleWorkbook({
       header: HEADER,
       slots: [makeSlot()],
@@ -436,7 +463,7 @@ describe('schedule-export — workbook', () => {
     const fill = ws.getCell(11, COL_FIRST_DAY).fill as
       | { fgColor?: { argb?: string } }
       | undefined;
-    expect(fill?.fgColor?.argb).toBe('FFD7F5E2');
+    expect(fill?.fgColor?.argb).toBe('FFDBE7FF');
   });
 });
 

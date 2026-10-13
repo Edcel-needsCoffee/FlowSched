@@ -22,7 +22,7 @@ model User {
   id            String   @id @default(uuid())
   email         String   @unique
   password_hash String
-  role          String   @default("FACULTY") // CHAIR | FACULTY | ACADEMIC_ADMIN
+  role          String   @default("FACULTY") // CHAIR | FACULTY
   faculty_id    String?  @unique
   faculty       Faculty? @relation(fields: [faculty_id], references: [id], onDelete: Restrict)
   /// URL of the profile photo (local uploads path or S3 key URL). Null = no

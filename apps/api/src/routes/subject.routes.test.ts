@@ -138,6 +138,28 @@ describe('POST /api/subjects', () => {
     expect(negativeHours.body.error.details.fieldErrors).toHaveProperty('lab_hours');
   });
 
+  it('rejects catalog hours above the single-meeting caps (lecture ≤ 2, lab ≤ 3)', async () => {
+    // The Schedule page places one meeting per block (LEC ≤ 2h, LAB ≤ 3h), so
+    // subject data entry must not admit budgets a single block can never hold.
+    const overLecture = await createSubject({
+      code: 'TST-105',
+      title: 'Too many lecture hours',
+      units: 3,
+      lecture_hours: 3,
+    });
+    expect(overLecture.status).toBe(400);
+    expect(overLecture.body.error.details.fieldErrors).toHaveProperty('lecture_hours');
+
+    const overLab = await createSubject({
+      code: 'TST-106',
+      title: 'Too many lab hours',
+      units: 2,
+      lab_hours: 4,
+    });
+    expect(overLab.status).toBe(400);
+    expect(overLab.body.error.details.fieldErrors).toHaveProperty('lab_hours');
+  });
+
   it('rejects non-numeric scalars that would coerce (units: true) with 400', async () => {
     // Guards the template: Number(true) === 1 must never become a stored unit.
     const res = await request(createApp())

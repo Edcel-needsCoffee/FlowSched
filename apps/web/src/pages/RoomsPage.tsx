@@ -167,13 +167,13 @@ export function RoomsPage(): JSX.Element {
             value={searchInput}
             onChange={(event) => setSearchInput(event.target.value)}
             placeholder="Search by name…"
-            className="w-56 rounded-xl border-[1.5px] border-leaf-100 bg-[#FBFEFC] px-3.5 py-2 text-sm text-ink outline-none transition-colors focus:border-leaf-500 focus:bg-white focus:ring-4 focus:ring-leaf-500/15"
+            className="w-56 rounded-xl border-[1.5px] border-leaf-100 bg-white/80 px-3.5 py-2 text-sm text-ink outline-none transition-colors focus:border-leaf-500 focus:bg-white focus:ring-4 focus:ring-leaf-500/15"
           />
           {canEdit ? (
             <button
               type="button"
               onClick={openCreate}
-              className="rounded-lg bg-leaf-500 px-4 py-2 text-sm font-semibold text-[#08130D] transition enabled:hover:scale-[1.03] enabled:hover:bg-leaf-600 enabled:hover:text-white enabled:active:scale-[0.98]"
+              className="rounded-lg bg-leaf-500 px-4 py-2 text-sm font-semibold text-white transition enabled:hover:scale-[1.03] enabled:hover:bg-leaf-600 enabled:hover:text-white enabled:active:scale-[0.98]"
             >
               + Add room
             </button>
@@ -205,7 +205,7 @@ export function RoomsPage(): JSX.Element {
             <button
               type="button"
               onClick={openCreate}
-              className="mt-3 rounded-lg bg-leaf-500 px-4 py-2 text-sm font-semibold text-[#08130D] transition-colors hover:bg-leaf-600 hover:text-white"
+              className="mt-3 rounded-lg bg-leaf-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-leaf-600 hover:text-white"
             >
               Add the first room
             </button>
@@ -328,7 +328,7 @@ function RoomNameField({
         onChange={(event) => onChange(event.target.value)}
         placeholder="e.g. Room 301"
         aria-invalid={error ? true : undefined}
-        className="w-full rounded-xl border-[1.5px] border-leaf-100 bg-[#FBFEFC] px-3.5 py-2.5 text-sm text-ink outline-none transition-colors focus:border-leaf-500 focus:bg-white focus:ring-4 focus:ring-leaf-500/15"
+        className="w-full rounded-xl border-[1.5px] border-leaf-100 bg-white/80 px-3.5 py-2.5 text-sm text-ink outline-none transition-colors focus:border-leaf-500 focus:bg-white focus:ring-4 focus:ring-leaf-500/15"
       />
       {error ? <p className="mt-1 text-sm text-red-600">{error}</p> : null}
     </div>

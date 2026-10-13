@@ -58,7 +58,9 @@ export function LoginModal(): JSX.Element | null {
       const result = await loginRequest(parsed.data.email, parsed.data.password);
       login({ user: result.user, accessToken: result.accessToken, refreshToken: result.refreshToken });
       handleClose();
-      navigate('/dashboard', { replace: true });
+      // Faculty land directly on their own workload (FR-10); management keeps
+      // the department dashboard as the entry point.
+      navigate(result.user.role === 'FACULTY' ? '/workload' : '/dashboard', { replace: true });
     } catch (err) {
       setPassword('');
       setServerError(err instanceof Error ? err.message : 'Invalid email or password');
@@ -75,7 +77,7 @@ export function LoginModal(): JSX.Element | null {
             aria-hidden="true"
             data-testid="login-modal-backdrop"
             onClick={handleClose}
-            className="absolute inset-0 bg-ink/40 backdrop-blur-sm"
+            className="absolute inset-0 bg-navy-950/60 backdrop-blur-sm"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -86,49 +88,49 @@ export function LoginModal(): JSX.Element | null {
             aria-modal="true"
             aria-labelledby="login-title"
             onClick={(e) => e.stopPropagation()}
-            className="relative z-10 w-full max-w-sm overflow-hidden rounded-2xl bg-white shadow-[0_30px_70px_-20px_rgba(16,36,26,0.35)]"
+            className="glass-card-dark relative z-10 w-full max-w-sm overflow-hidden p-0"
             initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: 10 }}
             animate={reduce ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }}
             exit={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: 10 }}
             transition={reduce ? { duration: 0 } : { duration: 0.25 }}
           >
-            <div aria-hidden="true" className="h-1.5 w-full bg-gradient-to-r from-leaf-500 via-leaf-300 to-leaf-500" />
+            <div aria-hidden="true" className="h-1.5 w-full bg-gradient-to-r from-brand-500 via-signal-300 to-brand-500" />
             <div className="p-8">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span aria-hidden="true" className="inline-block h-2.5 w-2.5 rounded-full bg-leaf-500 shadow-[0_0_0_4px_rgba(47,191,113,0.18)]" />
-                <span className="text-sm font-bold text-ink">FlowSched</span>
+                <span aria-hidden="true" className="inline-block h-2.5 w-2.5 rounded-full bg-signal-300 shadow-[0_0_0_4px_rgba(127,227,255,0.18)]" />
+                <span className="text-sm font-bold text-ink-100">FlowSched</span>
               </div>
               <button
                 type="button"
                 onClick={handleClose}
                 aria-label="Close login dialog"
-                className="flex h-8 w-8 items-center justify-center rounded-lg bg-leaf-50 text-xl leading-none text-ink/40 hover:bg-leaf-100 hover:text-ink"
+                className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/[0.06] text-xl leading-none text-ink-300 hover:bg-white/[0.10] hover:text-ink-100"
               >
                 ×
               </button>
             </div>
-            <h1 id="login-title" className="mt-6 text-2xl font-bold text-ink">
+            <h1 id="login-title" className="mt-6 text-2xl font-bold text-ink-100">
               Welcome back
             </h1>
-            <p className="mt-1 text-sm text-ink/50">
+            <p className="mt-1 text-sm text-ink-300">
               Sign in to your FlowSched account.
             </p>
             <form onSubmit={handleSubmit} noValidate className="mt-6 space-y-4">
               {serverError ? (
-                <div role="alert" className="flex items-center gap-2 rounded-lg border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700">
-                  <span aria-hidden="true" className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-red-600 text-[10px] font-bold text-white">
+                <div role="alert" className="flex items-center gap-2 rounded-lg border border-red-500/40 bg-red-500/15 px-3 py-2.5 text-sm text-red-300">
+                  <span aria-hidden="true" className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
                     !
                   </span>
                   <span>{serverError}</span>
                 </div>
               ) : null}
               <div>
-                <label htmlFor="login-email" className="mb-1.5 block text-xs font-semibold text-ink/70">
+                <label htmlFor="login-email" className="glass-label-dark">
                   Email
                 </label>
                 <div className="relative">
-                  <span aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#8FA396]">
+                  <span aria-hidden="true" className="glass-icon-dark">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></svg>
                   </span>
                   <input
@@ -137,17 +139,17 @@ export function LoginModal(): JSX.Element | null {
                     autoComplete="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full rounded-xl border-[1.5px] border-leaf-100 bg-[#FBFEFC] py-3 pl-10 pr-3.5 text-sm outline-none transition-colors focus:border-leaf-500 focus:bg-white focus:ring-4 focus:ring-leaf-500/15"
+                    className="glass-input-dark py-3 pl-10 pr-3.5"
                   />
                 </div>
-                {fieldErrors.email ? <p className="mt-1 text-sm text-red-600">{fieldErrors.email}</p> : null}
+                {fieldErrors.email ? <p className="mt-1 text-sm text-red-400">{fieldErrors.email}</p> : null}
               </div>
               <div>
-                <label htmlFor="login-password" className="mb-1.5 block text-xs font-semibold text-ink/70">
+                <label htmlFor="login-password" className="glass-label-dark">
                   Password
                 </label>
                 <div className="relative">
-                  <span aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#8FA396]">
+                  <span aria-hidden="true" className="glass-icon-dark">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
                   </span>
                   <input
@@ -156,36 +158,36 @@ export function LoginModal(): JSX.Element | null {
                     autoComplete="current-password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full rounded-xl border-[1.5px] border-leaf-100 bg-[#FBFEFC] py-3 pl-10 pr-3.5 text-sm outline-none transition-colors focus:border-leaf-500 focus:bg-white focus:ring-4 focus:ring-leaf-500/15"
+                    className="glass-input-dark py-3 pl-10 pr-3.5"
                   />
                 </div>
-                {fieldErrors.password ? <p className="mt-1 text-sm text-red-600">{fieldErrors.password}</p> : null}
+                {fieldErrors.password ? <p className="mt-1 text-sm text-red-400">{fieldErrors.password}</p> : null}
               </div>
               {/* TODO: wire remember-me once backend supports it. Forgot password is a placeholder until a support route exists. */}
               <div className="flex items-center justify-between text-xs">
-                <label className="flex cursor-pointer items-center gap-2 text-ink/70">
-                  <input type="checkbox" className="h-3.5 w-3.5 accent-leaf-500" />
+                <label className="flex cursor-pointer items-center gap-2 text-ink-300">
+                  <input type="checkbox" className="h-3.5 w-3.5 accent-brand-500" />
                   Remember me
                 </label>
-                <span className="cursor-pointer font-semibold text-leaf-700">Forgot password?</span>
+                <span className="glass-link-dark">Forgot password?</span>
               </div>
               <motion.button
                 type="submit"
                 disabled={pending}
                 whileHover={reduce ? undefined : { scale: 1.03 }}
                 whileTap={reduce ? undefined : { scale: 0.98 }}
-                className="w-full rounded-xl bg-gradient-to-b from-leaf-400 to-leaf-600 py-3.5 font-bold text-white shadow-[0_12px_26px_-10px_rgba(31,143,82,0.55)] transition-shadow hover:shadow-[0_16px_30px_-10px_rgba(31,143,82,0.65)] disabled:opacity-50"
+                className="glass-btn-primary-dark"
               >
                 {pending ? 'Signing in…' : 'Sign in'}
               </motion.button>
             </form>
             <div className="mt-6 flex items-center gap-2.5">
-              <span aria-hidden="true" className="h-px flex-1 bg-leaf-100" />
-              <span className="text-[11px] text-ink/40">FlowSched · Industrial Engineering Dept.</span>
-              <span aria-hidden="true" className="h-px flex-1 bg-leaf-100" />
+              <span aria-hidden="true" className="h-px flex-1 bg-glass-border" />
+              <span className="text-[11px] text-ink-500">FlowSched · Industrial Engineering Dept.</span>
+              <span aria-hidden="true" className="h-px flex-1 bg-glass-border" />
             </div>
-            <p className="mt-3 text-center text-xs text-ink/50">
-              Having trouble? Contact your <span className="font-bold text-leaf-700">department administrator</span>.
+            <p className="mt-3 text-center text-xs text-ink-300">
+              Having trouble? Contact your <span className="glass-link-dark">department administrator</span>.
             </p>
             </div>
           </motion.div>

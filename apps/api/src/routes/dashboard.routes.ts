@@ -7,7 +7,7 @@ export const dashboardRouter = Router();
 
 /**
  * GET /api/dashboard/summary?termId= — role-scoped overview (FR-06/FR-08).
- * CHAIR / ACADEMIC_ADMIN get department-wide numbers; FACULTY get only their
+ * CHAIR gets department-wide numbers; FACULTY get only their
  * own summary. requireAuth guarantees req.user; the service resolves the
  * faculty record from the token so a Faculty caller can never pull another
  * instructor's rows.

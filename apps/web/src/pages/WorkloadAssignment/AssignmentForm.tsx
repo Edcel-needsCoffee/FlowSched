@@ -107,7 +107,7 @@ export function FormSelect(props: {
         value={props.value}
         disabled={props.disabled}
         onChange={(event) => props.onChange(event.target.value)}
-        className="w-full rounded-xl border-[1.5px] border-leaf-100 bg-[#FBFEFC] px-3 py-2.5 text-sm text-ink outline-none focus:border-leaf-500 disabled:opacity-60"
+        className="w-full rounded-xl border-[1.5px] border-leaf-100 bg-white/80 px-3 py-2.5 text-sm text-ink outline-none focus:border-leaf-500 disabled:opacity-60"
       >
         {props.children}
       </select>

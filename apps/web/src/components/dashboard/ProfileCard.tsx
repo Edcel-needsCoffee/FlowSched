@@ -6,7 +6,6 @@ import type { AuthUser } from '../../store/auth.store';
 export const ROLE_LABELS: Record<AuthUser['role'], string> = {
   CHAIR: 'Program Chair',
   FACULTY: 'Faculty',
-  ACADEMIC_ADMIN: 'Academic Admin',
 };
 
 /** Derive a display name from the login email (chair accounts have no faculty record). */
@@ -61,16 +60,16 @@ export function ProfileCard({
   }
 
   return (
-    <div className="flex items-center gap-4 rounded-2xl border border-leaf-100 bg-white p-4 shadow-sm">
+    <div className="glass-card flex items-center gap-4 p-4">
       <AvatarImage src={user?.avatar_url ?? null} name={name} size="lg" />
       <div className="min-w-0">
-        <p className="truncate text-lg font-semibold text-ink">{name}</p>
+        <p className="truncate text-lg font-semibold text-slate-900">{name}</p>
         <div className="mt-1 flex flex-wrap items-center gap-2">
-          <span className="rounded-full bg-leaf-50 px-2 py-0.5 text-[11px] font-semibold text-leaf-700">
+          <span className="glass-chip px-2 py-0.5 text-[11px] font-semibold">
             {user ? ROLE_LABELS[user.role] : '—'}
           </span>
           {termLabel ? (
-            <span className="rounded-full border border-leaf-100 px-2 py-0.5 font-mono text-[11px] text-ink/70">
+            <span className="rounded-full border border-brand-500/20 bg-white/60 px-2 py-0.5 font-mono text-[11px] text-slate-600">
               {termLabel}
             </span>
           ) : null}
@@ -81,7 +80,7 @@ export function ProfileCard({
               type="button"
               disabled={uploading}
               onClick={() => inputRef.current?.click()}
-              className="rounded-lg border border-leaf-200 px-2.5 py-1 text-xs font-medium text-leaf-700 transition-colors hover:bg-leaf-50 disabled:opacity-60"
+              className="rounded-lg border border-brand-500/25 bg-white/60 px-2.5 py-1 text-xs font-medium text-brand-500 transition-colors hover:bg-brand-500/10 disabled:opacity-60"
             >
               {uploading ? 'Uploading…' : 'Change photo'}
             </button>

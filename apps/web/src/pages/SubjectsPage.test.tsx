@@ -27,7 +27,7 @@ const SUBJECT_A: Subject = {
   code: 'IE 105',
   title: 'Introduction to Industrial Engineering',
   units: 3,
-  lecture_hours: 3,
+  lecture_hours: 2,
   lab_hours: 0,
   created_at: '2026-09-14T00:00:00.000Z',
   updated_at: '2026-09-14T00:00:00.000Z',
@@ -38,7 +38,7 @@ const SUBJECT_B: Subject = {
   code: 'IE 322',
   title: 'Operations Research 1',
   units: 3,
-  lecture_hours: 3,
+  lecture_hours: 2,
   lab_hours: 0,
   created_at: '2026-09-14T00:00:00.000Z',
   updated_at: '2026-09-14T00:00:00.000Z',
@@ -151,8 +151,8 @@ describe('SubjectsPage — role-based controls', () => {
     expect(screen.getAllByRole('button', { name: 'Delete' })).toHaveLength(2);
   });
 
-  it('hides all edit controls from the Academic Admin (view-only)', async () => {
-    setRole('ACADEMIC_ADMIN');
+  it('hides all edit controls from the Faculty (view-only)', async () => {
+    setRole('FACULTY');
     renderPage();
     await screen.findByText('IE 105');
     expect(screen.queryByRole('button', { name: 'Add Subject' })).not.toBeInTheDocument();
@@ -166,7 +166,7 @@ describe('SubjectsPage — create', () => {
     renderPage();
     fireEvent.click(await screen.findByRole('button', { name: 'Add Subject' }));
     expect(screen.getByRole('dialog')).toHaveTextContent('Add Subject');
-    fillSubjectForm({ code: 'IE 411', title: 'Methods Engineering', units: '4', lecture_hours: '3', lab_hours: '3' });
+    fillSubjectForm({ code: 'IE 411', title: 'Methods Engineering', units: '4', lecture_hours: '2', lab_hours: '3' });
     const listCallsBefore = listSubjectsMock.mock.calls.length;
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
     await waitFor(() => {
@@ -174,7 +174,7 @@ describe('SubjectsPage — create', () => {
         code: 'IE 411',
         title: 'Methods Engineering',
         units: 4,
-        lecture_hours: 3,
+        lecture_hours: 2,
         lab_hours: 3,
       });
     });
@@ -190,6 +190,28 @@ describe('SubjectsPage — create', () => {
     fillSubjectForm({ code: 'IE 000', title: 'Zero units', units: '0' });
     fireEvent.click(screen.getByRole('button', { name: 'Save' }));
     expect(await screen.findByText('Units must be greater than 0')).toBeInTheDocument();
+    expect(createSubjectMock).not.toHaveBeenCalled();
+  });
+
+  it('shows inline validation for over-cap hours and does not call the API', async () => {
+    // One block holds at most 2 lecture hours / 3 lab hours — the form rejects
+    // catalog data a single meeting could never hold.
+    renderPage();
+    fireEvent.click(await screen.findByRole('button', { name: 'Add Subject' }));
+    fillSubjectForm({
+      code: 'IE 999',
+      title: 'Over cap',
+      units: '3',
+      lecture_hours: '3',
+      lab_hours: '4',
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    expect(
+      await screen.findByText('Lecture hours cannot exceed 2 (one lecture block is at most 2h)'),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('Lab hours cannot exceed 3 (one lab block is at most 3h)'),
+    ).toBeInTheDocument();
     expect(createSubjectMock).not.toHaveBeenCalled();
   });
 
@@ -219,7 +241,7 @@ describe('SubjectsPage — edit', () => {
         code: 'IE 105',
         title: 'Intro to IE',
         units: 3,
-        lecture_hours: 3,
+        lecture_hours: 2,
         lab_hours: 0,
       });
     });

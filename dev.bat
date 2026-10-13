@@ -108,7 +108,6 @@ echo.
 echo [FlowSched] Web app:            http://localhost:5173
 echo [FlowSched] API health check:   http://localhost:4000/api/health
 echo [FlowSched] Chair login:        chair.dev@flowsched.local / dev-password-change-me
-echo [FlowSched] Admin login:        admin.dev@flowsched.local / dev-password-change-me
 echo.
 echo [FlowSched] Close the two server windows (or run dev-stop.bat) to stop.
 echo.

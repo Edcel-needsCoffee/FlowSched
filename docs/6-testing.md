@@ -83,7 +83,7 @@ Additional critical workflows:
 - Faculty logs in and views only their own workload/schedule (never another faculty member's).
 - Chair assigns a subject that overloads a faculty member past `max_units` — system warns before allowing it.
 - Chair drops a class into a room marked under maintenance — system warns before allowing it.
-- Academic Administrator generates and downloads a workload report/Excel export, and cannot access edit/create actions.
+- Chair generates and downloads a workload report/Excel export.
 
 ---
 

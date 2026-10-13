@@ -49,7 +49,7 @@ Top nav bar + full-width sections (Hero, Features, Roles, CTA, Footer), as alrea
 
 ### 2.2 Authenticated app shell (Dashboard, Schedule, Workload Assignment, Faculty, Subjects, Rooms, Reports, My Workload, Account Settings)
 
-**This replaces any earlier top-nav-only assumption for these pages.** The authenticated app uses a persistent **left sidebar** layout, not a top nav bar, for all roles (Chair, Faculty, Academic Administrator) — only the items listed in the sidebar differ per role, per `requirements.md` Section 3.
+**This replaces any earlier top-nav-only assumption for these pages.** The authenticated app uses a persistent **left sidebar** layout, not a top nav bar, for all roles (Chair, Faculty) — only the items listed in the sidebar differ per role, per `requirements.md` Section 3.
 
 #### Desktop
 - Fixed left sidebar (dark `ink`/`#132A1D` background, matching the Roles section treatment): FlowSched brand mark at top, role-filtered navigation items below (Dashboard, Schedule, Workload Assignment, Faculty, Subjects, Rooms, Reports, My Workload), active item highlighted with a `leaf-500` left-border accent and `leaf-500`-tinted background, user/account menu pinned at the bottom of the sidebar.
@@ -80,12 +80,12 @@ Sidebar becomes a slide-in drawer triggered from a hamburger icon in the content
 |---|---|---|
 | Login | Authentication | Public |
 | Dashboard | Department-wide overview: total faculty, workload distribution, upcoming conflicts, room utilization snapshot | Authenticated (view scoped by role) |
-| Schedule | Drag-and-drop weekly schedule grid, filterable by faculty/section | Chair (edit), Faculty (view own), Academic Admin (view all) |
-| Workload Assignment | Assign subjects/sections to faculty for the active term; view computed totals | Chair (edit), Academic Admin (view) |
-| Faculty | Faculty roster — profiles, employment status, max load | Chair (edit), Academic Admin (view) |
-| Subjects | Subject catalog — code, title, units, hours | Chair (edit), Academic Admin (view) |
-| Rooms | Room list and maintenance status | Chair (edit), Academic Admin (view) |
-| Reports | Workload summaries and schedule exports (Excel), per faculty or per year/section | Chair, Academic Admin |
+| Schedule | Drag-and-drop weekly schedule grid, filterable by faculty/section | Chair (edit), Faculty (view own) |
+| Workload Assignment | Assign subjects/sections to faculty for the active term; view computed totals | Chair (edit) |
+| Faculty | Faculty roster — profiles, employment status, max load | Chair (edit) |
+| Subjects | Subject catalog — code, title, units, hours | Chair (edit) |
+| Rooms | Room list and maintenance status | Chair (edit) |
+| Reports | Workload summaries and schedule exports (Excel), per faculty or per year/section | Chair |
 | My Workload | A faculty member's own assigned subjects, units, and schedule | Faculty |
 | Account Settings | Update own profile details, change password | All authenticated roles |
 
@@ -211,7 +211,7 @@ Application State
 Affected Component Updates
 ```
 
-Example: the Chair moves a class on the Schedule page → connected Faculty/Academic Admin sessions viewing the same term receive the update and see the grid refresh in place, with no reload.
+Example: the Chair moves a class on the Schedule page → connected Faculty sessions viewing the same term receive the update and see the grid refresh in place, with no reload.
 
 ---
 

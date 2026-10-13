@@ -46,7 +46,7 @@
 
 - JWT access + refresh tokens
 - bcrypt password verification
-- Three roles: `CHAIR`, `FACULTY`, `ACADEMIC_ADMIN`
+- Two roles: `CHAIR`, `FACULTY`
 - Access token is held in memory; refresh token is persisted in browser local storage for session restore.
 
 ## File Storage

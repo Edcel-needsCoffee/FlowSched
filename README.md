@@ -79,14 +79,13 @@ Send that URL to your guest, along with a login:
 | Role | Email | Password |
 |---|---|---|
 | Chair (all features) | `chair.dev@flowsched.local` | `dev-password-change-me` |
-| Academic Admin (all features) | `admin.dev@flowsched.local` | `dev-password-change-me` |
 
 Notes and caveats:
 
-- **There is no view-only role.** The only roles are `CHAIR`, `FACULTY` and
-  `ACADEMIC_ADMIN` (`packages/shared/src/index.ts`); Chair and Academic Admin
-  can reach every page, including all create/edit/delete screens. A guest on
-  either account can modify your seeded data.
+- **There is no view-only role.** The only roles are `CHAIR` and `FACULTY`
+  (`packages/shared/src/index.ts`); the Chair can reach every page, including
+  all create/edit/delete screens, so a guest on that account can modify your
+  seeded data.
 - The tunnel URL is public and unauthenticated at the edge: anyone who has it
   can log in with the dev credentials above. Close the tunnel when done
   (Ctrl+C in the `share.bat` window).

@@ -480,6 +480,24 @@ describe('chunkPlacement (the drop math handleDragEnd uses)', () => {
     expect(placement.start_time).toBe('19:00');
     expect(placement.end_time).toBe('20:00');
   });
+
+  it('never spans a LECTURE block past the 2h cap', () => {
+    const placement = chunkPlacement(
+      { ...baseInfo, sessionType: 'LECTURE', remaining: 4, duration: 4 },
+      { day: 'MON', hour: 8, offset: 0 },
+    );
+    expect(placement.start_time).toBe('08:00');
+    expect(placement.end_time).toBe('10:00'); // 2h, not the 4h duration
+  });
+
+  it('caps the invalid-picker fallback to one LAB meeting (3h, not the full remainder)', () => {
+    const placement = chunkPlacement(
+      { ...baseInfo, duration: 0, remaining: 5 },
+      { day: 'TUE', hour: 8, offset: 0 },
+    );
+    expect(placement.start_time).toBe('08:00');
+    expect(placement.end_time).toBe('11:00');
+  });
 });
 
 describe('overlayHeight (the drag clone previews the placed block size)', () => {
@@ -760,9 +778,9 @@ describe('SchedulePage — card color picker (Part 3)', () => {
     await renderPage();
     await screen.findByText('IE 322 — LEC');
 
-    // Default swatch = leaf-100; the placed block is still default leaf.
+    // Default swatch = soft blue; the placed block is still the default.
     const lecCard = chunkCard('assign-322:LECTURE');
-    const swatch = within(lecCard).getByRole('button', { name: 'Change color (#D7F5E2)' });
+    const swatch = within(lecCard).getByRole('button', { name: 'Change color (#DBE7FF)' });
     fireEvent.click(swatch);
     const menu = await screen.findByRole('menu', { name: 'Pick a color' });
     expect(within(menu).getAllByRole('menuitemradio')).toHaveLength(COLOR_PRESETS.length);
@@ -797,7 +815,7 @@ describe('SchedulePage — card color picker (Part 3)', () => {
         it('closes the popover on outside click and Escape without changing the color', async () => {
     await renderPage();
     const lecCard = chunkCard('assign-322:LECTURE');
-    const swatch = await within(lecCard).findByRole('button', { name: 'Change color (#D7F5E2)' });
+    const swatch = await within(lecCard).findByRole('button', { name: 'Change color (#DBE7FF)' });
 
     fireEvent.click(swatch);
     await screen.findByRole('menu', { name: 'Pick a color' });
@@ -816,7 +834,7 @@ describe('SchedulePage — card color picker (Part 3)', () => {
     updateWorkloadAssignmentMock.mockRejectedValue(new Error('offline'));
     await renderPage();
     const lecCard = chunkCard('assign-322:LECTURE');
-    const swatch = await within(lecCard).findByRole('button', { name: 'Change color (#D7F5E2)' });
+    const swatch = await within(lecCard).findByRole('button', { name: 'Change color (#DBE7FF)' });
 
     fireEvent.click(swatch);
     fireEvent.click(
@@ -827,11 +845,11 @@ describe('SchedulePage — card color picker (Part 3)', () => {
 
         // Failure → the previous (default) color is restored on the LEC-card swatch.
     await waitFor(() => {
-      expect(within(lecCard).getByRole('button', { name: 'Change color (#D7F5E2)' })).toBeInTheDocument();
+      expect(within(lecCard).getByRole('button', { name: 'Change color (#DBE7FF)' })).toBeInTheDocument();
     });
   });
 
-  it('keeps the default leaf look for assignments without a color (no regression)', async () => {
+  it('keeps the default blue look for assignments without a color (no regression)', async () => {
     vi.mocked(listScheduleSlots).mockResolvedValue({
       data: [makeSlot({ start_time: '13:00', end_time: '14:00' })],
       meta: { total: 1 },
@@ -839,15 +857,15 @@ describe('SchedulePage — card color picker (Part 3)', () => {
     await renderPage();
     await screen.findByText('IE 322 — LEC');
 
-    // Placed block keeps the long-standing leaf default — no inline color.
+    // Placed block keeps the long-standing blue default — no inline color.
     const placed = screen.getByText('IE 322').closest('div[aria-roledescription]') as HTMLElement;
     expect(placed.style.backgroundColor).toBe('');
   });
 
   it('picks readable text per preset via the luminance check (checked, not assumed)', () => {
     // Light presets → near-black ink; dark presets → white.
-    expect(readableTextColor('#D7F5E2')).toBe('#10241A');
-    expect(readableTextColor('#2FBF71')).toBe('#10241A');
+    expect(readableTextColor('#DBE7FF')).toBe('#10241A');
+    expect(readableTextColor('#4F8CFF')).toBe('#FFFFFF');
     for (const preset of COLOR_PRESETS) {
       const text = readableTextColor(preset.hex);
       const value = preset.hex.replace('#', '');
@@ -943,6 +961,45 @@ describe('SchedulePage — click a placed block to inspect its details', () => {
     // A click is an inspection, not a placement.
     expect(vi.mocked(createScheduleSlot)).not.toHaveBeenCalled();
     expect(vi.mocked(updateScheduleSlot)).not.toHaveBeenCalled();
+  });
+});
+
+describe('SchedulePage — single-meeting block caps (LEC ≤ 2h, LAB ≤ 3h)', () => {
+  /** Same subject, but with 4 lecture hours still to place. */
+  async function renderFourHourLecture(): Promise<HTMLElement> {
+    listWorkloadAssignmentsMock.mockResolvedValue({
+      data: [
+        makeAssignment({
+          lecture_hours: 4,
+          remaining_lecture_hours: 4,
+          weekly_hours: 7,
+          remaining_hours: 7,
+        }),
+      ],
+      meta: { total: 1, page: 1, pageSize: 10, pageCount: 1 },
+    });
+    await renderPage();
+    return chunkCardAfterLoad('assign-322:LECTURE');
+  }
+
+  it('defaults the LECTURE card to 2h even when more lecture hours remain', async () => {
+    const lecCard = await renderFourHourLecture();
+    expect(lecCard).toHaveAttribute('data-chunk-duration', '2');
+    expect(within(lecCard).getByText('2h selected · 4h remaining')).toBeInTheDocument();
+    // One meeting's worth is all the + stepper can ever offer.
+    expect(within(lecCard).getByRole('button', { name: 'More hours' })).toBeDisabled();
+  });
+
+  it('clamps a typed duration above the block cap and explains the cap inline', async () => {
+    const lecCard = await renderFourHourLecture();
+    const input = within(lecCard).getByLabelText('Hours to place') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: '4' } });
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    expect(lecCard).toHaveAttribute('data-chunk-duration', '2');
+    expect(within(lecCard).getByRole('status')).toHaveTextContent(
+      'One LEC block holds at most 2h.',
+    );
   });
 });
 

@@ -9,6 +9,8 @@ import {
   findActiveWithUserById,
   list as listFacultyRows,
   create as createFacultyRow,
+  createWithAccount,
+  findUserByEmail,
   update as updateFacultyRow,
   softDelete,
   type FacultyListParams,
@@ -16,6 +18,7 @@ import {
   type FacultyWithUser,
   type SortDirection,
 } from '../repositories/faculty.repository.js';
+import { hashPassword } from './auth.service.js';
 import { prisma } from '../config/prisma.js';
 import {
   createFacultySchema,
@@ -136,9 +139,36 @@ async function assertEmployeeNoAvailable(employeeNo: string, excludeId?: string)
 export async function createFaculty(rawBody: unknown): Promise<FacultyDto> {
   const input: CreateFacultyInput = parseOrBadRequest(createFacultySchema, rawBody);
   await assertEmployeeNoAvailable(input.employee_no);
-  // Absent rank normalizes to null (DB column is nullable with no default).
-  const created = await createFacultyRow({ ...input, rank: input.rank ?? null });
-  return toFacultyDtoFromRow(created);
+
+  const facultyData = { ...input, rank: input.rank ?? null };
+  delete facultyData.account;
+
+  // Optional login provisioning: a linked FACULTY account is created in the
+  // same transaction so the new instructor can sign in immediately and view
+  // their auto-generated schedule. Without an account the faculty member is
+  // still created — they simply have no login yet (the chair can add one
+  // later, or link an existing one).
+  if (!input.account) {
+    const created = await createFacultyRow(facultyData);
+    return toFacultyDtoFromRow(created);
+  }
+
+  // Duplicate email is rejected with a clear 409 before any write, so the
+  // unique constraint never surfaces as an opaque DB error.
+  const taken = await findUserByEmail(input.account.email);
+  if (taken) {
+    throw ApiError.conflict(
+      'EMAIL_TAKEN',
+      `An account with email "${input.account.email}" already exists`,
+      { field: 'account.email', email: input.account.email },
+    );
+  }
+
+  const created = await createWithAccount(facultyData, {
+    email: input.account.email,
+    password_hash: await hashPassword(input.account.password),
+  });
+  return toFacultyDto(created);
 }
 
 export async function updateFaculty(id: string, rawBody: unknown): Promise<FacultyDto> {

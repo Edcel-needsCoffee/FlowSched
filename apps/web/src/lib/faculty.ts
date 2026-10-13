@@ -45,6 +45,11 @@ export interface FacultyQuery {
   sortDir?: FacultySortDir;
 }
 
+export interface FacultyAccountInput {
+  email: string;
+  password: string;
+}
+
 export interface FacultyInput {
   employee_no: string;
   first_name: string;
@@ -52,6 +57,8 @@ export interface FacultyInput {
   rank?: string | null;
   employment_status?: EmploymentStatus;
   max_units?: number;
+  /** Optional linked login created in the same transaction (create-only). */
+  account?: FacultyAccountInput;
 }
 
 export function listFaculty(query: FacultyQuery = {}): Promise<FacultyListResult> {

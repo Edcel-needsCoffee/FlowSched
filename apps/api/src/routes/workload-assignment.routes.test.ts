@@ -128,7 +128,11 @@ describe('WorkloadAssignment API', () => {
       faculty_name: 'Work Load',
       subject_code: `${PREFIX}101`,
       section_label: `${PREFIX}1A (Year 2)`,
-      // lecture 3 + lab 3 = 6 weekly hours, nothing placed yet.
+      // lecture 3 + lab 3 = 6 weekly hours, nothing placed yet. The per-type
+      // budgets ride along on the DTO — the Schedule sidebar splits its
+      // LECTURE/LAB cards from these fields.
+      lecture_hours: 3,
+      lab_hours: 3,
       weekly_hours: 6,
       scheduled_hours: 0,
       remaining_hours: 6,

@@ -7,7 +7,7 @@
 FlowSched uses a modular client-server architecture:
 
 ```text
-Browser (Chair / Faculty / Academic Administrator)
+Browser (Chair / Faculty)
    |
    | HTTP(S) REST + JSON
    v

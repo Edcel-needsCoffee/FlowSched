@@ -8,7 +8,6 @@
 export enum Role {
   CHAIR = 'CHAIR',
   FACULTY = 'FACULTY',
-  ACADEMIC_ADMIN = 'ACADEMIC_ADMIN',
 }
 
 /** Faculty employment status (database-specification.md: Faculty.employment_status). */

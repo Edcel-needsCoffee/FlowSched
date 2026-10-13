@@ -16,7 +16,7 @@ export function FiltersBar(props: {
   onSection: (value: string) => void;
 }): JSX.Element {
   const selectClass =
-    'w-full rounded-xl border-[1.5px] border-leaf-100 bg-[#FBFEFC] px-3 py-2.5 text-sm text-ink outline-none focus:border-leaf-500';
+    'w-full rounded-xl border-[1.5px] border-leaf-100 bg-white/80 px-3 py-2.5 text-sm text-ink outline-none focus:border-leaf-500';
   return (
     <div className="mb-4 grid gap-3 rounded-2xl border border-leaf-100 bg-white p-4 shadow-sm sm:grid-cols-2 lg:grid-cols-4">
       <label className="block">
@@ -27,7 +27,7 @@ export function FiltersBar(props: {
           placeholder="Faculty, subject, section…"
           value={props.searchInput}
           onChange={(event) => props.onSearch(event.target.value)}
-          className="w-full rounded-xl border-[1.5px] border-leaf-100 bg-[#FBFEFC] px-3.5 py-2.5 text-sm text-ink outline-none focus:border-leaf-500"
+          className="w-full rounded-xl border-[1.5px] border-leaf-100 bg-white/80 px-3.5 py-2.5 text-sm text-ink outline-none focus:border-leaf-500"
         />
       </label>
       <label className="block">

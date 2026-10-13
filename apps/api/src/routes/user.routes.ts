@@ -4,6 +4,8 @@ import type { NextFunction, Request, Response } from 'express';
 import { requireAuth } from '../middleware/auth.middleware.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { prisma } from '../config/prisma.js';
+import { hashPassword, verifyPassword } from '../services/auth.service.js';
+import { updateMeSchema } from '../validation/user.validation.js';
 import {
   MAX_AVATAR_BYTES,
   deleteAvatarFile,
@@ -13,6 +15,73 @@ import {
 import { ApiError } from '../errors/apiError.js';
 
 export const userRouter = Router();
+
+/**
+ * PATCH /api/users/me — editable credentials for the signed-in account
+ * (all roles). Email and/or password can change, but every change requires
+ * the current password so a hijacked session alone cannot lock the owner
+ * out. Returns the same public user shape as login/refresh so the client
+ * can patch its auth store in place.
+ */
+userRouter.patch(
+  '/users/me',
+  requireAuth,
+  asyncHandler(async (req, res) => {
+    if (!req.user) {
+      res.status(401).json({ error: { code: 'UNAUTHORIZED', message: 'Authentication required' } });
+      return;
+    }
+    const parsed = updateMeSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({
+        error: { code: 'VALIDATION_ERROR', message: 'Invalid request body', details: parsed.error.flatten() },
+      });
+      return;
+    }
+    const user = await prisma.user.findUnique({ where: { id: req.user.userId } });
+    if (!user || !user.is_active) {
+      res.status(401).json({ error: { code: 'UNAUTHORIZED', message: 'Authentication required' } });
+      return;
+    }
+    const passwordOk = await verifyPassword(
+      parsed.data.current_password as string,
+      user.password_hash,
+    );
+    if (!passwordOk) {
+      res.status(401).json({
+        error: { code: 'INVALID_CREDENTIALS', message: 'Current password is incorrect' },
+      });
+      return;
+    }
+    if (parsed.data.email !== undefined && parsed.data.email !== user.email) {
+      const taken = await prisma.user.findUnique({ where: { email: parsed.data.email } });
+      if (taken && taken.id !== user.id) {
+        res.status(409).json({
+          error: { code: 'EMAIL_TAKEN', message: 'That email is already in use' },
+        });
+        return;
+      }
+    }
+    const updated = await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        ...(parsed.data.email !== undefined ? { email: parsed.data.email } : {}),
+        ...(parsed.data.new_password !== undefined
+          ? { password_hash: await hashPassword(parsed.data.new_password) }
+          : {}),
+      },
+    });
+    res.status(200).json({
+      user: {
+        id: updated.id,
+        email: updated.email,
+        role: updated.role,
+        facultyId: updated.faculty_id,
+        avatar_url: updated.avatar_url ?? null,
+      },
+    });
+  }),
+);
 
 const avatarUpload = multer({
   storage: multer.memoryStorage(),

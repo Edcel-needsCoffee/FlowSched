@@ -122,3 +122,34 @@ export const confirmOverrideSchema = z
   .superRefine(assertTimeRange);
 
 export type ConfirmOverrideInput = z.infer<typeof confirmOverrideSchema>;
+
+/**
+ * POST /api/schedule-slots/reset — Chair-only bulk clear of placed class
+ * blocks for the active term. Scoped by exactly one of: all (whole term),
+ * one faculty member, or one room. The caller's account password must be
+ * supplied so a stray click (or an unattended Chair session) cannot wipe
+ * the grid — the server re-verifies it against the stored hash.
+ *
+ * Placed ScheduleSlot rows are hard-deleted; workload assignments are kept
+ * so everything returns to the "Unassigned classes" panel.
+ */
+const optionalScopeUuid = (label: string) =>
+  z.preprocess(
+    (value) => (value === undefined || value === null || value === '' ? undefined : value),
+    z.string().uuid(`${label} must be a UUID`).optional(),
+  );
+
+export const resetScheduleSchema = z
+  .object({
+    term_id: uuidField('Term'),
+    faculty_id: optionalScopeUuid('faculty_id'),
+    room_id: optionalScopeUuid('room_id'),
+    password: z.string().min(1, 'Enter your account password to confirm'),
+  })
+  .strict()
+  .refine((data) => !(data.faculty_id && data.room_id), {
+    message: 'Reset one scope at a time: all, one faculty, or one room',
+    path: ['room_id'],
+  });
+
+export type ResetScheduleInput = z.infer<typeof resetScheduleSchema>;

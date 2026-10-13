@@ -7,8 +7,8 @@ export interface NavItem {
   allowedRoles: AuthRole[];
 }
 
-export const ALL_ROLES: AuthRole[] = ['CHAIR', 'FACULTY', 'ACADEMIC_ADMIN'];
-export const MANAGEMENT_ROLES: AuthRole[] = ['CHAIR', 'ACADEMIC_ADMIN'];
+export const ALL_ROLES: AuthRole[] = ['CHAIR', 'FACULTY'];
+export const MANAGEMENT_ROLES: AuthRole[] = ['CHAIR'];
 
 /**
  * Single source of truth for authenticated sidebar navigation

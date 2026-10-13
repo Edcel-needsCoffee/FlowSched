@@ -1,6 +1,6 @@
 /**
  * Module — Dashboard page UI tests.
- * Chair / Academic Admin get the department dashboard (header + weekly
+ * Chair gets the department dashboard (header + weekly
  * bars + term ring + utilization + load panel + week preview + rooms list);
  * FACULTY gets only the personal summary; loading, error-with-retry and
  * empty states.

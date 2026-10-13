@@ -26,7 +26,7 @@ function Ring({
         fill="none"
         strokeWidth="10"
         strokeLinecap="round"
-        className="stroke-leaf-500"
+        className="stroke-brand-500"
         strokeDasharray={CIRCUMFERENCE}
         strokeDashoffset={strokeDashoffset}
         transform="rotate(-90 60 60)"
@@ -41,7 +41,7 @@ function Ring({
       fill="none"
       strokeWidth="10"
       strokeLinecap="round"
-      className="stroke-leaf-500"
+      className="stroke-brand-500"
       strokeDasharray={CIRCUMFERENCE}
       transform="rotate(-90 60 60)"
       initial={{ strokeDashoffset: CIRCUMFERENCE }}
@@ -56,8 +56,8 @@ export function TermProgressCard({ percent }: { percent: number }): JSX.Element 
   const clamped = Math.max(0, Math.min(100, Math.round(percent)));
   const offset = CIRCUMFERENCE * (1 - clamped / 100);
   return (
-    <div className="flex flex-col items-center rounded-2xl border border-leaf-100 bg-white p-4 shadow-sm">
-      <h2 className="self-start text-sm font-semibold text-ink">Term progress</h2>
+    <div className="glass-card flex flex-col items-center p-4">
+      <h2 className="self-start text-sm font-semibold text-slate-900">Term progress</h2>
       <div
         role="progressbar"
         aria-valuenow={clamped}
@@ -73,15 +73,15 @@ export function TermProgressCard({ percent }: { percent: number }): JSX.Element 
             r={RADIUS}
             fill="none"
             strokeWidth="10"
-            className="stroke-leaf-100"
+            className="stroke-brand-500/20"
           />
           <Ring strokeDashoffset={offset} animated={!reduce} />
         </svg>
-        <span className="absolute inset-0 flex items-center justify-center font-mono text-2xl font-bold text-ink">
+        <span className="absolute inset-0 flex items-center justify-center font-mono text-2xl font-bold text-slate-900">
           {clamped}%
         </span>
       </div>
-      <p className="mt-2 text-center text-xs text-ink/60">of assignment hours plotted</p>
+      <p className="mt-2 text-center text-xs text-slate-500">of assignment hours plotted</p>
     </div>
   );
 }

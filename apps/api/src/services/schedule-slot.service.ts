@@ -1,7 +1,9 @@
 import type { DayOfWeek, SessionType } from '../types/domain.js';
 import { z } from 'zod';
 import { ApiError } from '../errors/apiError.js';
+import * as facultyRepository from '../repositories/faculty.repository.js';
 import * as roomRepository from '../repositories/room.repository.js';
+import * as termRepository from '../repositories/term.repository.js';
 import * as scheduleSlotRepository from '../repositories/schedule-slot.repository.js';
 import type { ScheduleSlotWithRelations } from '../repositories/schedule-slot.repository.js';
 import * as workloadAssignmentRepository from '../repositories/workload-assignment.repository.js';
@@ -10,10 +12,12 @@ import { formatTimeOfDay, parseTimeOfDay, timeOfDayToMinutes } from '../utils/ti
 import {
   confirmOverrideSchema,
   createScheduleSlotSchema,
+  resetScheduleSchema,
   scheduleSlotQuerySchema,
   updateScheduleSlotSchema,
   type ConfirmOverrideInput,
   type CreateScheduleSlotInput,
+  type ResetScheduleInput,
   type UpdateScheduleSlotInput,
 } from '../validation/schedule-slot.validation.js';
 import { overScheduledError } from './over-scheduled.error.js';
@@ -152,6 +156,23 @@ async function assertWithinSessionCapacity(
   }
 }
 
+/**
+ * Single-meeting cap: one block cannot span more than one meeting's worth —
+ * LECTURE ≤ 2h, LAB ≤ 3h. Bigger budgets are placed as multiple blocks, so
+ * this is a hard 400 (unlike the conflict codes, there is nothing to override).
+ */
+const BLOCK_CAP_HOURS = { LECTURE: 2, LAB: 3 } as const;
+
+function assertWithinBlockCap(sessionType: 'LECTURE' | 'LAB', hours: number): void {
+  const cap = BLOCK_CAP_HOURS[sessionType];
+  if (hours > cap + 1e-9) {
+    throw ApiError.badRequest(
+      `A ${sessionType.toLowerCase()} block cannot exceed ${cap} hours in one meeting`,
+      { field: 'end_time' },
+    );
+  }
+}
+
 /** Conflict → 409 with the structured `{ code, details }` body the UI's
  *  override flow reads (FACULTY_CONFLICT / ROOM_CONFLICT / ROOM_MAINTENANCE). */
 export function conflictToApiError(conflict: ConflictResult): ApiError {
@@ -170,6 +191,7 @@ export async function createScheduleSlot(rawBody: unknown): Promise<ScheduleSlot
   const sessionType = input.session_type;
   const hours = (timeOfDayToMinutes(input.end_time) -
     timeOfDayToMinutes(input.start_time)) / 60;
+  assertWithinBlockCap(sessionType, hours);
 
   await assertWithinSessionCapacity(assignment, sessionType, hours);
 
@@ -221,6 +243,7 @@ export async function updateScheduleSlot(id: string, rawBody: unknown): Promise<
     input.session_type !== undefined ? input.session_type : (existing.session_type as SessionType);
   const hours = (timeOfDayToMinutes(formatTimeOfDay(endTime)) -
     timeOfDayToMinutes(formatTimeOfDay(startTime))) / 60;
+  assertWithinBlockCap(sessionType, hours);
 
   await assertWithinSessionCapacity(existing.workload_assignment, sessionType, hours, id);
 
@@ -275,6 +298,8 @@ export async function confirmOverride(
 
   const startTime = parseTimeOfDay(input.start_time);
   const endTime = parseTimeOfDay(input.end_time);
+  const overrideHours =
+    (timeOfDayToMinutes(formatTimeOfDay(endTime)) - timeOfDayToMinutes(formatTimeOfDay(startTime))) / 60;
 
   // Re-evaluated only so the audit line records what was bypassed — this path
   // never throws on a conflict.
@@ -299,6 +324,10 @@ export async function confirmOverride(
         field: 'slot_id',
       });
     }
+    assertWithinBlockCap(
+      (input.session_type ?? existing.session_type) as 'LECTURE' | 'LAB',
+      overrideHours,
+    );
     slot = await scheduleSlotRepository.update(input.slot_id, {
       room_id: roomId,
       session_type: (input.session_type ?? existing.session_type) as SessionType,
@@ -308,6 +337,7 @@ export async function confirmOverride(
     });
     action = 'moved';
   } else {
+    assertWithinBlockCap(input.session_type ?? 'LECTURE', overrideHours);
     slot = await scheduleSlotRepository.create({
       workload_assignment_id: assignment.id,
       room_id: roomId,
@@ -343,6 +373,57 @@ export async function deleteScheduleSlot(id: string): Promise<void> {
     throw ApiError.notFound('Schedule slot not found');
   }
   await scheduleSlotRepository.remove(id);
+}
+
+export interface ResetScheduleResult {
+  deleted_count: number;
+  scope: 'all' | 'faculty' | 'room';
+}
+
+/**
+ * Bulk-clear placed blocks for one term, scoped to all / one faculty /
+ * one room. Verifies the caller's account password first (the route passes
+ * the stored hash + candidate through), then hard-deletes the matching
+ * ScheduleSlot rows in a single transaction. Assignments survive, so every
+ * cleared class reappears under "Unassigned classes" with its full hour
+ * budget restored.
+ */
+export async function resetSchedule(
+  rawBody: unknown,
+  actor: { userId: string; passwordHash: string | null; passwordCandidate: string },
+): Promise<ResetScheduleResult> {
+  const input: ResetScheduleInput = parseOrBadRequest(resetScheduleSchema, rawBody);
+  if (!actor.passwordHash) {
+    throw new ApiError(401, 'INVALID_CREDENTIALS', 'Current password is incorrect');
+  }
+  const { verifyPassword } = await import('./auth.service.js');
+  const passwordOk = await verifyPassword(actor.passwordCandidate, actor.passwordHash);
+  if (!passwordOk) {
+    throw new ApiError(401, 'INVALID_CREDENTIALS', 'Account password is incorrect');
+  }
+  const term = await termRepository.findById(input.term_id);
+  if (!term) {
+    throw ApiError.badRequest('Unknown term_id', { field: 'term_id' });
+  }
+  if (input.faculty_id) {
+    const faculty = await facultyRepository.findActiveById(input.faculty_id);
+    if (!faculty) {
+      throw ApiError.badRequest('Unknown faculty_id', { field: 'faculty_id' });
+    }
+  }
+  if (input.room_id) {
+    const room = await roomRepository.findById(input.room_id);
+    if (!room) {
+      throw ApiError.badRequest('Unknown room_id', { field: 'room_id' });
+    }
+  }
+  const scope = input.faculty_id ? 'faculty' : input.room_id ? 'room' : 'all';
+  const deleted = await scheduleSlotRepository.removeMany({
+    termId: input.term_id,
+    facultyId: input.faculty_id ?? null,
+    roomId: input.room_id ?? null,
+  });
+  return { deleted_count: deleted, scope };
 }
 
 function logOverride(payload: Record<string, unknown>): void {

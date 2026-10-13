@@ -26,7 +26,7 @@ async function main(): Promise<void> {
   const subjects = [
     { code: 'IE 105', title: 'Introduction to Industrial Engineering', units: 3, lecture_hours: 2, lab_hours: 2 },
     { code: 'IE 322', title: 'Operations Research 1', units: 3, lecture_hours: 2, lab_hours: 2 },
-    { code: 'IE 411', title: 'Methods Engineering', units: 4, lecture_hours: 3, lab_hours: 3 },
+    { code: 'IE 411', title: 'Methods Engineering', units: 4, lecture_hours: 2, lab_hours: 3 },
   ];
   for (const s of subjects) {
     // find-then-write instead of upsert: `subjects.code` has a partial unique
@@ -45,7 +45,7 @@ async function main(): Promise<void> {
   }
 
   // DEV-ONLY placeholder credentials. Never use these outside local dev;
-  // real password policy + admin provisioning land in Phase 2 (auth).
+  // real password policy lands in Phase 2 (auth).
   const devPasswordHash = await bcrypt.hash('dev-password-change-me', 10);
   await prisma.user.upsert({
     where: { email: 'chair.dev@flowsched.local' },
@@ -56,20 +56,11 @@ async function main(): Promise<void> {
       role: 'CHAIR',
     },
   });
-  await prisma.user.upsert({
-    where: { email: 'admin.dev@flowsched.local' },
-    update: {},
-    create: {
-      email: 'admin.dev@flowsched.local',
-      password_hash: devPasswordHash,
-      role: 'ACADEMIC_ADMIN',
-    },
-  });
 
-  // Sections + faculty, so the Schedule page's quick-assign form (faculty ×
-  // subject × section) and every filter dropdown have real options on a fresh
-  // database. No WorkloadAssignments are seeded on purpose: the Schedule
-  // sidebar's inline quick-assign form is the intended first-run path.
+  // Sections + faculty, so every filter dropdown and the Workload Assignment
+  // page's form (faculty × subject × section) have real options on a fresh
+  // database. No WorkloadAssignments are seeded on purpose: the Workload
+  // Assignment page is the intended first-run path for creating them.
   for (const section of [
     { year_level: 1, name: 'BSIE 1A' },
     { year_level: 2, name: 'BSIE 2A' },
@@ -102,7 +93,7 @@ async function main(): Promise<void> {
 
   // eslint-disable-next-line no-console
   console.log(
-    `[seed] term=${term.school_year} ${term.semester} rooms=4 subjects=3 sections=4 faculty=3 users=2`,
+    `[seed] term=${term.school_year} ${term.semester} rooms=4 subjects=3 sections=4 faculty=3 users=1`,
   );
 }
 

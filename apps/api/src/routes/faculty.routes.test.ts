@@ -2,7 +2,9 @@
  * Module B — Faculty API tests (apps/api/src/routes — mirrors
  * subject.routes.test.ts: real database + real HTTP stack via supertest).
  *
- * Module B specifics: linked-login delete guard (explicit confirmation flag),
+ * Module B specifics: linked-login provisioning on create (optional
+ * `account` → FACULTY user linked in the same transaction), duplicate-email
+ * 409 guard, linked-login delete guard (explicit confirmation flag),
  * ACTIVE-WorkloadAssignment delete guard (blocked outright with a clear 409),
  * soft-delete-only preservation of referenced faculty, and list/count
  * assertions scoped to this suite's TST-E- prefix (Step 2 decision — see the
@@ -84,6 +86,7 @@ interface FacultyPayload {
   rank?: string | null;
   employment_status?: string;
   max_units?: number;
+  account?: { email: string; password: string };
 }
 
 async function createFaculty(
@@ -194,6 +197,59 @@ describe('POST /api/faculty', () => {
       facultyToken,
     );
     expect(res.status).toBe(403);
+  });
+
+  it('creates a linked FACULTY login in the same request when account is provided', async () => {
+    const email = `linked-tst-${process.pid}-auto@flowsched.local`;
+    const res = await createFaculty({
+      employee_no: `${NO_PREFIX}010`,
+      first_name: 'Auto',
+      last_name: 'Login',
+      account: { email, password: 'Test-Password-123' },
+    });
+    expect(res.status).toBe(201);
+    // The echoed faculty carries the linked login so the table can show it.
+    expect(res.body.faculty.user).toMatchObject({ email, role: 'FACULTY', is_active: true });
+
+    // The login row really exists and is linked to the new faculty record.
+    const stored = await prisma.user.findUnique({ where: { email } });
+    expect(stored).not.toBeNull();
+    expect(stored?.role).toBe('FACULTY');
+    expect(stored?.faculty_id).toBe(res.body.faculty.id);
+
+    // The new account can actually sign in with the password the Chair set.
+    const login = await request(createApp())
+      .post('/api/auth/login')
+      .send({ email, password: 'Test-Password-123' });
+    expect(login.status).toBe(200);
+    expect(login.body.user.facultyId).toBe(res.body.faculty.id);
+  });
+
+  it('rejects account provisioning with a 409 when the email is already taken', async () => {
+    const email = `linked-tst-${process.pid}-dup@flowsched.local`;
+    const passwordHash = await hashPassword(PASSWORD);
+    await prisma.user.create({ data: { email, password_hash: passwordHash, role: 'FACULTY' } });
+
+    const res = await createFaculty({
+      employee_no: `${NO_PREFIX}011`,
+      first_name: 'Dup',
+      last_name: 'Email',
+      account: { email, password: 'Test-Password-123' },
+    });
+    expect(res.status).toBe(409);
+    expect(res.body.error.code).toBe('EMAIL_TAKEN');
+    // The faculty record is NOT created when the login cannot be provisioned.
+    expect(await prisma.faculty.findUnique({ where: { employee_no: `${NO_PREFIX}011` } })).toBeNull();
+  });
+
+  it('rejects a short account password with 400', async () => {
+    const res = await createFaculty({
+      employee_no: `${NO_PREFIX}012`,
+      first_name: 'Short',
+      last_name: 'Pass',
+      account: { email: `linked-tst-${process.pid}-short@flowsched.local`, password: 'short' },
+    });
+    expect(res.status).toBe(400);
   });
 });
 

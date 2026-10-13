@@ -8,6 +8,33 @@ export function sessionSessionLabel(type: SessionType): string {
   return type === 'LECTURE' ? 'LEC' : 'LAB';
 }
 
+export type ResetScope = 'all' | 'faculty' | 'room';
+
+export interface ResetScheduleInput {
+  term_id: string;
+  faculty_id?: string;
+  room_id?: string;
+  password: string;
+}
+
+export interface ResetScheduleResult {
+  deleted_count: number;
+  scope: ResetScope;
+}
+
+/**
+ * Bulk-clear placed blocks for the term (Chair-only). Assignments survive —
+ * everything returns to "Unassigned classes". The caller's account password
+ * travels in the body because DELETE cannot carry one safely and this call
+ * is destructive by design.
+ */
+export function resetSchedule(input: ResetScheduleInput): Promise<ResetScheduleResult> {
+  return apiFetch<ResetScheduleResult>('/api/schedule-slots/reset', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  });
+}
+
 export interface ScheduleSlot {
   id: string;
   workload_assignment_id: string;

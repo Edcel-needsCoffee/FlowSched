@@ -1,6 +1,8 @@
 /**
  * Module B — Faculty page UI tests (mirrors SubjectsPage.test.tsx; Module B
- * specifics: linked-login delete warning + explicit confirmation checkbox).
+ * specifics: optional linked-login provisioning on create (email + temporary
+ * password in the Add form), linked-login delete warning + explicit
+ * confirmation checkbox).
  */
 import { fireEvent, render, screen, waitFor, within, cleanup } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -12,6 +14,10 @@ import {
   updateFaculty,
   type FacultyMember,
 } from '../lib/faculty';
+import {
+  listWorkloadAssignments,
+  type WorkloadAssignment,
+} from '../lib/workload-assignments';
 import { useAuthStore, type AuthRole } from '../store/auth.store';
 import { FacultyPage } from './FacultyPage';
 
@@ -20,6 +26,10 @@ vi.mock('../lib/faculty', () => ({
   createFaculty: vi.fn(),
   updateFaculty: vi.fn(),
   deleteFaculty: vi.fn(),
+}));
+
+vi.mock('../lib/workload-assignments', () => ({
+  listWorkloadAssignments: vi.fn(),
 }));
 
 const listFacultyMock = vi.mocked(listFaculty);
@@ -133,8 +143,8 @@ describe('FacultyPage — role-based controls', () => {
     expect(screen.getAllByRole('button', { name: 'Delete' })).toHaveLength(2);
   });
 
-  it('hides all edit controls from the Academic Admin (view-only)', async () => {
-    setRole('ACADEMIC_ADMIN');
+  it('hides all edit controls from a non-Chair Faculty session (view-only)', async () => {
+    setRole('FACULTY');
     renderPage();
     await screen.findByText('TST-001');
     expect(screen.queryByRole('button', { name: 'Add Faculty Member' })).not.toBeInTheDocument();
@@ -164,6 +174,59 @@ describe('FacultyPage — create', () => {
     });
     expect(await screen.findByText(/Faculty member created\./)).toBeInTheDocument();
     await waitFor(() => expect(listFacultyMock).toHaveBeenCalledTimes(2)); // initial load + refresh
+  });
+
+  it('passes an optional login account to the API when the login fields are filled', async () => {
+    renderPage();
+    fireEvent.click(await screen.findByRole('button', { name: 'Add Faculty Member' }));
+    fireEvent.change(screen.getByLabelText('Employee no'), { target: { value: 'TST-102' } });
+    fireEvent.change(screen.getByLabelText('First name'), { target: { value: 'Ana' } });
+    fireEvent.change(screen.getByLabelText('Last name'), { target: { value: 'Lim' } });
+    fireEvent.change(screen.getByLabelText('Login email'), {
+      target: { value: 'ana.lim@flowsched.local' },
+    });
+    fireEvent.change(screen.getByLabelText('Temporary password'), {
+      target: { value: 'Test-Password-123' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    await waitFor(() => {
+      expect(createFacultyMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          employee_no: 'TST-102',
+          account: { email: 'ana.lim@flowsched.local', password: 'Test-Password-123' },
+        }),
+      );
+    });
+    expect(await screen.findByText(/Faculty member created\./)).toBeInTheDocument();
+  });
+
+  it('omits the login account when the login fields are left blank', async () => {
+    renderPage();
+    fireEvent.click(await screen.findByRole('button', { name: 'Add Faculty Member' }));
+    fireEvent.change(screen.getByLabelText('Employee no'), { target: { value: 'TST-103' } });
+    fireEvent.change(screen.getByLabelText('First name'), { target: { value: 'No' } });
+    fireEvent.change(screen.getByLabelText('Last name'), { target: { value: 'Login' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    await waitFor(() => {
+      expect(createFacultyMock).toHaveBeenCalledWith(
+        expect.not.objectContaining({ account: expect.anything() }),
+      );
+    });
+  });
+
+  it('shows inline validation for a too-short account password and does not call the API', async () => {
+    renderPage();
+    fireEvent.click(await screen.findByRole('button', { name: 'Add Faculty Member' }));
+    fireEvent.change(screen.getByLabelText('Employee no'), { target: { value: 'TST-104' } });
+    fireEvent.change(screen.getByLabelText('First name'), { target: { value: 'Weak' } });
+    fireEvent.change(screen.getByLabelText('Last name'), { target: { value: 'Pass' } });
+    fireEvent.change(screen.getByLabelText('Login email'), {
+      target: { value: 'weak@flowsched.local' },
+    });
+    fireEvent.change(screen.getByLabelText('Temporary password'), { target: { value: 'short' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }));
+    expect(await screen.findByText('Password must be at least 8 characters')).toBeInTheDocument();
+    expect(createFacultyMock).not.toHaveBeenCalled();
   });
 
   it('shows inline validation for zero max units and does not call the API', async () => {
@@ -281,6 +344,71 @@ describe('FacultyPage — role-based controls (FACULTY session)', () => {
     expect(screen.queryByRole('button', { name: 'Add Faculty Member' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Edit' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Delete' })).not.toBeInTheDocument();
+  });
+});
+
+describe('FacultyPage — workload linkage (read-only)', () => {
+  const ASSIGNMENT: WorkloadAssignment = {
+    id: 'asg-1',
+    faculty_id: 'fac-a',
+    subject_id: 'sub-1',
+    section_id: 'sec-1',
+    term_id: 'term-1',
+    faculty_name: 'Maria Ramos',
+    subject_code: 'IE 322',
+    subject_title: 'Operations Research 1',
+    subject_units: 3,
+    section_label: 'BSIE 2A (Year 2)',
+    term_label: '2026-2027 — 1st Sem',
+    lecture_hours: 2,
+    lab_hours: 3,
+    scheduled_lecture_hours: 2,
+    scheduled_lab_hours: 0,
+    remaining_lecture_hours: 0,
+    remaining_lab_hours: 3,
+    weekly_hours: 5,
+    scheduled_hours: 2,
+    remaining_hours: 3,
+    color: null,
+    slots: [],
+    created_at: '2026-09-14T00:00:00.000Z',
+  };
+
+  it('opens a per-faculty modal listing that member’s assignments (read-only)', async () => {
+    vi.mocked(listWorkloadAssignments).mockResolvedValue({
+      data: [ASSIGNMENT],
+      meta: { total: 1, page: 1, pageSize: 100, pageCount: 1 },
+    });
+    renderPage();
+    await screen.findByText('TST-001');
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'View workload' })[0] as HTMLElement);
+    const dialog = await screen.findByRole('dialog');
+
+    expect(listWorkloadAssignments).toHaveBeenCalledWith({
+      facultyId: 'fac-a',
+      pageSize: 100,
+    });
+    expect(dialog).toHaveTextContent('Workload — Ramos, Maria');
+    expect(dialog).toHaveTextContent('IE 322 — Operations Research 1');
+    expect(dialog).toHaveTextContent('BSIE 2A (Year 2)');
+    expect(dialog).toHaveTextContent('2026-2027 — 1st Sem');
+    // Planned-vs-placed hours are readable without leaving the page.
+    expect(dialog).toHaveTextContent('2/5h scheduled · 3h left');
+    // Read-only: no edit affordances inside the modal.
+    expect(within(dialog).queryByRole('button', { name: 'Edit' })).not.toBeInTheDocument();
+  });
+
+  it('shows an empty state when the member has no assignments yet', async () => {
+    vi.mocked(listWorkloadAssignments).mockResolvedValue({
+      data: [],
+      meta: { total: 0, page: 1, pageSize: 100, pageCount: 1 },
+    });
+    renderPage();
+    await screen.findByText('TST-001');
+
+    fireEvent.click(screen.getAllByRole('button', { name: 'View workload' })[0] as HTMLElement);
+    expect(await screen.findByRole('dialog')).toHaveTextContent('No workload assignments yet.');
   });
 });
 

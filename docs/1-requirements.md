@@ -24,12 +24,12 @@ Core features:
 - Workload Monitoring – track the total workload of each faculty member.
 - Conflict Detection – identify overlapping schedules or excessive workloads.
 - Reports Generation – generate workload summaries and reports for administrative use.
-- User Accounts – provide secure access for administrators and faculty members.
+- User Accounts – provide secure access for administrators and faculty members. A Department Head / Program Chair can create a faculty profile and a linked login account in one step, so each faculty member can immediately sign in and view their own auto-synced workload and schedule.
 
 Overall, the system aims to make faculty workload planning faster, more organized, transparent, and efficient.
 
 ### 1.3 Target Users
-The system is primarily intended for Industrial Engineering department heads or program chairs, faculty members, and academic administrators.
+The system is primarily intended for Industrial Engineering department heads or program chairs and faculty members.
 
 ### 1.4 Main Goal
 The main goal of the system is to provide an efficient and organized platform for managing faculty workloads, schedules, and teaching assignments. It should minimize manual processes, prevent scheduling conflicts, promote fair workload distribution, and provide accurate workload records that support better planning and decision-making within the department.
@@ -47,7 +47,7 @@ The main goal of the system is to provide an efficient and organized platform fo
 - Workload Calculation – automatically calculates teaching hours, units, and overall workload.
 - Conflict Detection – identifies overlapping schedules and possible workload conflicts.
 - Reports Generation – generates workload summaries and reports for administrative use.
-- User Accounts – provides secure access based on user roles and permissions.
+- User Accounts – provides secure access based on user roles and permissions. When adding a faculty member, the chair may optionally create a linked login account in the same transaction so the member can sign in and view their live schedule.
 - Dashboard – displays an overview of faculty workloads, schedules, and important information.
 
 ### 2.2 Excluded
@@ -66,8 +66,7 @@ The main goal of the system is to provide an efficient and organized platform fo
 | Role | Description | Main Access |
 |---|---|---|
 | Department Head / Program Chair | Manages and oversees faculty workloads, subjects, and schedules. | Full access to faculty management, workload assignment, schedule management, conflict detection, reports, and system monitoring. |
-| Faculty Member | Views and monitors assigned workload, subjects, and teaching schedule. | Can view own profile, workload, assigned subjects, and schedules; limited editing access to own information. |
-| Academic Administrator | Assists in monitoring and managing workload records for administrative purposes. | Can view faculty workloads, schedules, and generate reports; cannot make workload assignments or system-level changes. |
+| Faculty Member | Views and monitors assigned workload, subjects, and teaching schedule. | Can view own profile, workload, assigned subjects, and an automatically generated class schedule synced from the chair's assignments; limited editing access to own information. |
 
 ---
 
@@ -87,6 +86,7 @@ The main goal of the system is to provide an efficient and organized platform fo
 | FR-10 | The system shall allow faculty members to view their assigned workload, subjects, and schedules. | High |
 | FR-11 | The system shall allow authorized users to add, update, and manage subjects and class information. | Medium |
 | FR-12 | The system shall maintain and store workload and schedule records for future reference. | High |
+| FR-13 | The system shall allow the Department Head / Program Chair to create a faculty member together with a linked login account in a single operation, so the new account can sign in and automatically view its own workload and schedule synced from its assignments. | High |
 
 ---
 

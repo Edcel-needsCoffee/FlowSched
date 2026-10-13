@@ -16,15 +16,15 @@ import { RoomsStatusList } from '../components/dashboard/RoomsStatusList';
 
 type Status = 'loading' | 'ready' | 'error';
 
-export const cardCls = 'rounded-2xl border border-leaf-100 bg-white p-4 shadow-sm';
-export const statValueCls = 'mt-1 font-mono text-3xl font-bold text-ink';
-export const statLabelCls = 'text-xs font-medium uppercase tracking-wide text-ink/60';
-export const sectionTitleCls = 'text-sm font-semibold text-ink';
-export const sectionSubCls = 'text-xs text-ink/50';
+export const cardCls = 'glass-card p-4';
+export const statValueCls = 'mt-1 font-mono text-3xl font-bold text-slate-900';
+export const statLabelCls = 'text-xs font-medium uppercase tracking-wide text-slate-500';
+export const sectionTitleCls = 'text-sm font-semibold text-slate-900';
+export const sectionSubCls = 'text-xs text-slate-500';
 
 /**
  * Dashboard â€” department overview (ui-ux.md section 4, FR-06/FR-08).
- * Chair / Academic Admin see live department-wide panels; Faculty see only
+ * Chair sees live department-wide panels; Faculty see only
  * their own summary. All numbers come from GET /api/dashboard/summary.
  */
 export function DashboardPage(): JSX.Element {
@@ -118,7 +118,7 @@ function LoadingSkeleton({ scope }: { scope: 'department' | 'personal' }): JSX.E
 }
 
 /**
- * Chair / Academic Admin dashboard — mockup-matching composition with the
+ * Chair dashboard — mockup-matching composition with the
  * app's leaf/ink theme: header, weekly bars, term ring, room
  * utilization, dark load panel, week preview and rooms list, all fed from
  * the (real) summary payload and animated in top-to-bottom.

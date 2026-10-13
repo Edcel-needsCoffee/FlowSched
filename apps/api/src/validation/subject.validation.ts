@@ -62,13 +62,33 @@ function hoursField(label: string) {
     .default(0);
 }
 
+/**
+ * Single-meeting scheduling caps (Schedule page rule): one LECTURE block is
+ * at most 2h, one LAB block at most 3h. Subjects carrying more than that in
+ * one session type are placed as multiple blocks, so cap the catalog here —
+ * not just the picker — to keep data entry consistent with the grid.
+ */
+function lectureField() {
+  return hoursField('Lecture hours').refine(
+    (n) => n <= 2,
+    'Lecture hours cannot exceed 2 (one lecture block is at most 2h)',
+  );
+}
+
+function labField() {
+  return hoursField('Lab hours').refine(
+    (n) => n <= 3,
+    'Lab hours cannot exceed 3 (one lab block is at most 3h)',
+  );
+}
+
 export const createSubjectSchema = z
   .object({
     code: presentString('Subject code', 40),
     title: presentString('Title', 255),
     units: subjectUnitsSchema,
-    lecture_hours: hoursField('Lecture hours'),
-    lab_hours: hoursField('Lab hours'),
+    lecture_hours: lectureField(),
+    lab_hours: labField(),
   })
   .strict();
 

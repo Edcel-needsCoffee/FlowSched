@@ -64,6 +64,21 @@ export const employmentStatusSchema = z.preprocess(
   }),
 );
 
+/**
+ * Optional login-account provisioning on faculty create. When present, the
+ * Chair creates the linked FACULTY login in the same request/transaction as
+ * the faculty record, so the new instructor can immediately sign in and see
+ * their auto-generated Faculty Class Program (which syncs live from the
+ * master schedule). Mirrors the email/password rules in user.validation.ts.
+ */
+const facultyAccountSchema = z.object({
+  email: z.string().trim().email('Enter a valid email address'),
+  password: z
+    .string()
+    .min(8, 'Password must be at least 8 characters')
+    .max(128, 'Password must be at most 128 characters'),
+});
+
 export const createFacultySchema = z
   .object({
     employee_no: presentString('Employee no', 40),
@@ -72,12 +87,16 @@ export const createFacultySchema = z
     rank: optionalText('Rank', 120),
     employment_status: employmentStatusSchema.default('FULL_TIME'),
     max_units: maxUnitsSchema.default(24),
+    account: facultyAccountSchema.optional(),
   })
   .strict();
 
 export type CreateFacultyInput = z.infer<typeof createFacultySchema>;
 
+// Login-account provisioning is create-only: `account` is intentionally
+// omitted so an edit can never silently (re)create a linked login.
 export const updateFacultySchema = createFacultySchema
+  .omit({ account: true })
   .partial()
   .strict()
   .refine((data) => Object.keys(data).length > 0, { message: 'Provide at least one field to update' });

@@ -6,8 +6,12 @@
 import { describe, expect, it } from 'vitest';
 import {
   CHUNK_STEP_HOURS,
+  MAX_LAB_BLOCK_HOURS,
+  MAX_LECTURE_BLOCK_HOURS,
   MIN_CHUNK_HOURS,
+  blockCapFor,
   clampChunkHours,
+  defaultChunkHours,
   formatHours,
   isChunkDurationValid,
   stepChunkHours,
@@ -145,5 +149,39 @@ describe('schedule-duration — validity + labels', () => {
     expect(formatHours(0)).toBe('0');
     // Float-dust tolerance: 1.5 + 1.5 - 3 style artifacts stay clean.
     expect(formatHours(0.1 + 0.2)).toBe('0.3');
+  });
+});
+
+describe('schedule-duration — single-meeting block caps (LEC ≤ 2h, LAB ≤ 3h)', () => {
+  it('maps each session type to its one-block cap', () => {
+    expect(MAX_LECTURE_BLOCK_HOURS).toBe(2);
+    expect(MAX_LAB_BLOCK_HOURS).toBe(3);
+    expect(blockCapFor('LECTURE')).toBe(2);
+    expect(blockCapFor('LAB')).toBe(3);
+  });
+
+  it('clamps a requested duration to the cap even when more hours remain', () => {
+    expect(clampChunkHours(3, 4, 2)).toBe(2); // LECTURE cap binds first
+    expect(clampChunkHours(4, 4, 3)).toBe(3); // LAB cap binds first
+    expect(clampChunkHours(1.5, 4, 2)).toBe(1.5); // under the cap: untouched
+  });
+
+  it('defaults the picker to one meeting’s worth, not the whole weekly remainder', () => {
+    expect(defaultChunkHours(4, 'LECTURE')).toBe(2);
+    expect(defaultChunkHours(4, 'LAB')).toBe(3);
+    expect(defaultChunkHours(1, 'LECTURE')).toBe(1); // smaller remaining wins
+    expect(defaultChunkHours(0, 'LAB')).toBe(0); // nothing left → invalid marker
+  });
+
+  it('never steps past the cap', () => {
+    expect(stepChunkHours(1.5, 1, 4, 2)).toBe(2);
+    expect(stepChunkHours(2, 1, 4, 2)).toBe(2); // clamped, not wrapped
+    expect(stepChunkHours(2.5, 1, 4, 3)).toBe(3);
+  });
+
+  it('treats capped values as valid — an over-cap entry clamps instead of erroring', () => {
+    expect(isChunkDurationValid(2, 4, 2)).toBe(true);
+    expect(isChunkDurationValid(3, 4, 2)).toBe(true); // clamps to 2, still placeable
+    expect(isChunkDurationValid(0, 4, 2)).toBe(false); // 0 marker keeps dragging off
   });
 });

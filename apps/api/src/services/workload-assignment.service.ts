@@ -29,6 +29,10 @@ export interface WorkloadAssignmentDto {
   subject_units: number;
   section_label: string;
   term_label: string;
+  /** Subject's budgeted weekly LECTURE hours (source of the LECTURE cards). */
+  lecture_hours: number;
+  /** Subject's budgeted weekly LAB hours (source of the LAB cards). */
+  lab_hours: number;
   /** Lecture + lab hours the subject expects for the week. */
   weekly_hours: number;
   /** Already placed, summed across both session types. */
@@ -124,6 +128,8 @@ export function toWorkloadAssignmentDto(
     subject_units: Number(assignment.subject.units),
     section_label: `${assignment.section.name} (Year ${assignment.section.year_level})`,
     term_label: `${assignment.term.school_year} — ${SEMESTER_LABELS[assignment.term.semester]}`,
+    lecture_hours: lectureHours,
+    lab_hours: labHours,
     weekly_hours: weeklyHours,
     scheduled_hours: scheduledHours,
     remaining_hours: Math.max(0, round2(weeklyHours - scheduledHours)),

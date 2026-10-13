@@ -32,8 +32,10 @@ import { selectSelectedTerm, useTermStore } from '../../store/term.store';
 import { CONFLICT_LABELS, toOverrideCandidate } from './schedule-conflict';
 import {
   MIN_CHUNK_HOURS,
+  blockCapFor,
   clampChunkHours,
   chunkSessionBadge,
+  defaultChunkHours,
   formatHours,
   isChunkDurationValid,
   stepChunkHours,
@@ -47,9 +49,7 @@ import {
 } from '../../lib/schedule-export';
 import { listFaculty, type FacultyMember } from '../../lib/faculty';
 import { listSections, type Section } from '../../lib/sections';
-import { listSubjects, type Subject } from '../../lib/subjects';
 import {
-  createWorkloadAssignment,
   listWorkloadAssignments,
   updateWorkloadAssignment,
   type WorkloadAssignment,
@@ -65,10 +65,12 @@ import {
   createScheduleSlot,
   deleteScheduleSlot,
   listScheduleSlots,
+  resetSchedule,
   updateScheduleSlot,
   type ConflictCode,
   type ConflictDetails,
   type DayOfWeek,
+  type ResetScope,
   type ScheduleSlot,
   type SessionType,
 } from '../../lib/schedule-slots';
@@ -143,13 +145,16 @@ interface Placement {
  * The placement a drop produces for an unassigned chunk: exactly the duration
  * the card's picker had selected (falling back to the card's remaining hours
  * when the picker holds an invalid value), anchored at the dropped hour.
- * `placementRange` still clamps the end to the grid's last hour.
+ * The span is always clamped to the session type's single-meeting cap
+ * (LECTURE ≤ 2h, LAB ≤ 3h) — a bigger budget spills into a second block —
+ * and `placementRange` still clamps the end to the grid's last hour.
  */
 export function chunkPlacement(
   info: DragInfoChunk,
   cell: { day: DayOfWeek; hour: number; offset: 0 | 1 },
 ): Placement {
-  const hours = info.duration > 0 ? info.duration : info.remaining;
+  const requested = info.duration > 0 ? info.duration : info.remaining;
+  const hours = clampChunkHours(requested, info.remaining, blockCapFor(info.sessionType));
   const { start, end } = placementRange(cell.hour, cell.offset, hours);
   return {
     day_of_week: cell.day,
@@ -207,11 +212,10 @@ export function SchedulePage(): JSX.Element {
     }
   }, [termStatus, loadTerms]);
 
-  // Reference data for dropdowns (filters, quick-assign, drop-room picker).
+  // Reference data for dropdowns (the filters and the drop-room picker).
   const [rooms, setRooms] = useState<Room[]>([]);
   const [faculty, setFaculty] = useState<FacultyMember[]>([]);
   const [sections, setSections] = useState<Section[]>([]);
-  const [subjects, setSubjects] = useState<Subject[]>([]);
 
   useEffect(() => {
     let cancelled = false;
@@ -220,7 +224,6 @@ export function SchedulePage(): JSX.Element {
         listRooms(),
         listFaculty({ pageSize: 100 }),
         listSections(),
-        listSubjects({ pageSize: 100 }),
       ]);
       if (cancelled) {
         return;
@@ -228,7 +231,6 @@ export function SchedulePage(): JSX.Element {
       if (results[0].status === 'fulfilled') setRooms(results[0].value.data);
       if (results[1].status === 'fulfilled') setFaculty(results[1].value.data);
       if (results[2].status === 'fulfilled') setSections(results[2].value.data);
-      if (results[3].status === 'fulfilled') setSubjects(results[3].value.data);
     })();
     return () => {
       cancelled = true;
@@ -324,13 +326,13 @@ export function SchedulePage(): JSX.Element {
   const [exporting, setExporting] = useState(false);
   const [deleteBusy, setDeleteBusy] = useState(false);
 
-  // Quick-assign mini-form (stand-in until the full Workload Assignment page).
-  const [quickAssignOpen, setQuickAssignOpen] = useState(false);
-  const [qaFacultyId, setQaFacultyId] = useState('');
-  const [qaSubjectId, setQaSubjectId] = useState('');
-  const [qaSectionId, setQaSectionId] = useState('');
-  const [qaBusy, setQaBusy] = useState(false);
-  const [qaError, setQaError] = useState<string | null>(null);
+  // Schedule reset (Chair-only): clear placed blocks for the whole term, one
+  // faculty, or the selected room — always gated by the Chair's password.
+  const [resetOpen, setResetOpen] = useState(false);
+  const [resetScope, setResetScope] = useState<ResetScope>('all');
+  const [resetPassword, setResetPassword] = useState('');
+  const [resetError, setResetError] = useState<string | null>(null);
+  const [resetBusy, setResetBusy] = useState(false);
 
   // PointerSensor with a 4px activation distance so plain clicks still work;
   // KeyboardSensor gives the Tab/Space/arrow-key placement flow for free.
@@ -415,11 +417,6 @@ export function SchedulePage(): JSX.Element {
     }
     return null;
   }, [inspectedSlotId, slotsByDay]);
-
-  // Auto-open quick-assign only when there is nothing to drag yet.
-  useEffect(() => {
-    setQuickAssignOpen(assignments.length === 0);
-  }, [assignments.length]);
 
   function handleDragStart(event: DragStartEvent): void {
     const info = event.active.data.current as DragInfo | undefined;
@@ -674,33 +671,51 @@ export function SchedulePage(): JSX.Element {
     }
   }
 
-  async function handleQuickAssign(event: FormEvent): Promise<void> {
+  /**
+   * Scoped schedule reset. Clears placed blocks only — assignments survive so
+   * everything returns to "Unassigned classes". The Chair's account password
+   * is re-verified server-side; a wrong password surfaces inline (not a
+   * toast) so it can be retried without losing the dialog.
+   */
+  async function handleResetSchedule(event: FormEvent): Promise<void> {
     event.preventDefault();
-    if (!canEdit || !selectedTermId || qaBusy) {
+    if (!canEdit || !selectedTermId || resetBusy) {
       return;
     }
-    if (!qaFacultyId || !qaSubjectId || !qaSectionId) {
-      setQaError('Pick a faculty, a subject, and a section.');
+    if (resetScope === 'faculty' && !filterFacultyId) {
+      setResetError('Pick a faculty member in the Faculty filter first.');
       return;
     }
-    setQaError(null);
-    setQaBusy(true);
+    if (resetScope === 'room' && !selectedRoomId) {
+      setResetError('Select a room first.');
+      return;
+    }
+    if (!resetPassword) {
+      setResetError('Enter your account password to confirm.');
+      return;
+    }
+    setResetError(null);
+    setResetBusy(true);
     try {
-      const res = await createWorkloadAssignment({
-        faculty_id: qaFacultyId,
-        subject_id: qaSubjectId,
-        section_id: qaSectionId,
+      const res = await resetSchedule({
         term_id: selectedTermId,
+        ...(resetScope === 'faculty' ? { faculty_id: filterFacultyId } : {}),
+        ...(resetScope === 'room' ? { room_id: selectedRoomId } : {}),
+        password: resetPassword,
       });
-      pushToast('success', `${res.assignment.subject_code} assigned to ${res.assignment.faculty_name}.`);
-      setQaFacultyId('');
-      setQaSubjectId('');
-      setQaSectionId('');
+      setResetOpen(false);
+      setResetPassword('');
+      pushToast(
+        'success',
+        res.deleted_count === 0
+          ? 'Nothing to reset — no placed classes matched that scope.'
+          : `Schedule reset — ${res.deleted_count} placed ${res.deleted_count === 1 ? 'class' : 'classes'} cleared.`,
+      );
       setReloadTick((tick) => tick + 1);
     } catch (err) {
-      setQaError(err instanceof Error ? err.message : 'Could not add the assignment.');
+      setResetError(err instanceof Error ? err.message : 'Could not reset the schedule.');
     } finally {
-      setQaBusy(false);
+      setResetBusy(false);
     }
   }
 
@@ -895,6 +910,20 @@ export function SchedulePage(): JSX.Element {
             </svg>
             {exporting ? 'Preparing…' : 'Export Excel'}
           </button>
+          {canEdit ? (
+            <button
+              type="button"
+              onClick={() => {
+                setResetScope(filterFacultyId ? 'faculty' : selectedRoomId ? 'room' : 'all');
+                setResetPassword('');
+                setResetError(null);
+                setResetOpen(true);
+              }}
+              className="inline-flex items-center gap-1.5 self-end rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs font-semibold text-red-700 transition-colors hover:border-red-400 hover:bg-red-50"
+            >
+              Reset schedule
+            </button>
+          ) : null}
         </div>
       </div>
 
@@ -954,8 +983,8 @@ export function SchedulePage(): JSX.Element {
             </p>
           ) : null}
           <div className="flex items-start gap-4" data-testid="schedule-grid">
-            {/* Left panel: unassigned classes and quick-assign. The page-level
-                room selector is the drop target — no second room picker. */}
+            {/* Left panel: unassigned classes. The page-level room selector is
+                the drop target — no second room picker. */}
             <aside className="w-72 shrink-0 space-y-3 rounded-2xl border border-leaf-100 bg-white p-4 shadow-sm">
               <div>
                 <h2 className="text-sm font-semibold text-ink">Unassigned classes</h2>
@@ -965,7 +994,7 @@ export function SchedulePage(): JSX.Element {
                 {unassignedChunks.length === 0 ? (
                   <p className="rounded-lg border border-dashed border-leaf-200 px-3 py-4 text-center text-xs text-ink/60">
                     {assignments.length === 0
-                      ? 'No workload assignments for this term yet — add one below.'
+                      ? 'No workload assignments for this term yet — add one on the Workload Assignment page.'
                       : 'All assigned hours are on the grid.'}
                   </p>
                 ) : (
@@ -986,32 +1015,6 @@ export function SchedulePage(): JSX.Element {
                     );
                   })
                 )}
-              </div>
-              <div>
-                <button
-                  type="button"
-                  onClick={() => setQuickAssignOpen((open) => !open)}
-                  aria-expanded={quickAssignOpen}
-                  className="text-xs font-semibold text-leaf-700 transition-colors hover:text-leaf-800"
-                >
-                  {quickAssignOpen ? '− Hide quick assign' : '+ Quick assign'}
-                </button>
-                {quickAssignOpen ? (
-                  <QuickAssignForm
-                    faculty={faculty}
-                    subjects={subjects}
-                    sections={sections}
-                    facultyId={qaFacultyId}
-                    subjectId={qaSubjectId}
-                    sectionId={qaSectionId}
-                    busy={qaBusy}
-                    error={qaError}
-                    onFacultyChange={setQaFacultyId}
-                    onSubjectChange={setQaSubjectId}
-                    onSectionChange={setQaSectionId}
-                    onSubmit={handleQuickAssign}
-                  />
-                ) : null}
               </div>
               {!canEdit ? (
                 <p className="rounded-lg bg-leaf-50 px-3 py-2 text-[11px] text-ink/60">
@@ -1191,6 +1194,108 @@ export function SchedulePage(): JSX.Element {
         onConfirm={() => void handleDeleteSlot()}
         onCancel={() => setDeletingSlot(null)}
       />
+
+      <Modal
+        open={resetOpen}
+        title="Reset schedule"
+        onClose={() => {
+          if (!resetBusy) {
+            setResetOpen(false);
+            setResetPassword('');
+            setResetError(null);
+          }
+        }}
+      >
+        <form onSubmit={handleResetSchedule} className="space-y-4">
+          <p className="text-sm text-slate-700">
+            Clear placed classes for {term ? term.label : 'this term'}. Assignments stay —
+            everything returns to Unassigned classes.
+          </p>
+          <fieldset className="space-y-2">
+            <legend className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Scope
+            </legend>
+            <label className="flex items-center gap-2 text-sm text-slate-700">
+              <input
+                type="radio"
+                name="reset-scope"
+                value="all"
+                checked={resetScope === 'all'}
+                onChange={() => setResetScope('all')}
+              />
+              Reset all — every placed class this term
+            </label>
+            <label className="flex items-center gap-2 text-sm text-slate-700">
+              <input
+                type="radio"
+                name="reset-scope"
+                value="faculty"
+                checked={resetScope === 'faculty'}
+                onChange={() => setResetScope('faculty')}
+                disabled={!filterFacultyId}
+              />
+              This faculty member
+              {filterFacultyId
+                ? ` (${faculty.find((m) => m.id === filterFacultyId)?.last_name ?? ''})`
+                : ' — pick one in the Faculty filter'}
+            </label>
+            <label className="flex items-center gap-2 text-sm text-slate-700">
+              <input
+                type="radio"
+                name="reset-scope"
+                value="room"
+                checked={resetScope === 'room'}
+                onChange={() => setResetScope('room')}
+                disabled={!selectedRoomId}
+              />
+              This room
+              {selectedRoom ? ` (${selectedRoom.name})` : ' — select a room first'}
+            </label>
+          </fieldset>
+          <div>
+            <label htmlFor="reset-password" className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Confirm with your account password
+            </label>
+            <input
+              id="reset-password"
+              type="password"
+              autoComplete="current-password"
+              value={resetPassword}
+              onChange={(event) => setResetPassword(event.target.value)}
+              placeholder="Chair account password"
+              className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none focus:border-red-400 focus:ring-4 focus:ring-red-100"
+            />
+          </div>
+          {resetError ? (
+            <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+              {resetError}
+            </p>
+          ) : null}
+          <div className="flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                if (!resetBusy) {
+                  setResetOpen(false);
+                  setResetPassword('');
+                  setResetError(null);
+                }
+              }}
+              disabled={resetBusy}
+              className="rounded-lg border border-slate-300 px-4 py-2 text-sm text-slate-700 disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={resetBusy}
+              className="rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-50"
+            >
+              {resetBusy ? 'Resetting…' : 'Reset schedule'}
+            </button>
+          </div>
+        </form>
+      </Modal>
     </section>
   );
 }
@@ -1529,19 +1634,23 @@ function UnassignedCard({
   onColorChange: (assignmentId: string, hex: string) => void;
 }): JSX.Element {
   const chunkId = `${assignment.id}:${sessionType}`;
-  // Defaults to the full remaining hours; the Chair can shave it down before
-  // dragging (0.5h steps). A 0 value marks "invalid — dragging disabled".
-  const [duration, setDuration] = useState(() => clampChunkHours(remaining, remaining));
+  // Single-meeting cap for this session type (LECTURE ≤ 2h, LAB ≤ 3h): the
+  // picker never offers more than one block's worth — the leftover weekly
+  // budget becomes a second block once this one is placed.
+  const cap = blockCapFor(sessionType);
+  // Defaults to one meeting's worth of the remaining hours; the Chair can
+  // shave it down before dragging (0.5h steps). A 0 value marks
+  // "invalid — dragging disabled".
+  const [duration, setDuration] = useState(() => defaultChunkHours(remaining, sessionType));
   const [note, setNote] = useState<string | null>(null);
 
   // After a placement (or a slot removal) the remaining budget changes —
   // re-point the picker at it so the card always offers what's placeable.
   useEffect(() => {
-    setDuration(clampChunkHours(remaining, remaining));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [remaining]);
+    setDuration(defaultChunkHours(remaining, sessionType));
+  }, [remaining, sessionType]);
 
-  const valid = isChunkDurationValid(duration, remaining);
+  const valid = isChunkDurationValid(duration, remaining, cap);
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: `assignment:${chunkId}`,
     disabled: !valid,
@@ -1588,10 +1697,11 @@ function UnassignedCard({
       <DurationPicker
         value={duration}
         remaining={remaining}
+        cap={cap}
         note={note}
         onStep={(delta) => {
           setNote(null);
-          setDuration((current) => stepChunkHours(current, delta, remaining));
+          setDuration((current) => stepChunkHours(current, delta, remaining, cap));
         }}
         onCommit={(raw) => {
           const parsed = Number(raw);
@@ -1602,9 +1712,15 @@ function UnassignedCard({
             );
             return;
           }
-          const clamped = clampChunkHours(parsed, remaining);
+          const clamped = clampChunkHours(parsed, remaining, cap);
           setDuration(clamped);
-          setNote(clamped < parsed ? `Only ${formatHours(remaining)}h remaining.` : null);
+          setNote(
+            clamped < parsed
+              ? remaining <= cap
+                ? `Only ${formatHours(remaining)}h remaining.`
+                : `One ${chunkSessionBadge(sessionType)} block holds at most ${formatHours(cap)}h.`
+              : null,
+          );
         }}
       />
     </div>
@@ -1704,26 +1820,33 @@ function ColorSwatchPicker({
 
 /**
  * − / hours / + stepper for a chunk card's placeable duration (0.5h steps).
- * The number field commits on blur or Enter; an over-remaining entry clamps
- * with an inline note; 0/negative leaves the card undraggable until fixed.
+ * The number field commits on blur or Enter; an over-remaining (or over-cap)
+ * entry clamps with an inline note; 0/negative leaves the card undraggable
+ * until fixed.
  */
 function DurationPicker({
   value,
   remaining,
+  cap,
   note,
   onStep,
   onCommit,
 }: {
   value: number;
   remaining: number;
+  /** Single-meeting cap for the card's session type (LEC ≤ 2h, LAB ≤ 3h). */
+  cap: number;
   note: string | null;
   onStep: (delta: number) => void;
   onCommit: (raw: string) => void;
 }): JSX.Element {
   const [draft, setDraft] = useState<string | null>(null);
   const shown = draft ?? formatHours(value);
+  // The + button stops at whichever is tighter: what's left this week, or one
+  // meeting's worth.
+  const limit = Math.min(remaining, cap);
   const atMin = value <= Math.min(MIN_CHUNK_HOURS, remaining) + 1e-9;
-  const atMax = value >= remaining - 1e-9;
+  const atMax = value >= limit - 1e-9;
   const commit = (): void => {
     if (draft === null) {
       return;
@@ -1737,7 +1860,9 @@ function DurationPicker({
     <div className="mt-1.5">
       <div
         role="group"
-        aria-label={`Hours to place (up to ${formatHours(remaining)}h remaining)`}
+        aria-label={`Hours to place (up to ${formatHours(limit)}h ${
+          limit < remaining ? 'per block' : 'remaining'
+        })`}
         className="flex items-center gap-1.5"
       >
         <button
@@ -1908,7 +2033,7 @@ export function OverrideDialog({
         value={reason}
         onChange={(event) => onReasonChange(event.target.value)}
         placeholder="e.g. Approved by the department head"
-        className="w-full rounded-xl border-[1.5px] border-leaf-100 bg-[#FBFEFC] px-3.5 py-2.5 text-sm text-ink outline-none transition-colors focus:border-leaf-500 focus:bg-white focus:ring-4 focus:ring-leaf-500/15"
+        className="w-full rounded-xl border-[1.5px] border-leaf-100 bg-white/80 px-3.5 py-2.5 text-sm text-ink outline-none transition-colors focus:border-leaf-500 focus:bg-white focus:ring-4 focus:ring-leaf-500/15"
       />
       <div className="mt-6 flex justify-end gap-3">
         <button
@@ -1929,103 +2054,6 @@ export function OverrideDialog({
         </button>
       </div>
     </Modal>
-  );
-}
-
-function QuickAssignForm({
-  faculty,
-  subjects,
-  sections,
-  facultyId,
-  subjectId,
-  sectionId,
-  busy,
-  error,
-  onFacultyChange,
-  onSubjectChange,
-  onSectionChange,
-  onSubmit,
-}: {
-  faculty: FacultyMember[];
-  subjects: Subject[];
-  sections: Section[];
-  facultyId: string;
-  subjectId: string;
-  sectionId: string;
-  busy: boolean;
-  error: string | null;
-  onFacultyChange: (value: string) => void;
-  onSubjectChange: (value: string) => void;
-  onSectionChange: (value: string) => void;
-  onSubmit: (event: FormEvent) => void;
-}): JSX.Element {
-  const selectCls =
-    'w-full rounded-lg border border-leaf-100 bg-white px-2 py-1.5 text-xs text-ink outline-none transition-colors focus:border-leaf-500 focus:ring-4 focus:ring-leaf-500/15';
-  return (
-    <form onSubmit={onSubmit} className="mt-2 space-y-2" aria-label="Quick assign a workload">
-      <div>
-        <label htmlFor="qa-faculty" className="mb-1 block text-[11px] font-medium text-ink/60">
-          Faculty
-        </label>
-        <select
-          id="qa-faculty"
-          value={facultyId}
-          onChange={(event) => onFacultyChange(event.target.value)}
-          className={selectCls}
-        >
-          <option value="">Select…</option>
-          {faculty.map((member) => (
-            <option key={member.id} value={member.id}>
-              {member.last_name}, {member.first_name}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div>
-        <label htmlFor="qa-subject" className="mb-1 block text-[11px] font-medium text-ink/60">
-          Subject
-        </label>
-        <select
-          id="qa-subject"
-          value={subjectId}
-          onChange={(event) => onSubjectChange(event.target.value)}
-          className={selectCls}
-        >
-          <option value="">Select…</option>
-          {subjects.map((subject) => (
-            <option key={subject.id} value={subject.id}>
-              {subject.code} — {subject.title}
-            </option>
-          ))}
-        </select>
-      </div>
-      <div>
-        <label htmlFor="qa-section" className="mb-1 block text-[11px] font-medium text-ink/60">
-          Section
-        </label>
-        <select
-          id="qa-section"
-          value={sectionId}
-          onChange={(event) => onSectionChange(event.target.value)}
-          className={selectCls}
-        >
-          <option value="">Select…</option>
-          {sections.map((section) => (
-            <option key={section.id} value={section.id}>
-              {section.label}
-            </option>
-          ))}
-        </select>
-      </div>
-      {error ? <p className="text-[11px] text-red-600">{error}</p> : null}
-      <button
-        type="submit"
-        disabled={busy}
-        className="w-full rounded-lg bg-leaf-500 px-3 py-1.5 text-xs font-semibold text-[#08130D] transition enabled:hover:bg-leaf-600 enabled:hover:text-white disabled:opacity-60"
-      >
-        {busy ? 'Adding…' : 'Add assignment'}
-      </button>
-    </form>
   );
 }
 

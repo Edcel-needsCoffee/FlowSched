@@ -37,8 +37,8 @@ Do not stop after completing one task if more tasks remain.
 
 - [ ] Authentication — email/password login endpoint, password hashing
 - [ ] Sessions/tokens — JWT access + refresh token issuance and rotation
-- [ ] Authorization — server-side role check middleware (`CHAIR`, `FACULTY`, `ACADEMIC_ADMIN`)
-- [ ] Roles — seed the three roles and confirm each maps to the access rules in `requirements.md` Section 3
+- [ ] Authorization — server-side role check middleware (`CHAIR`, `FACULTY`)
+- [ ] Roles — seed the two roles and confirm each maps to the access rules in `requirements.md` Section 3
 - [ ] Protected routes — frontend route guards per role (e.g. Faculty never reaches `/faculty` management page)
 - [ ] Tests — login success/failure, expired token rejection, role-based route/endpoint access denial
 
@@ -62,7 +62,7 @@ Do not stop after completing one task if more tasks remain.
 - [ ] Background jobs — BullMQ workers for Excel export and bulk subject-catalog import
 - [ ] Notifications — in-app toast system (success/error/warning/info) plus job-completion notification for exports
 - [ ] File processing — bulk subject-catalog import parsing (CSV/XLSX)
-- [ ] Reports — workload summary reports (per faculty, per year/section) for Chair and Academic Administrator
+- [ ] Reports — workload summary reports (per faculty, per year/section) for Chair
 - [ ] Imports/exports — Excel schedule export (per faculty, per section, department-wide)
 
 Only implement applicable features.
@@ -85,7 +85,7 @@ Only implement applicable features.
 - [ ] Unit tests — services, validation, data transformations
 - [ ] Integration tests — service-layer + database interaction (e.g. creating a WorkloadAssignment and its ScheduleSlots together)
 - [ ] API tests — auth, authorization, CRUD, validation, error responses, pagination, filtering
-- [ ] E2E tests — Chair schedule-plotting workflow, Faculty read-only access, overload/maintenance-conflict warnings, Academic Administrator report generation
+- [ ] E2E tests — Chair schedule-plotting workflow, Faculty read-only access, overload/maintenance-conflict warnings, Chair report generation
 - [ ] Real-time tests — connection, event delivery, reconnection, multi-subscriber updates
 - [ ] Background job tests — export/report job creation, processing, retry, failure, idempotency
 

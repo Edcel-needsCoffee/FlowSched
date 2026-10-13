@@ -16,6 +16,7 @@ import { useUiStore } from '../../store/ui.store';
  */
 export function Landing({ openLoginOnMount = false }: { openLoginOnMount?: boolean }): JSX.Element {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const role = useAuthStore((s) => s.user?.role);
   const openLoginModal = useUiStore((s) => s.openLoginModal);
 
   useEffect(() => {
@@ -25,11 +26,13 @@ export function Landing({ openLoginOnMount = false }: { openLoginOnMount?: boole
   }, [openLoginOnMount, openLoginModal]);
 
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
+    // Mirror the login landing: faculty sessions resume on their own
+    // workload, management on the department dashboard.
+    return <Navigate to={role === 'FACULTY' ? '/workload' : '/dashboard'} replace />;
   }
 
   return (
-    <div className="min-h-screen bg-white font-sans text-ink antialiased">
+    <div className="min-h-screen bg-navy-950 font-body text-ink-100 antialiased">
       <Nav />
       <main>
         <Hero />

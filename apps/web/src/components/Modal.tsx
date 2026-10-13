@@ -9,15 +9,11 @@ interface ModalProps {
 }
 
 /**
- * Shared modal dialog (ui-ux.md Section 10: create/edit operations for
- * Faculty, Subjects, and Rooms all use modals; closing never reloads the
- * page, so the underlying table keeps its scroll position and filters).
- *
- * Styling follows ui-ux.md Section 1.2 (the app-wide modal standard):
- * `bg-ink/40 backdrop-blur-sm` overlay, centered white `rounded-2xl` card
- * with a `h-1.5` top gradient accent bar (`from-leaf-500 via-leaf-300
- * to-leaf-500`), a soft square close button, and a fade+scale entrance via
- * framer-motion that respects `prefers-reduced-motion`.
+ * Shared modal dialog — light-only glassmorphic blue (the theme toggle was
+ * removed; light palette only, no `dark:` variants). Backdrop
+ * `bg-navy-950/60 backdrop-blur-sm`, frosted glass card, blue
+ * top accent bar (`from-brand-500 via-signal-300 to-brand-500`), glass
+ * close button, fade+scale entrance respecting `prefers-reduced-motion`.
  */
 export function Modal({ open, title, onClose, children }: ModalProps): JSX.Element {
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -57,7 +53,7 @@ export function Modal({ open, title, onClose, children }: ModalProps): JSX.Eleme
         <div className="fixed inset-0 z-40 flex items-center justify-center p-4">
           <motion.div
             aria-hidden="true"
-            className="absolute inset-0 bg-ink/40 backdrop-blur-sm"
+            className="absolute inset-0 bg-navy-950/60 backdrop-blur-sm"
             onMouseDown={(event) => {
               if (event.target === event.currentTarget) {
                 onClose();
@@ -73,21 +69,21 @@ export function Modal({ open, title, onClose, children }: ModalProps): JSX.Eleme
             role="dialog"
             aria-modal="true"
             aria-label={title}
-            className="relative z-10 w-full max-w-lg overflow-hidden rounded-2xl bg-white shadow-[0_30px_70px_-20px_rgba(16,36,26,0.35)]"
+            className="glass-card relative z-10 w-full max-w-lg overflow-hidden !rounded-2xl p-0"
             initial={reduce ? { opacity: 1 } : { opacity: 0, scale: 0.96, y: 8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={reduce ? { opacity: 1 } : { opacity: 0, scale: 0.96, y: 8 }}
             transition={transition}
           >
-            {/* Top gradient accent bar (ui-ux.md Section 1.2). */}
-            <div aria-hidden="true" className="h-1.5 w-full bg-gradient-to-r from-leaf-500 via-leaf-300 to-leaf-500" />
+            {/* Top gradient accent bar. */}
+            <div aria-hidden="true" className="h-1.5 w-full bg-gradient-to-r from-brand-500 via-signal-300 to-brand-500" />
             <div className="mb-4 flex items-center justify-between p-6 pb-0">
-              <h2 className="text-lg font-semibold text-ink">{title}</h2>
+              <h2 className="text-lg font-semibold text-slate-900">{title}</h2>
               <button
                 type="button"
                 aria-label="Close dialog"
                 onClick={onClose}
-                className="flex h-8 w-8 items-center justify-center rounded-lg bg-leaf-50 text-ink/60 transition-colors hover:bg-leaf-100 hover:text-ink"
+                className="flex h-8 w-8 items-center justify-center rounded-lg bg-brand-500/10 text-slate-500 transition-colors hover:bg-brand-500/20 hover:text-slate-900"
               >
                 <svg
                   aria-hidden="true"

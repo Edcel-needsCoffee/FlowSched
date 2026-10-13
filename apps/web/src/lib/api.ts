@@ -135,7 +135,7 @@ export interface LoginResponse {
   user: {
     id: string;
     email: string;
-    role: 'CHAIR' | 'FACULTY' | 'ACADEMIC_ADMIN';
+    role: 'CHAIR' | 'FACULTY';
     facultyId: string | null;
     avatar_url?: string | null;
   };

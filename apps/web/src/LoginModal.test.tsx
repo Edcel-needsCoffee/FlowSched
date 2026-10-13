@@ -22,6 +22,7 @@ function renderModalAt(path = '/'): void {
       <Routes>
         <Route path="/" element={<div>Home</div>} />
         <Route path="/dashboard" element={<div>Dashboard page</div>} />
+        <Route path="/workload" element={<div>My workload page</div>} />
       </Routes>
     </MemoryRouter>,
   );
@@ -82,6 +83,19 @@ describe('LoginModal', () => {
     fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
     await waitFor(() => expect(screen.getByText('Dashboard page')).toBeInTheDocument());
   });
+
+  it('redirects FACULTY logins to their own workload', async () => {
+    mockLogin.mockResolvedValueOnce({
+      accessToken: 'a',
+      refreshToken: 'r',
+      user: { id: 'u', email: 'f@x.local', role: 'FACULTY', facultyId: 'fac-1' },
+    });
+    renderModalAt();
+    fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'f@x.local' } });
+    fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'secret' } });
+    fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
+    await waitFor(() => expect(screen.getByText('My workload page')).toBeInTheDocument());
+  });
 });
 
 
@@ -95,7 +109,7 @@ describe('RequireAuth route guard', () => {
           <Route
             path="/reports"
             element={
-              <RequireAuth allowedRoles={['CHAIR', 'ACADEMIC_ADMIN']}>
+              <RequireAuth allowedRoles={['CHAIR']}>
                 <div>Reports page</div>
               </RequireAuth>
             }
@@ -122,7 +136,7 @@ describe('RequireAuth route guard', () => {
 
   it('allows correct role', () => {
     useAuthStore.getState().login({
-      user: { id: 'u', email: 'a@x.local', role: 'ACADEMIC_ADMIN', facultyId: null },
+      user: { id: 'u', email: 'c@x.local', role: 'CHAIR', facultyId: null },
       accessToken: 'a',
       refreshToken: 'r',
     });

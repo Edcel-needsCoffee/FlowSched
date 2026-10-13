@@ -6,7 +6,7 @@ import { DashboardPage } from '../pages/DashboardPage';
 import { useAuthStore } from '../store/auth.store';
 import { useUiStore } from '../store/ui.store';
 
-function renderAppAt(path: string, role: 'CHAIR' | 'FACULTY' | 'ACADEMIC_ADMIN'): void {
+function renderAppAt(path: string, role: 'CHAIR' | 'FACULTY'): void {
   useAuthStore.getState().login({
     user: { id: 'u', email: 'user@flowsched.local', role, facultyId: null },
     accessToken: 'a',
@@ -60,19 +60,11 @@ describe('AppShell sidebar (role-scoped)', () => {
     }
   });
 
-  it('renders Academic Admin nav items', () => {
-    renderAppAt('/dashboard', 'ACADEMIC_ADMIN');
-    for (const item of ['Dashboard', 'Schedule', 'Workload Assignment', 'Faculty', 'Subjects', 'Rooms', 'Reports', 'Account Settings']) {
-      expect(screen.getByRole('link', { name: item })).toBeInTheDocument();
-    }
-    expect(screen.queryByRole('link', { name: 'My Workload' })).not.toBeInTheDocument();
-  });
-
-  it('marks the active route with the leaf-500 left border', () => {
+  it('marks the active route with the signal-300 accent', () => {
     renderAppAt('/dashboard', 'CHAIR');
     const active = screen.getByRole('link', { name: 'Dashboard' });
-    expect(active).toHaveClass('border-leaf-500');
-    expect(active).toHaveClass('bg-leaf-500/10');
+    expect(active).toHaveClass('border-signal-300');
+    expect(active).toHaveClass('bg-white/[0.10]');
   });
 
   it('does not render the public Landing top nav inside the app shell', () => {

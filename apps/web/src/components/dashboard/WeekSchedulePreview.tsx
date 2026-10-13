@@ -22,15 +22,15 @@ export function WeekSchedulePreview({
   preview: WeekPreviewRoom | null;
 }): JSX.Element {
   return (
-    <div className="rounded-2xl border border-leaf-100 bg-white p-4 shadow-sm">
+    <div className="glass-card p-4">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <h2 className="text-sm font-semibold text-ink">This week</h2>
-        <span className="text-xs text-ink/50">
+        <h2 className="text-sm font-semibold text-slate-900">This week</h2>
+        <span className="text-xs text-slate-500">
           {preview ? `${preview.room_name} — busiest room` : 'No bookings yet'}
         </span>
       </div>
       {!preview || preview.slots.length === 0 ? (
-        <p className="mt-4 rounded-lg border border-dashed border-leaf-200 px-3 py-6 text-center text-xs text-ink/60">
+        <p className="mt-4 rounded-lg border border-dashed border-brand-500/25 bg-brand-500/5 px-3 py-6 text-center text-xs text-slate-600">
           Nothing plotted yet this week.
         </p>
       ) : (
@@ -38,12 +38,12 @@ export function WeekSchedulePreview({
           {DAY_ORDER.map((day) => {
             const daySlots = preview.slots.filter((slot) => slot.day_of_week === day);
             return (
-              <div key={day} className="min-w-0 rounded-lg bg-surface-muted p-2">
-                <p className="text-[10px] font-semibold uppercase tracking-wide text-ink/50">
+              <div key={day} className="min-w-0 rounded-lg bg-brand-500/10 p-2">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-slate-500">
                   {DAY_LABELS[day]}
                 </p>
                 {daySlots.length === 0 ? (
-                  <p className="mt-1 text-[10px] text-ink/30">—</p>
+                  <p className="mt-1 text-[10px] text-slate-400">—</p>
                 ) : (
                   <ul className="mt-1 space-y-1">
                     {daySlots.map((slot, index) => (
@@ -52,8 +52,8 @@ export function WeekSchedulePreview({
                         title={`${slot.subject_code} · ${slot.section_label} · ${slot.start_time}–${slot.end_time}`}
                         className={`block truncate rounded px-1.5 py-1 text-[10px] leading-tight ${
                           slot.session_type === 'LAB'
-                            ? 'bg-amber-50 text-amber-800'
-                            : 'bg-leaf-100 text-leaf-800'
+                            ? 'bg-amber-500/15 text-amber-700'
+                            : 'bg-brand-500/15 text-brand-500'
                         }`}
                       >
                         <span className="font-mono font-semibold">{slot.subject_code}</span>

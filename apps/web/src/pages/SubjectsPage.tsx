@@ -26,11 +26,11 @@ const subjectFormSchema = z.object({
   lecture_hours: z.coerce
     .number({ invalid_type_error: 'Lecture hours must be a number' })
     .min(0, 'Lecture hours cannot be negative')
-    .max(99, 'Lecture hours must be 99 or less'),
+    .max(2, 'Lecture hours cannot exceed 2 (one lecture block is at most 2h)'),
   lab_hours: z.coerce
     .number({ invalid_type_error: 'Lab hours must be a number' })
     .min(0, 'Lab hours cannot be negative')
-    .max(99, 'Lab hours must be 99 or less'),
+    .max(3, 'Lab hours cannot exceed 3 (one lab block is at most 3h)'),
 });
 
 interface SubjectFormValues {
@@ -439,7 +439,7 @@ export function SubjectsPage(): JSX.Element {
             <button
               type="submit"
               disabled={saving}
-              className="rounded-lg bg-leaf-500 px-4 py-2 text-sm font-semibold text-[#08130D] transition enabled:hover:scale-[1.03] enabled:hover:bg-leaf-600 enabled:hover:text-white enabled:active:scale-[0.98] disabled:opacity-50"
+              className="rounded-lg bg-leaf-500 px-4 py-2 text-sm font-semibold text-white transition enabled:hover:scale-[1.03] enabled:hover:bg-leaf-600 enabled:hover:text-white enabled:active:scale-[0.98] disabled:opacity-50"
             >
               {saving ? 'Saving…' : 'Save'}
             </button>
@@ -530,7 +530,7 @@ function SubjectField({
         {label}
       </label>
       <div className="relative">
-        <span aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#8FA396]">
+        <span aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-brand-500/70">
           {icon}
         </span>
         <input
@@ -540,7 +540,7 @@ function SubjectField({
           step={step}
           value={value}
           onChange={(event) => onChange(event.target.value)}
-          className={`w-full rounded-xl border-[1.5px] border-leaf-100 bg-[#FBFEFC] py-2.5 pl-10 pr-3.5 text-sm text-ink outline-none transition-colors focus:border-leaf-500 focus:bg-white focus:ring-4 focus:ring-leaf-500/15 ${
+          className={`w-full rounded-xl border-[1.5px] border-leaf-100 bg-white/80 py-2.5 pl-10 pr-3.5 text-sm text-ink outline-none transition-colors focus:border-leaf-500 focus:bg-white focus:ring-4 focus:ring-leaf-500/15 ${
             mono ? 'font-mono' : ''
           }`}
         />

@@ -148,6 +148,32 @@ export async function remove(id: string): Promise<void> {
   await prisma.scheduleSlot.delete({ where: { id } });
 }
 
+export interface ResetScope {
+  termId: string;
+  facultyId: string | null;
+  roomId: string | null;
+}
+
+/**
+ * Bulk-clear placed blocks for one term, scoped to all / one faculty /
+ * one room. Matches only slots whose (non-deleted) assignment belongs to
+ * the term, so clearing one faculty or room never touches the rest of the
+ * grid. Assignments are untouched — they fall back to "unassigned".
+ */
+export async function removeMany(scope: ResetScope): Promise<number> {
+  const result = await prisma.scheduleSlot.deleteMany({
+    where: {
+      workload_assignment: {
+        deleted_at: null,
+        term_id: scope.termId,
+        ...(scope.facultyId ? { faculty_id: scope.facultyId } : {}),
+      },
+      ...(scope.roomId ? { room_id: scope.roomId } : {}),
+    },
+  });
+  return result.count;
+}
+
 export type ScheduleSlotUpdateData = Partial<
   Pick<ScheduleSlotCreateData, 'room_id' | 'session_type' | 'day_of_week' | 'start_time' | 'end_time'>
 >;

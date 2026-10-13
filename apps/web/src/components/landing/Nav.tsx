@@ -13,26 +13,26 @@ export function Nav(): JSX.Element {
       initial={{ y: -12, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-      className="sticky top-0 z-40 border-b border-leaf-100 bg-white/90 backdrop-blur"
+      className="sticky top-0 z-40 border-b border-glass-border bg-navy-950/85 backdrop-blur"
     >
-      <nav aria-label="Landing" className="mx-auto flex max-w-6xl items-center gap-6 px-4 py-3 sm:px-6">
+      <nav aria-label="Landing" className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3 sm:px-6">
         <Link to="/" className="group flex items-center gap-2">
-          <span aria-hidden="true" className="inline-block h-2.5 w-2.5 rounded-full bg-leaf-500 shadow-[0_0_0_4px_rgba(47,191,113,0.18)] transition-transform duration-300 group-hover:scale-125" />
-          <span className="font-display text-lg font-bold tracking-tight text-ink">FlowSched</span>
+          <span aria-hidden="true" className="inline-block h-2.5 w-2.5 rounded-full bg-signal-300 shadow-[0_0_0_4px_rgba(127,227,255,0.18)] transition-transform duration-300 group-hover:scale-125" />
+          <span className="font-display text-lg font-bold tracking-tight text-ink-100">FlowSched</span>
         </Link>
-        <div className="mx-auto hidden items-center gap-8 text-sm text-ink/60 md:flex">
-          <a href="#features" className="transition-colors duration-200 hover:text-ink">
+        <div className="mx-auto hidden items-center gap-8 text-sm text-ink-300 md:flex">
+          <a href="#features" className="transition-colors duration-200 hover:text-ink-100">
             Features
           </a>
-          <a href="#roles" className="transition-colors duration-200 hover:text-ink">
+          <a href="#roles" className="transition-colors duration-200 hover:text-ink-100">
             Roles
           </a>
-          <a href="#get-started" className="transition-colors duration-200 hover:text-ink">
+          <a href="#get-started" className="transition-colors duration-200 hover:text-ink-100">
             Get started
           </a>
         </div>
         <motion.span
-          className="ml-auto inline-flex md:ml-0"
+          className="ml-auto inline-flex items-center gap-2 md:ml-0"
           whileHover={{ y: -2 }}
           whileTap={{ scale: 0.97 }}
           transition={{ type: 'spring', stiffness: 400, damping: 22 }}
@@ -40,7 +40,7 @@ export function Nav(): JSX.Element {
           <button
             type="button"
             onClick={openLoginModal}
-            className="rounded-md border border-ink/70 px-4 py-2 text-sm font-semibold text-ink transition-colors duration-200 hover:bg-ink hover:text-white"
+            className="rounded-xl border border-glass-border-strong bg-glass-fill px-4 py-2 text-sm font-semibold text-ink-100 transition-colors duration-200 hover:border-[rgba(160,190,255,0.45)] hover:bg-glass-fill-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-300 focus-visible:ring-offset-2 focus-visible:ring-offset-navy-950"
           >
             Log in
           </button>

@@ -12,9 +12,9 @@ const SEGMENTS: Array<{
   barCls: string;
   dotCls: string;
 }> = [
-  { key: 'booked_pct', label: 'Booked', barCls: 'bg-leaf-500', dotCls: 'bg-leaf-500' },
+  { key: 'booked_pct', label: 'Booked', barCls: 'bg-brand-500', dotCls: 'bg-brand-500' },
   { key: 'maintenance_pct', label: 'Maintenance', barCls: 'bg-amber-400', dotCls: 'bg-amber-400' },
-  { key: 'free_pct', label: 'Free', barCls: 'bg-leaf-100', dotCls: 'bg-leaf-100' },
+  { key: 'free_pct', label: 'Free', barCls: 'bg-brand-500/20', dotCls: 'bg-brand-500/30' },
 ];
 
 export function RoomUtilizationCard({
@@ -23,11 +23,11 @@ export function RoomUtilizationCard({
   utilization: RoomUtilizationSummary;
 }): JSX.Element {
   return (
-    <div className="rounded-2xl border border-leaf-100 bg-white p-4 shadow-sm">
-      <h2 className="text-sm font-semibold text-ink">Room utilization</h2>
-      <p className="mt-0.5 text-xs text-ink/50">Share of all rooms by current state</p>
+    <div className="glass-card p-4">
+      <h2 className="text-sm font-semibold text-slate-900">Room utilization</h2>
+      <p className="mt-0.5 text-xs text-slate-500">Share of all rooms by current state</p>
       <div
-        className="mt-4 flex h-3 w-full overflow-hidden rounded-full bg-leaf-50"
+        className="mt-4 flex h-3 w-full overflow-hidden rounded-full bg-brand-500/10"
         role="img"
         aria-label={`Rooms: ${utilization.booked_pct}% booked, ${utilization.maintenance_pct}% maintenance, ${utilization.free_pct}% free`}
       >
@@ -41,10 +41,10 @@ export function RoomUtilizationCard({
       </div>
       <ul className="mt-3 space-y-1.5">
         {SEGMENTS.map((segment) => (
-          <li key={segment.key} className="flex items-center gap-2 text-xs text-ink/70">
+          <li key={segment.key} className="flex items-center gap-2 text-xs text-slate-600">
             <span aria-hidden="true" className={`h-2.5 w-2.5 rounded-full ${segment.dotCls}`} />
             <span className="font-medium">{segment.label}</span>
-            <span className="ml-auto font-mono text-ink">{utilization[segment.key]}%</span>
+            <span className="ml-auto font-mono text-slate-900">{utilization[segment.key]}%</span>
           </li>
         ))}
       </ul>

@@ -2,7 +2,7 @@ import { apiFetch } from './api';
 
 /**
  * Client for GET /api/dashboard/summary — the department overview (FR-06/FR-08).
- * The response shape is role-scoped server-side: CHAIR / ACADEMIC_ADMIN get
+ * The response shape is role-scoped server-side: CHAIR gets
  * the department aggregate, FACULTY get only their own personal summary.
  */
 
@@ -146,5 +146,28 @@ export async function uploadAvatar(file: File): Promise<{ avatar_url: string }> 
     headers: {},
     body,
   });
+}
+
+export interface UpdateMeInput {
+  email?: string;
+  current_password: string;
+  new_password?: string;
+}
+
+/**
+ * PATCH /api/users/me — editable email / password for the signed-in account.
+ * Every change requires the current password; the resolved user is returned
+ * so the auth store can patch itself in place.
+ */
+export function updateMe(input: UpdateMeInput): Promise<{
+  user: {
+    id: string;
+    email: string;
+    role: 'CHAIR' | 'FACULTY';
+    facultyId: string | null;
+    avatar_url: string | null;
+  };
+}> {
+  return apiFetch('/api/users/me', { method: 'PATCH', body: JSON.stringify(input) });
 }
 

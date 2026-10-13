@@ -208,8 +208,8 @@ const LABEL_FILL = 'FFC6E0B4';
  */
 const GRID_ROW_HEIGHT = 22;
 
-/** `#2FBF71` → Excel's `FF2FBF71` ARGB form. */
-export function toArgb(hex: string | null | undefined, fallback = 'FFD7F5E2'): string {
+/** `#4F8CFF` → Excel's `FF4F8CFF` ARGB form. */
+export function toArgb(hex: string | null | undefined, fallback = 'FFDBE7FF'): string {
   if (!hex) return fallback;
   const value = hex.replace('#', '').trim();
   if (!/^[0-9A-Fa-f]{6}$/.test(value)) return fallback;
@@ -563,6 +563,11 @@ export async function buildScheduleWorkbook(opts: {
   const RIGHT_LABEL_COL = COL_FIRST_DAY + 1;
   const RIGHT_VALUE_COL = COL_FIRST_DAY + 2;
 
+  // The row the institution block ends on — the last stacked line printed
+  // beside the seal ("Palompon, Leyte"). The seal's vertical outline rules run
+  // from the top of the sheet down exactly to the bottom of this row, so the
+  // seal box is as tall as the institution text it sits beside — never taller.
+  const institutionLastRow = Math.min(4, Math.max(1, header.institution.length));
   // The institution lines print beside the seal, left-aligned, bold — the three
   // stacked lines in the form's top-left ("Republic of the Philippines" etc).
   // They run from the first time column to HEADER_VALUE_END, so the seal keeps
@@ -641,12 +646,14 @@ export async function buildScheduleWorkbook(opts: {
   }
   ws.getRow(8).height = 20; // the green TIME + day band
 
-  // Seal, top-left, in the form's own square box beside the institution lines.
-  // It occupies column A only, rows 1-4, so it never overlaps the text. Skipped
-  // without an asset so the export never fails over a missing picture.
+  // Seal, top-left, in the form's own box beside the institution lines. It
+  // occupies column A only, from row 1 down to the last institution line
+  // ("Palompon, Leyte"), so the picture fits inside the seal's outline instead
+  // of spilling past its bottom rule. Skipped without an asset so the export
+  // never fails over a missing picture.
   placeLogo(wb, ws, logo, {
     topRow: 1,
-    bottomRow: 4,
+    bottomRow: institutionLastRow,
     firstCol: COL_AMPM,
     lastCol: COL_AMPM,
   });
@@ -807,7 +814,28 @@ export async function buildScheduleWorkbook(opts: {
   // Program, Major and Yr/Sec each sit in their own box, as on the form.
   // The header block is outlined through row 7, so the Yr/Sec line gets its own
   // box instead of borrowing the top rule of the TIME band.
-  applyRowOutlines(ws, { firstRow: 1, lastRow: 7, firstCol: COL_AMPM, lastCol: lastDayCol });
+  // The seal column (A) is left out of the row-by-row pass: the horizontal
+  // rules would slice through the seal's own box. It gets a single vertical
+  // outline instead, drawn just below.
+  applyRowOutlines(ws, { firstRow: 1, lastRow: 7, firstCol: COL_TIME_START, lastCol: lastDayCol });
+  // Below the seal the left label column (College: / Room:) rejoins the row
+  // boxes, so those rows outline from column A as before.
+  applyRowOutlines(ws, { firstRow: 5, lastRow: 7, firstCol: COL_AMPM, lastCol: COL_AMPM });
+  // Seal outline: a medium box around column A spanning only rows 1 through
+  // the last institution line, so the two vertical rules beside the seal end
+  // flush with "Palompon, Leyte" instead of running the whole header height.
+  applyBox(ws, {
+    firstRow: 1,
+    lastRow: institutionLastRow,
+    firstCol: COL_AMPM,
+    lastCol: COL_AMPM,
+  });
+  // The blank gap rows under the seal box keep the sheet's outer left rule
+  // unbroken down to the College row.
+  for (let row = institutionLastRow + 1; row <= 4; row += 1) {
+    const gapCell = ws.getCell(row, COL_AMPM);
+    gapCell.border = { ...(gapCell.border as object), left: MEDIUM };
+  }
   applyBox(ws, {
     firstRow: footerRow,
     lastRow: footerRow,

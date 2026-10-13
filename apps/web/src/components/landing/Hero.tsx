@@ -1,152 +1,64 @@
-import { motion, useReducedMotion } from 'framer-motion';
 import { useUiStore } from '../../store/ui.store';
+import { ScheduleCard } from './ScheduleCard';
 
 /**
- * Hero + static weekly-schedule mockup visual (illustrative only — not wired
- * to real data; the real Schedule page lands in Phase 3).
+ * Hero + interactive weekly-schedule glass card (illustrative mockup only —
+ * not wired to real data; the real Schedule page lands in Phase 3).
  */
 export function Hero(): JSX.Element {
-  const reduce = useReducedMotion();
   const openLoginModal = useUiStore((s) => s.openLoginModal);
-  const entrance = reduce
-    ? {}
-    : {
-        initial: { opacity: 0, y: 16 },
-        animate: { opacity: 1, y: 0 },
-      };
-  const float = reduce ? {} : { animate: { y: [0, -6, 0] } };
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-leaf-50/80 via-white to-leaf-50/60">
-      {/* drafting-board grid backdrop */}
+    <section className="relative overflow-hidden bg-navy-950 font-body text-ink-100">
+      {/* background layer: navy base + two radial glows */}
       <div
         aria-hidden="true"
-        className="pointer-events-none absolute inset-0"
-        style={{
-          backgroundImage:
-            'linear-gradient(to right, rgb(60 171 84 / 0.08) 1px, transparent 1px), linear-gradient(to bottom, rgb(60 171 84 / 0.08) 1px, transparent 1px)',
-          backgroundSize: '36px 36px',
-        }}
+        className="pointer-events-none absolute inset-0 bg-navy-950 bg-[radial-gradient(ellipse_90%_60%_at_18%_8%,rgba(79,140,255,0.20),transparent_60%)]"
       />
-      <div className="relative mx-auto grid max-w-6xl gap-12 px-4 pb-16 pt-14 sm:px-6 md:grid-cols-2 md:items-center md:pt-20">
-        <motion.div
-          {...entrance}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        >
-          <p className="inline-flex items-center gap-2 rounded-full border border-leaf-300 bg-leaf-50 px-3 py-1 text-xs font-medium text-leaf-700">
-            <span aria-hidden="true" className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-leaf-500" />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_70%_55%_at_85%_15%,rgba(127,227,255,0.10),transparent_60%)]"
+      />
+      {/* faint 56px grid with radial fade mask */}
+      <div aria-hidden="true" className="landing-grid pointer-events-none absolute inset-0" />
+      {/* three drifting orbs */}
+      <div aria-hidden="true" className="pointer-events-none absolute -left-24 top-16 h-80 w-80 rounded-full bg-[radial-gradient(circle,rgba(79,140,255,0.28),transparent_65%)] blur-[60px] animate-drift motion-reduce:animate-none" />
+      <div aria-hidden="true" className="pointer-events-none absolute right-[8%] top-[38%] h-96 w-96 rounded-full bg-[radial-gradient(circle,rgba(127,227,255,0.16),transparent_65%)] blur-[60px] animate-drift motion-reduce:animate-none [animation-delay:-8s] [animation-duration:26s]" />
+      <div aria-hidden="true" className="pointer-events-none absolute bottom-[-6rem] left-[30%] h-[22rem] w-[22rem] rounded-full bg-[radial-gradient(circle,rgba(124,108,255,0.20),transparent_65%)] blur-[60px] animate-drift motion-reduce:animate-none [animation-delay:-14s] [animation-duration:30s]" />
+      <div className="relative mx-auto grid max-w-6xl gap-12 px-4 pb-16 pt-14 sm:px-6 lg:grid-cols-2 lg:items-center lg:pt-20">
+        <div>
+          <p className="inline-flex items-center gap-2 rounded-full border border-glass-border bg-glass-fill px-3 py-1 font-mono text-xs text-signal-300 opacity-0 animate-rise motion-reduce:animate-none motion-reduce:opacity-100">
+            <span aria-hidden="true" className="inline-block h-1.5 w-1.5 rounded-full bg-signal-300 animate-pulse-dot motion-reduce:animate-none" />
             Built for the IE department
           </p>
-          <h1 className="mt-5 font-display text-5xl font-bold leading-[1.02] tracking-tight text-ink sm:text-6xl">
-            Workload
-            <br />
-            chaos, plotted
-            <br />
-            straight.
+          <h1 className="mt-5 font-display text-5xl font-semibold leading-[1.02] tracking-tight text-ink-100 sm:text-6xl">
+            <span className="block opacity-0 animate-rise motion-reduce:animate-none motion-reduce:opacity-100">Workload chaos,</span>
+            <span className="block opacity-0 animate-rise motion-reduce:animate-none motion-reduce:opacity-100 [animation-delay:0.18s]">plotted</span>
+            <span className="block bg-gradient-to-r from-signal-300 to-brand-400 bg-clip-text text-transparent opacity-0 animate-rise motion-reduce:animate-none motion-reduce:opacity-100 [animation-delay:0.36s]">straight.</span>
           </h1>
-          <p className="mt-5 max-w-md text-lg leading-relaxed text-ink/60">
+          <p className="mt-5 max-w-md text-lg leading-relaxed text-ink-300 opacity-0 animate-rise motion-reduce:animate-none motion-reduce:opacity-100 [animation-delay:0.5s]">
             Drag classes onto a weekly grid, let the system catch every conflict, and let every faculty
             member&apos;s workload calculate itself. No more spreadsheets fighting each other at midterm.
           </p>
-          <div className="mt-8 flex flex-wrap items-center gap-3">
-            <motion.span
-              className="inline-flex"
-              whileHover={reduce ? undefined : { y: -2 }}
-              whileTap={reduce ? undefined : { scale: 0.97 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 22 }}
-            >
-              <button
+          <div className="mt-8 flex flex-wrap items-center gap-3 opacity-0 animate-rise motion-reduce:animate-none motion-reduce:opacity-100 [animation-delay:0.62s]">
+            <button
                 type="button"
                 onClick={openLoginModal}
-                className="rounded-md bg-leaf-500 px-5 py-3 text-sm font-semibold text-[#08130D] shadow-sm transition-colors duration-200 hover:bg-leaf-600 hover:text-white hover:shadow-md"
+                className="rounded-xl bg-brand-500 px-5 py-3 text-sm font-semibold text-white shadow-[0_10px_30px_rgba(79,140,255,0.45)] transition hover:bg-brand-400 hover:shadow-[0_10px_36px_rgba(79,140,255,0.6)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-300 focus-visible:ring-offset-2 focus-visible:ring-offset-navy-950"
               >
                 Log in
               </button>
-            </motion.span>
-            <motion.span
-              className="inline-flex"
-              whileHover={reduce ? undefined : { y: -2 }}
-              whileTap={reduce ? undefined : { scale: 0.97 }}
-              transition={{ type: 'spring', stiffness: 400, damping: 22 }}
-            >
-              <a
+            <a
                 href="#features"
-                className="rounded-md border border-ink/15 bg-white px-5 py-3 text-sm font-medium text-ink/80 transition-colors duration-200 hover:border-ink/30 hover:text-ink hover:shadow-sm"
+                className="rounded-xl border border-glass-border-strong bg-glass-fill px-5 py-3 text-sm font-medium text-ink-100 backdrop-blur transition hover:border-[rgba(160,190,255,0.45)] hover:bg-glass-fill-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-signal-300 focus-visible:ring-offset-2 focus-visible:ring-offset-navy-950"
               >
                 See what it does
               </a>
-            </motion.span>
           </div>
-        </motion.div>
+        </div>
 
-        {/* Static schedule mockup card with green glow */}
-        <motion.div
-          {...entrance}
-          transition={{ duration: 0.6, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
-          className="relative"
-        >
-          <motion.div
-            aria-hidden="true"
-            {...float}
-            transition={{ duration: 7, repeat: Infinity, ease: 'easeInOut' }}
-            className="absolute -inset-4 rounded-3xl bg-leaf-300/40 blur-2xl"
-          />
-          <motion.div
-            className="relative overflow-hidden rounded-2xl border border-leaf-100 bg-white shadow-[0_20px_50px_-20px_rgba(47,191,113,0.35)]"
-            whileHover={reduce ? undefined : { y: -4 }}
-            transition={{ type: 'spring', stiffness: 300, damping: 22 }}
-          >
-            <div className="flex items-center justify-between border-b border-leaf-100 px-4 py-2.5 text-xs">
-              <span className="font-medium text-ink/70">Weekly schedule — live</span>
-              <span className="font-mono text-[11px] uppercase tracking-wide text-ink/40">BSIE 3A</span>
-            </div>
-            <div className="grid grid-cols-[2.2rem_repeat(5,1fr)] text-center" aria-hidden="true">
-              <div />
-              {['MON', 'TUE', 'WED', 'THU', 'FRI'].map((day) => (
-                <div key={day} className="border-b border-leaf-50 py-1.5 font-mono text-[10px] tracking-wide text-ink/40">
-                  {day}
-                </div>
-              ))}
-              {['8AM', '9AM', '10AM', '11AM', '12PM'].map((hour) => (
-                <div key={hour} className="contents">
-                  <div className="border-b border-leaf-50 py-3 font-mono text-[9px] text-ink/35">{hour}</div>
-                  {['MON', 'TUE', 'WED', 'THU', 'FRI'].map((day) => {
-                    const key = `${hour}-${day}`;
-                    if (key === '8AM-MON' || key === '8AM-THU') {
-                      return (
-                        <div key={key} className="border-b border-l border-leaf-50 p-0.5">
-                          <div className="rounded border border-leaf-700 bg-leaf-500 px-1 py-1.5 text-left font-mono text-[9px] font-semibold leading-tight text-white">
-                            IE 411
-                            <span className="block font-normal opacity-90">Ramos</span>
-                          </div>
-                        </div>
-                      );
-                    }
-                    if (key === '10AM-WED') {
-                      return (
-                        <div key={key} className="border-b border-l border-leaf-50 p-0.5">
-                          <div className="rounded border border-leaf-500 bg-leaf-300 px-1 py-1.5 text-left font-mono text-[9px] leading-tight text-ink">
-                            OR 1<span className="block">Dela</span>
-                            <span className="block">Cruz</span>
-                          </div>
-                        </div>
-                      );
-                    }
-                    if (key === '11AM-THU') {
-                      return (
-                        <div key={key} className="border-b border-l border-leaf-50 p-0.5">
-                          <div className="rounded-r border border-leaf-500 border-l-2 bg-leaf-100 px-1 py-1 text-left font-mono text-[9px] leading-tight text-ink">
-                            Eng<span className="block">Econ</span>
-                          </div>
-                        </div>
-                      );
-                    }
-                    return <div key={key} className="border-b border-l border-leaf-50" />;
-                  })}
-                </div>
-              ))}
-            </div>
-          </motion.div>
-        </motion.div>
+        <div className="relative opacity-0 animate-rise motion-reduce:animate-none motion-reduce:opacity-100 [animation-delay:0.4s]">
+          <ScheduleCard />
+        </div>
       </div>
     </section>
   );

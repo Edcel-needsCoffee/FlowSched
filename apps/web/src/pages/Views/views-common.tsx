@@ -8,7 +8,7 @@ import { useTermStore } from '../../store/term.store';
  */
 
 const selectCls =
-  'rounded-lg border border-leaf-100 bg-white px-2 py-1.5 text-xs text-ink outline-none transition-colors focus:border-leaf-500 focus:ring-4 focus:ring-leaf-500/15';
+  'rounded-lg border border-brand-500/20 bg-white/80 px-2 py-1.5 text-xs text-slate-900 outline-none transition-colors focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15';
 
 /** Term selector bound to the shared term store (kept in sync with the header). */
 export function TermPicker(): JSX.Element | null {
@@ -55,7 +55,7 @@ export function ViewLoadingState(): JSX.Element {
   return (
     <p
       role="status"
-      className="rounded-xl border border-leaf-100 bg-white px-4 py-8 text-center text-sm text-ink/60"
+      className="glass-card px-4 py-8 text-center text-sm text-slate-600"
     >
       Loading schedule…
     </p>
@@ -85,10 +85,10 @@ export function NoScheduleEmptyState(): JSX.Element {
   return (
     <div
       role="status"
-      className="rounded-xl border border-dashed border-leaf-200 bg-white px-4 py-10 text-center"
+      className="glass-card border-dashed px-4 py-10 text-center"
     >
-      <p className="text-sm font-medium text-ink">No classes scheduled yet for this term.</p>
-      <p className="mt-1 text-sm text-ink/60">
+      <p className="text-sm font-medium text-slate-900">No classes scheduled yet for this term.</p>
+      <p className="mt-1 text-sm text-slate-600">
         Place classes on the Schedule page — this view fills in automatically from the same data.
       </p>
     </div>

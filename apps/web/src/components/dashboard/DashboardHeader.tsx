@@ -12,19 +12,19 @@ export function greetingForHour(hour: number): string {
 
 function StatPill({ label, value }: { label: string; value: string }): JSX.Element {
   return (
-    <span className="inline-flex items-center gap-2 rounded-full border border-leaf-100 bg-white px-3 py-1.5 text-xs shadow-sm">
-      <span aria-hidden="true" className="h-2 w-2 rounded-full bg-leaf-500" />
-      <span className="font-medium text-ink/60">{label}</span>
-      <span className="font-mono font-semibold text-ink">{value}</span>
+    <span className="glass-chip inline-flex items-center gap-2 px-3 py-1.5 text-xs shadow-sm backdrop-blur">
+      <span aria-hidden="true" className="h-2 w-2 rounded-full bg-brand-500" />
+      <span className="font-medium text-slate-600">{label}</span>
+      <span className="font-mono font-semibold text-slate-900">{value}</span>
     </span>
   );
 }
 
 function CountCard({ label, value }: { label: string; value: number }): JSX.Element {
   return (
-    <div className="rounded-2xl border border-leaf-100 bg-white p-4 shadow-sm">
-      <p className="text-xs font-medium uppercase tracking-wide text-ink/60">{label}</p>
-      <p className="mt-1 font-mono text-3xl font-bold text-ink">{value}</p>
+    <div className="glass-card p-4">
+      <p className="text-xs font-medium uppercase tracking-wide text-slate-500">{label}</p>
+      <p className="mt-1 font-mono text-3xl font-bold text-slate-900">{value}</p>
     </div>
   );
 }
@@ -54,10 +54,10 @@ export function DashboardHeader({
   return (
     <div className="space-y-4">
       <div>
-        <h1 id="dashboard-title" className="text-2xl font-semibold text-primary-dark">
+        <h1 id="dashboard-title" className="text-2xl font-semibold text-brand-500">
           {greetingForHour(now.getHours())}, {greetingName}
         </h1>
-        <p className="mt-1 text-sm text-ink/60">
+        <p className="mt-1 text-sm text-slate-600">
           Here&apos;s how the department is doing{termLabel ? ` — ${termLabel}` : ''}.
         </p>
       </div>

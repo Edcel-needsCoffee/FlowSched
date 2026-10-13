@@ -25,11 +25,11 @@ export function WeeklyPlottingCard({
   const max = Math.max(1, ...entries.map((entry) => entry.hours));
   const total = entries.reduce((sum, entry) => sum + entry.hours, 0);
   return (
-    <div className="rounded-2xl border border-leaf-100 bg-white p-4 shadow-sm">
-      <h2 className="text-sm font-semibold text-ink">Weekly plotted hours</h2>
-      <p className="mt-0.5 text-xs text-ink/50">Mon–Sat · {total}h plotted this term</p>
+    <div className="glass-card p-4">
+      <h2 className="text-sm font-semibold text-slate-900">Weekly plotted hours</h2>
+      <p className="mt-0.5 text-xs text-slate-500">Mon–Sat · {total}h plotted this term</p>
       {total === 0 ? (
-        <p className="mt-6 rounded-lg border border-dashed border-leaf-200 px-3 py-6 text-center text-xs text-ink/60">
+        <p className="mt-6 rounded-lg border border-dashed border-brand-500/25 bg-brand-500/5 px-3 py-6 text-center text-xs text-slate-600">
           Nothing plotted yet this week.
         </p>
       ) : (
@@ -38,24 +38,23 @@ export function WeeklyPlottingCard({
             const pct = Math.max(entry.hours > 0 ? 6 : 2, (entry.hours / max) * 100);
             return (
               <div key={entry.day_of_week} className="flex min-w-0 flex-1 flex-col items-center gap-1">
-                <span className="font-mono text-[10px] text-ink/60">
+                <span className="font-mono text-[10px] text-slate-500">
                   {entry.hours > 0 ? `${entry.hours}h` : ''}
                 </span>
                 {reduce ? (
                   <div
-                    className="w-full rounded-t-md bg-leaf-500"
-                    style={{ height: `${pct}%`, backgroundColor: entry.hours === 0 ? '#D7F5E2' : undefined }}
+                    className={`w-full rounded-t-md ${entry.hours === 0 ? 'bg-brand-500/25' : 'bg-brand-500'}`}
+                    style={{ height: `${pct}%` }}
                   />
                 ) : (
                   <motion.div
-                    className="w-full rounded-t-md bg-leaf-500"
-                    style={{ backgroundColor: entry.hours === 0 ? '#D7F5E2' : undefined }}
+                    className={`w-full rounded-t-md ${entry.hours === 0 ? 'bg-brand-500/25' : 'bg-brand-500'}`}
                     initial={{ height: 0 }}
                     animate={{ height: `${pct}%` }}
                     transition={{ duration: 0.5, delay: index * 0.06, ease: [0.22, 1, 0.36, 1] }}
                   />
                 )}
-                <span className="text-[10px] font-medium uppercase tracking-wide text-ink/50">
+                <span className="text-[10px] font-medium uppercase tracking-wide text-slate-500">
                   {DAY_LABELS[entry.day_of_week]}
                 </span>
               </div>

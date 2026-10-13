@@ -8,19 +8,21 @@ const STATS: Array<{ value: string; label: string }> = [
 
 export function StatStrip(): JSX.Element {
   return (
-    <section aria-label="FlowSched at a glance" className="bg-ink">
-      <dl className="mx-auto grid max-w-6xl grid-cols-1 gap-6 px-4 py-10 sm:px-6 md:grid-cols-3">
+    <section aria-label="FlowSched at a glance" className="bg-navy-950">
+      <div className="mx-auto max-w-6xl px-4 pb-14 sm:px-6">
+      <dl className="grid grid-cols-1 gap-px overflow-hidden rounded-2xl border border-glass-border bg-glass-fill sm:grid-cols-3">
         {STATS.map((stat, i) => (
-          <Reveal key={stat.label} delay={i * 0.08}>
+          <Reveal key={stat.label} delay={i * 0.08} className="bg-navy-900/60 px-6 py-8 backdrop-blur">
           <div className="flex flex-col text-center md:text-left">
-            <dt className="order-2 mt-1 text-sm text-leaf-100/70">{stat.label}</dt>
-            <dd className="order-1 font-display text-3xl font-bold text-leaf-500">
+            <dt className="order-2 mt-1 text-sm text-ink-300">{stat.label}</dt>
+            <dd className="order-1 font-display text-3xl font-semibold text-signal-300">
               {stat.value}
             </dd>
           </div>
           </Reveal>
         ))}
       </dl>
+      </div>
     </section>
   );
 }

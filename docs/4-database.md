@@ -37,8 +37,8 @@ Prisma Migrate
 | id | UUID | Yes | auto | Primary key |
 | email | string | Yes | — | Unique, login identifier |
 | password_hash | string | Yes | — | Never stored or returned in plaintext |
-| role | enum(`CHAIR`, `FACULTY`, `ACADEMIC_ADMIN`) | Yes | `FACULTY` | Drives RBAC checks |
-| faculty_id | UUID (FK) | No | null | Links a login to a Faculty profile; null for Chair/Admin accounts not tied to a faculty record |
+| role | enum(`CHAIR`, `FACULTY`) | Yes | `FACULTY` | Drives RBAC checks |
+| faculty_id | UUID (FK) | No | null | Links a login to a Faculty profile; null for Chair accounts not tied to a faculty record |
 | is_active | boolean | Yes | true | Disables login without deleting the account |
 | avatar_url | string | No | null | Local or future S3 profile-photo URL |
 | created_at | timestamp (UTC) | Yes | now() | |
@@ -249,7 +249,7 @@ An already-released migration is never edited to accommodate a new change — a 
 
 - **AcademicTerm:** one active term for local/dev environments (e.g. `2026-2027`, `FIRST`, `is_active = true`).
 - **Rooms:** the department's known rooms (e.g. `IE Lab 1`, `IE Lab 2`, `Room 301`, `Room 302`).
-- **Users:** one seeded Chair account and one seeded Academic Administrator account for initial login.
+- **Users:** one seeded Chair account for initial login.
 - **Subjects (optional):** a starter IE subject catalog (e.g. `IE 105`, `IE 322`, `IE 411`) so the schedule grid isn't empty on first run.
 
 ---

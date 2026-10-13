@@ -202,6 +202,35 @@ describe('ScheduleSlot API — placement + conflict detection', () => {
     expect(list.body.data[0].end_time).toBe('09:00');
   });
 
+  it('rejects a LECTURE block longer than the 2h single-meeting cap', async () => {
+    const fixtures = await seedFixtures();
+    const res = await place({
+      workload_assignment_id: fixtures.assignmentAId,
+      room_id: fixtures.roomAId,
+      session_type: 'LECTURE',
+      day_of_week: 'MON',
+      start_time: '07:00',
+      end_time: '10:00', // 3h — one lecture block holds at most 2h
+    });
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('VALIDATION_ERROR');
+    expect(res.body.error.message).toContain('cannot exceed 2 hours');
+  });
+
+  it('rejects a LAB block longer than the 3h single-meeting cap', async () => {
+    const fixtures = await seedFixtures();
+    const res = await place({
+      workload_assignment_id: fixtures.labAssignmentId,
+      room_id: fixtures.roomAId,
+      session_type: 'LAB',
+      day_of_week: 'MON',
+      start_time: '09:00',
+      end_time: '13:00', // 4h — one lab block holds at most 3h
+    });
+    expect(res.status).toBe(400);
+    expect(res.body.error.message).toContain('cannot exceed 3 hours');
+  });
+
   it('allows back-to-back blocks (touching ends are not an overlap)', async () => {
     const fixtures = await seedFixtures();
     const first = await place({

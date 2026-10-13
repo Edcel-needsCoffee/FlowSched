@@ -7,11 +7,16 @@ import {
   deleteFaculty,
   listFaculty,
   updateFaculty,
+  type FacultyInput,
   type FacultyListResult,
   type FacultyMember,
   type FacultySortBy,
   type FacultySortDir,
 } from '../lib/faculty';
+import {
+  listWorkloadAssignments,
+  type WorkloadAssignment,
+} from '../lib/workload-assignments';
 import { useAuthStore } from '../store/auth.store';
 
 // Mirrors apps/api/src/validation/faculty.validation.ts: required names,
@@ -50,6 +55,10 @@ interface FacultyFormValues {
   rank: string;
   employment_status: 'FULL_TIME' | 'PART_TIME';
   max_units: string;
+  /** Create-only: optional linked-login provisioning (Chair adds a faculty
+   *  member and their sign-in at once). Blank = no login account yet. */
+  account_email: string;
+  account_password: string;
 }
 
 const EMPTY_FORM: FacultyFormValues = {
@@ -59,7 +68,25 @@ const EMPTY_FORM: FacultyFormValues = {
   rank: '',
   employment_status: 'FULL_TIME',
   max_units: '24',
+  account_email: '',
+  account_password: '',
 };
+
+/** Optional login fields, validated only when the Chair starts filling them
+ *  in (mirrors apps/api/src/validation/faculty.validation.ts account schema). */
+const accountFormSchema = z
+  .object({
+    account_email: z
+      .string()
+      .trim()
+      .min(1, 'Email is required')
+      .email('Enter a valid email address'),
+    account_password: z
+      .string()
+      .min(8, 'Password must be at least 8 characters')
+      .max(128, 'Password must be at most 128 characters'),
+  })
+  .partial();
 
 type SortState = { sortBy: FacultySortBy; sortDir: FacultySortDir };
 
@@ -97,6 +124,15 @@ export function FacultyPage(): JSX.Element {
   const [confirmLinkedUser, setConfirmLinkedUser] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  // Read-only workload linkage (Chair's answer: show assignments only — no
+  // login provisioning from this page): a per-row view of one faculty
+  // member's workload assignments across terms.
+  const [workloadFaculty, setWorkloadFaculty] = useState<FacultyMember | null>(null);
+  const [workload, setWorkload] = useState<{
+    status: 'loading' | 'ready' | 'error';
+    data: WorkloadAssignment[];
+  }>({ status: 'loading', data: [] });
 
   const requestIdRef = useRef(0);
 
@@ -165,6 +201,8 @@ export function FacultyPage(): JSX.Element {
       rank: faculty.rank ?? '',
       employment_status: faculty.employment_status,
       max_units: String(faculty.max_units),
+      account_email: '',
+      account_password: '',
     });
     setFieldErrors({});
     setFormError(null);
@@ -190,6 +228,22 @@ export function FacultyPage(): JSX.Element {
     setDeleteError(null);
   }
 
+  /** Opens the read-only workload view for one faculty member (all terms). */
+  async function openWorkload(faculty: FacultyMember): Promise<void> {
+    setWorkloadFaculty(faculty);
+    setWorkload({ status: 'loading', data: [] });
+    try {
+      const res = await listWorkloadAssignments({ facultyId: faculty.id, pageSize: 100 });
+      setWorkload({ status: 'ready', data: res.data });
+    } catch {
+      setWorkload({ status: 'error', data: [] });
+    }
+  }
+
+  function closeWorkload(): void {
+    setWorkloadFaculty(null);
+  }
+
   async function handleSubmit(event: FormEvent): Promise<void> {
     event.preventDefault();
     // Blank rank = "no rank" (sent as null, matching the nullable column).
@@ -211,8 +265,32 @@ export function FacultyPage(): JSX.Element {
     }
     setFieldErrors({});
     setFormError(null);
+
+    // Optional linked-login provisioning (create only). Only validated/added
+    // when the Chair has started filling the login fields — a blank block
+    // leaves the faculty member with no login, exactly as before.
+    let account: { email: string; password: string } | undefined;
+    const wantsAccount =
+      modal.mode === 'create' &&
+      (formValues.account_email.trim() !== '' || formValues.account_password !== '');
+    if (wantsAccount) {
+      const accountParsed = accountFormSchema.safeParse(formValues);
+      if (!accountParsed.success) {
+        const accountFlat = accountParsed.error.flatten().fieldErrors;
+        setFieldErrors({
+          account_email: accountFlat.account_email?.[0],
+          account_password: accountFlat.account_password?.[0],
+        });
+        return;
+      }
+      account = { email: formValues.account_email.trim(), password: formValues.account_password };
+    }
+
     setSaving(true);
-    const payload = { ...parsed.data, rank: parsed.data.rank ?? null };
+    const payload: FacultyInput = { ...parsed.data, rank: parsed.data.rank ?? null };
+    if (account) {
+      payload.account = account;
+    }
     try {
       if (modal.mode === 'create') {
         await createFaculty(payload);
@@ -329,13 +407,14 @@ export function FacultyPage(): JSX.Element {
                   <SortButton label="Max units" column="max_units" sort={sort} onToggle={toggleSort} />
                 </th>
                 <th scope="col" className="py-2 pr-4">Linked login</th>
+                <th scope="col" className="py-2 pr-4">Workload</th>
                 {canEdit ? <th scope="col" className="py-2 pr-4">Actions</th> : null}
               </tr>
             </thead>
             <tbody>
               {rows.length === 0 ? (
                 <tr>
-                  <td colSpan={canEdit ? 7 : 6} className="py-8 text-center text-slate-500">
+                  <td colSpan={canEdit ? 8 : 7} className="py-8 text-center text-slate-500">
                     {search ? 'No faculty match your search.' : 'No faculty records yet.'}
                   </td>
                 </tr>
@@ -357,6 +436,17 @@ export function FacultyPage(): JSX.Element {
                           ? faculty.user.email
                           : `${faculty.user.email} (inactive)`
                         : '—'}
+                    </td>
+                    <td className="py-2 pr-4">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          void openWorkload(faculty);
+                        }}
+                        className="text-primary-dark hover:underline"
+                      >
+                        View workload
+                      </button>
                     </td>
                     {canEdit ? (
                       <td className="py-2 pr-4">
@@ -524,6 +614,62 @@ export function FacultyPage(): JSX.Element {
               {formError}
             </p>
           ) : null}
+          {modal.mode === 'create' ? (
+            <fieldset className="rounded border border-slate-200 p-3">
+              <legend className="px-1 text-sm font-medium text-slate-700">
+                Login account (optional)
+              </legend>
+              <p className="mb-3 text-xs text-slate-500">
+                Create a sign-in for this faculty member at the same time. Once saved, they can
+                log in and their schedule appears automatically, synced live from their assigned
+                workload. Leave blank to add them without a login.
+              </p>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label
+                    htmlFor="faculty-account-email"
+                    className="block text-sm font-medium text-slate-700"
+                  >
+                    Login email
+                  </label>
+                  <input
+                    id="faculty-account-email"
+                    type="email"
+                    autoComplete="off"
+                    value={formValues.account_email}
+                    onChange={(event) =>
+                      setFormValues((v) => ({ ...v, account_email: event.target.value }))
+                    }
+                    className="mt-1 w-full rounded border border-slate-300 px-3 py-2"
+                  />
+                  {fieldErrors.account_email ? (
+                    <p className="mt-1 text-sm text-red-600">{fieldErrors.account_email}</p>
+                  ) : null}
+                </div>
+                <div>
+                  <label
+                    htmlFor="faculty-account-password"
+                    className="block text-sm font-medium text-slate-700"
+                  >
+                    Temporary password
+                  </label>
+                  <input
+                    id="faculty-account-password"
+                    type="password"
+                    autoComplete="new-password"
+                    value={formValues.account_password}
+                    onChange={(event) =>
+                      setFormValues((v) => ({ ...v, account_password: event.target.value }))
+                    }
+                    className="mt-1 w-full rounded border border-slate-300 px-3 py-2"
+                  />
+                  {fieldErrors.account_password ? (
+                    <p className="mt-1 text-sm text-red-600">{fieldErrors.account_password}</p>
+                  ) : null}
+                </div>
+              </div>
+            </fieldset>
+          ) : null}
           <div className="flex justify-end gap-3 pt-2">
             <button
               type="button"
@@ -604,6 +750,58 @@ export function FacultyPage(): JSX.Element {
             </div>
           </div>
         ) : null}
+      </Modal>
+
+      <Modal
+        open={workloadFaculty !== null}
+        title={
+          workloadFaculty
+            ? `Workload — ${workloadFaculty.last_name}, ${workloadFaculty.first_name}`
+            : 'Workload'
+        }
+        onClose={closeWorkload}
+      >
+        {workload.status === 'loading' ? (
+          <p aria-busy="true" className="text-sm text-slate-600">
+            Loading workload…
+          </p>
+        ) : workload.status === 'error' ? (
+          <div>
+            <p className="text-sm text-red-700">Couldn&apos;t load workload assignments.</p>
+            <button
+              type="button"
+              onClick={() => {
+                if (workloadFaculty) {
+                  void openWorkload(workloadFaculty);
+                }
+              }}
+              className="mt-3 rounded border border-slate-300 bg-surface px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-100"
+            >
+              Retry
+            </button>
+          </div>
+        ) : workload.data.length === 0 ? (
+          <p className="text-sm text-slate-600">No workload assignments yet.</p>
+        ) : (
+          <ul className="divide-y divide-slate-100">
+            {workload.data.map((assignment) => (
+              <li key={assignment.id} className="py-2">
+                <p className="text-sm font-medium text-slate-800">
+                  {assignment.subject_code} — {assignment.subject_title}
+                </p>
+                <p className="text-xs text-slate-500">
+                  {assignment.section_label} · {assignment.term_label}
+                </p>
+                <p className="mt-0.5 text-xs text-slate-600">
+                  {assignment.scheduled_hours}/{assignment.weekly_hours}h scheduled ·{' '}
+                  {assignment.remaining_hours}h left · LEC {assignment.scheduled_lecture_hours}/
+                  {assignment.lecture_hours}h · LAB {assignment.scheduled_lab_hours}/
+                  {assignment.lab_hours}h
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
       </Modal>
     </section>
   );

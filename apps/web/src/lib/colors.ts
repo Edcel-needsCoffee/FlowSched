@@ -4,10 +4,10 @@
  * session-type defaults so existing schedules render exactly as before.
  */
 
-/** Curated preset palette: the app's leaf greens first, then distinct accents. */
+/** Curated preset palette: glassmorphic blues first, then distinct accents. */
 export const COLOR_PRESETS: readonly { label: string; hex: string }[] = [
-  { label: 'Leaf', hex: '#2FBF71' },
-  { label: 'Forest', hex: '#166B3E' },
+  { label: 'Flow', hex: '#4F8CFF' },
+  { label: 'Signal', hex: '#7FE3FF' },
   { label: 'Blue', hex: '#2563EB' },
   { label: 'Amber', hex: '#D97706' },
   { label: 'Red', hex: '#DC2626' },
@@ -41,5 +41,5 @@ export function assignmentColor(assignment: { color?: string | null }): string {
   if (assignment.color && HEX_COLOR_PATTERN.test(assignment.color)) {
     return assignment.color;
   }
-  return '#D7F5E2'; // leaf-100 — the long-standing default block background
+  return '#DBE7FF'; // soft blue — the long-standing default block background
 }

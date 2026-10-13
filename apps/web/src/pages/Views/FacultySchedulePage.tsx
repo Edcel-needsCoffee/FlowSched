@@ -13,7 +13,7 @@ const selectCls =
  * "Faculty Class Program" — the auto-generated weekly grid for one instructor
  * across all their sections, straight from the master schedule. A FACULTY-role
  * account is always scoped to itself (the API enforces the same rule with a
- * 403); Chairs / Academic Admins pick any faculty member. Also powers the
+ * 403); Chairs pick any faculty member. Also powers the
  * "My Workload" page via the `selfScoped` prop.
  */
 export function FacultySchedulePage({

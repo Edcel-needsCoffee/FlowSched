@@ -22,10 +22,10 @@ describe('COLOR_PRESETS', () => {
     }
   });
 
-  it('starts with the app leaf greens and includes the required accents', () => {
+  it('starts with the glassmorphic blues and includes the required accents', () => {
     expect(COLOR_PRESETS.map((preset) => preset.hex)).toEqual([
-      '#2FBF71', // leaf-500
-      '#166B3E', // leaf-700
+      '#4F8CFF', // flow blue
+      '#7FE3FF', // signal cyan
       '#2563EB', // blue
       '#D97706', // amber
       '#DC2626', // red
@@ -38,13 +38,13 @@ describe('COLOR_PRESETS', () => {
 });
 
 describe('readableTextColor', () => {
-  it('picks dark ink on light backgrounds (leaf green)', () => {
-    expect(readableTextColor('#2FBF71')).toBe('#10241A');
-    expect(readableTextColor('#D7F5E2')).toBe('#10241A'); // the default leaf-100
+  it('picks dark ink on light backgrounds (signal cyan)', () => {
+    expect(readableTextColor('#7FE3FF')).toBe('#10241A');
+    expect(readableTextColor('#DBE7FF')).toBe('#10241A'); // the default soft blue
   });
 
   it('picks white on dark backgrounds (every dark accent)', () => {
-    expect(readableTextColor('#166B3E')).toBe('#FFFFFF'); // forest
+    expect(readableTextColor('#4F8CFF')).toBe('#FFFFFF'); // flow blue
     expect(readableTextColor('#2563EB')).toBe('#FFFFFF'); // blue
     expect(readableTextColor('#DC2626')).toBe('#FFFFFF'); // red
     expect(readableTextColor('#7C3AED')).toBe('#FFFFFF'); // purple
@@ -62,15 +62,15 @@ describe('readableTextColor', () => {
 });
 
 describe('assignmentColor (default fallback)', () => {
-  it('falls back to the leaf-100 default when no color is set', () => {
-    expect(assignmentColor({ color: null })).toBe('#D7F5E2');
-    expect(assignmentColor({})).toBe('#D7F5E2');
+  it('falls back to the soft-blue default when no color is set', () => {
+    expect(assignmentColor({ color: null })).toBe('#DBE7FF');
+    expect(assignmentColor({})).toBe('#DBE7FF');
   });
 
   it('falls back to the default on a malformed color (no regression)', () => {
-    expect(assignmentColor({ color: 'green' })).toBe('#D7F5E2');
-    expect(assignmentColor({ color: '#2FBF7' })).toBe('#D7F5E2');
-    expect(assignmentColor({ color: '#2FBF711' })).toBe('#D7F5E2');
+    expect(assignmentColor({ color: 'green' })).toBe('#DBE7FF');
+    expect(assignmentColor({ color: '#2FBF7' })).toBe('#DBE7FF');
+    expect(assignmentColor({ color: '#2FBF711' })).toBe('#DBE7FF');
   });
 
   it('passes a valid custom hex straight through', () => {

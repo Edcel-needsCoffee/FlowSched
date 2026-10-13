@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeEach, afterEach } from 'vitest';
-import { render, screen, cleanup, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, cleanup, fireEvent, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { Landing } from './pages/Landing/Landing';
 import { LoginModal } from './components/auth/LoginModal';
@@ -30,6 +30,7 @@ function renderLandingAt(path = '/'): void {
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Landing openLoginOnMount />} />
         <Route path="/dashboard" element={<div>Dashboard page</div>} />
+        <Route path="/workload" element={<div>My workload page</div>} />
       </Routes>
     </MemoryRouter>,
   );
@@ -49,8 +50,9 @@ describe('Landing page', () => {
     renderLandingAt();
     const nav = screen.getByRole('navigation', { name: 'Landing' });
     const logins = screen.getAllByRole('button', { name: 'Log in' });
-    const navScoped = nav.querySelectorAll('button');
-    expect(navScoped).toHaveLength(1);
+    // Nav holds Log in + the theme toggle (aria-labelled, not "Log in").
+    const navScoped = within(nav).getByRole('button', { name: 'Log in' });
+    expect(navScoped).toBeInTheDocument();
     expect(logins.length).toBeGreaterThanOrEqual(3);
     for (const btn of logins) {
       expect(btn.tagName).toBe('BUTTON');
@@ -89,6 +91,17 @@ describe('Landing page', () => {
     });
     renderLandingAt();
     expect(screen.getByText('Dashboard page')).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: /chaos, plotted/i })).not.toBeInTheDocument();
+  });
+
+  it('redirects FACULTY sessions to their own workload', () => {
+    useAuthStore.getState().login({
+      user: { id: 'u', email: 'f@x.local', role: 'FACULTY', facultyId: 'fac-1' },
+      accessToken: 'a',
+      refreshToken: 'r',
+    });
+    renderLandingAt();
+    expect(screen.getByText('My workload page')).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: /chaos, plotted/i })).not.toBeInTheDocument();
   });
 

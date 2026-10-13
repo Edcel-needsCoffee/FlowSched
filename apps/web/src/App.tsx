@@ -21,8 +21,8 @@ import { ToastProvider } from './components/Toast';
 import { ALL_ROLES, MANAGEMENT_ROLES } from './config/navigation';
 import type { AuthRole } from './store/auth.store';
 
-/** Reports: Chair + Academic Admin (ui-ux.md §4). */
-const REPORTS_ROLES: AuthRole[] = ['CHAIR', 'ACADEMIC_ADMIN'];
+/** Reports: Chair only (ui-ux.md §4). */
+const REPORTS_ROLES: AuthRole[] = ['CHAIR'];
 
 /** My Workload: Chair + Faculty. */
 const MY_WORKLOAD_ROLES: AuthRole[] = ['CHAIR', 'FACULTY'];
@@ -129,7 +129,7 @@ export function App(): JSX.Element {
             <Route
               path="/reports"
               element={
-                <RequireAuth allowedRoles={['CHAIR', 'ACADEMIC_ADMIN']}>
+                <RequireAuth allowedRoles={REPORTS_ROLES}>
                   <ReportsPage />
                 </RequireAuth>
               }
