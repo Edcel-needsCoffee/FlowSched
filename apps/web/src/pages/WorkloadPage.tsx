@@ -1,19 +1,38 @@
-import { FacultySchedulePage } from './Views/FacultySchedulePage';
-import { useAuthStore } from '../store/auth.store';
-
 /**
- * "My Workload" — role-aware Faculty Class Program view.
+ * "My Workload" — temporarily closed for the finals presentation.
  *
- * FACULTY accounts are always self-scoped (their own grid, no picker — the
- * API enforces the same rule with a 403). CHAIR keeps the picker so the page
- * never dead-ends on "not linked to a faculty record" when the chair has no
- * faculty row of their own.
+ * The full feature (self-scoped FacultySchedulePage for FACULTY, faculty
+ * picker for CHAIR) is intentionally removed for now; only a "Currently
+ * Developing" status placeholder renders. The /workload route and the sidebar
+ * entry are kept, so restoring the module is a matter of re-wiring the
+ * previous implementation back into this component.
  */
 export function WorkloadPage(): JSX.Element {
-  const role = useAuthStore((s) => s.user?.role);
-  if (role === 'FACULTY') {
-    return <FacultySchedulePage selfScoped heading="My Workload" />;
-  }
-  return <FacultySchedulePage heading="My Workload" />;
+  return (
+    <section aria-labelledby="workload-status-title" className="mx-auto max-w-2xl">
+      <div role="status" className="glass-card border-dashed px-6 py-14 text-center">
+        <span className="inline-flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-3 py-1">
+          <span aria-hidden="true" className="relative flex h-2 w-2">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-amber-400 opacity-60" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-amber-400" />
+          </span>
+          <span className="text-xs font-semibold uppercase tracking-wide text-amber-700">
+            Currently Developing
+          </span>
+        </span>
+        <h2
+          id="workload-status-title"
+          className="mt-5 text-lg font-semibold text-slate-900"
+        >
+          My Workload is under development
+        </h2>
+        <p className="mx-auto mt-2 max-w-md text-sm text-slate-600">
+          This module is still being developed and will be released in a future
+          update. In the meantime, the Faculty Schedule view shows each
+          faculty member&rsquo;s assigned classes.
+        </p>
+      </div>
+    </section>
+  );
 }
 

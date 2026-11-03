@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { z } from 'zod';
 import { loginRequest } from '../../lib/api';
+import { ForgotPasswordFlow } from './ForgotPasswordFlow';
+import { PasswordEyeButtonDark } from '../PasswordField';
 import { useAuthStore } from '../../store/auth.store';
 import { useUiStore } from '../../store/ui.store';
 
@@ -19,11 +21,15 @@ export function LoginModal(): JSX.Element | null {
   const reduce = useReducedMotion();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [mode, setMode] = useState<'login' | 'forgot'>('login');
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
   const [serverError, setServerError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
   const handleClose = useCallback(() => {
+    setMode('login');
+    setServerError(null);
     closeLoginModal();
   }, [closeLoginModal]);
 
@@ -111,11 +117,14 @@ export function LoginModal(): JSX.Element | null {
               </button>
             </div>
             <h1 id="login-title" className="mt-6 text-2xl font-bold text-ink-100">
-              Welcome back
+              {mode === 'forgot' ? 'Reset password' : 'Welcome back'}
             </h1>
             <p className="mt-1 text-sm text-ink-300">
-              Sign in to your FlowSched account.
+              {mode === 'forgot' ? 'We’ll email you a 6-digit PIN to set a new password.' : 'Sign in to your FlowSched account.'}
             </p>
+            {mode === 'forgot' ? (
+              <ForgotPasswordFlow initialEmail={email} onBackToLogin={() => setMode('login')} onDone={() => setMode('login')} />
+            ) : (
             <form onSubmit={handleSubmit} noValidate className="mt-6 space-y-4">
               {serverError ? (
                 <div role="alert" className="flex items-center gap-2 rounded-lg border border-red-500/40 bg-red-500/15 px-3 py-2.5 text-sm text-red-300">
@@ -154,22 +163,23 @@ export function LoginModal(): JSX.Element | null {
                   </span>
                   <input
                     id="login-password"
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     autoComplete="current-password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="glass-input-dark py-3 pl-10 pr-3.5"
+                    className="glass-input-dark py-3 pl-10 pr-10"
                   />
+                  <PasswordEyeButtonDark visible={showPassword} onToggle={() => setShowPassword((v) => !v)} label="password" />
                 </div>
                 {fieldErrors.password ? <p className="mt-1 text-sm text-red-400">{fieldErrors.password}</p> : null}
               </div>
-              {/* TODO: wire remember-me once backend supports it. Forgot password is a placeholder until a support route exists. */}
+              {/* TODO: wire remember-me once backend supports it. */}
               <div className="flex items-center justify-between text-xs">
                 <label className="flex cursor-pointer items-center gap-2 text-ink-300">
                   <input type="checkbox" className="h-3.5 w-3.5 accent-brand-500" />
                   Remember me
                 </label>
-                <span className="glass-link-dark">Forgot password?</span>
+                <button type="button" onClick={() => { setServerError(null); setMode('forgot'); }} className="glass-link-dark">Forgot password?</button>
               </div>
               <motion.button
                 type="submit"
@@ -181,6 +191,7 @@ export function LoginModal(): JSX.Element | null {
                 {pending ? 'Signing in…' : 'Sign in'}
               </motion.button>
             </form>
+            )}
             <div className="mt-6 flex items-center gap-2.5">
               <span aria-hidden="true" className="h-px flex-1 bg-glass-border" />
               <span className="text-[11px] text-ink-500">FlowSched · Industrial Engineering Dept.</span>

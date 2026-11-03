@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { updateMe } from '../lib/dashboard';
 import { useAuthStore } from '../store/auth.store';
 import { useToast } from '../components/Toast';
+import { PasswordEyeButton } from '../components/PasswordField';
 
 export const inputCls =
   'mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15';
@@ -13,6 +14,7 @@ export function EmailForm(): JSX.Element {
   const { pushToast } = useToast();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -51,7 +53,10 @@ export function EmailForm(): JSX.Element {
       </div>
       <div>
         <label htmlFor="account-email-password" className="text-xs text-slate-500">Current password (to confirm)</label>
-        <input id="account-email-password" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} className={inputCls} />
+        <div className="relative">
+          <input id="account-email-password" type={showPassword ? 'text' : 'password'} autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} className={`${inputCls} pr-10`} />
+          <PasswordEyeButton visible={showPassword} onToggle={() => setShowPassword((v) => !v)} label="current password" />
+        </div>
       </div>
       {error ? (<p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>) : null}
       <div className="flex justify-end">

@@ -154,7 +154,9 @@ describe('schedule-export — print layout', () => {
     colorFor: () => '#2563EB',
   };
 
-  it('outlines every header row separately', async () => {
+  it(
+    'outlines every header row separately',
+    async () => {
     // The form boxes each field line, not one frame around the whole header, so
     // College / Room / Program / Major / Yr-Sec each read as their own cell.
     // The boxes start at the first text column: the seal column is outlined on
@@ -169,7 +171,11 @@ describe('schedule-export — print layout', () => {
       expect(left.left?.style, `row ${row} left`).toBe('medium');
       expect(right.right?.style, `row ${row} right`).toBe('medium');
     }
-  });
+    },
+    // Dynamic exceljs import + workbook round-trip runs past the 5s default
+    // under full-suite parallel load (passes alone in ~300ms).
+    15000,
+  );
 
   it('outlines the seal down to the Palompon, Leyte line and no further', async () => {
     // The two vertical rules beside the logo — the sheet's outer left edge and

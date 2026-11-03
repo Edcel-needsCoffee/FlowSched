@@ -49,13 +49,13 @@ describe('LoginModal', () => {
     renderModalAt();
     expect(screen.getByRole('heading', { name: 'Welcome back' })).toBeInTheDocument();
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
-    expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
+    expect(screen.getByLabelText('Password')).toBeInTheDocument();
   });
 
   it('shows client-side validation errors for a bad email', async () => {
     renderModalAt();
     fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'not-an-email' } });
-    fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'something' } });
+    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'something' } });
     fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
     expect(await screen.findByText(/valid email/i)).toBeInTheDocument();
     expect(mockLogin).not.toHaveBeenCalled();
@@ -65,7 +65,7 @@ describe('LoginModal', () => {
     mockLogin.mockRejectedValueOnce(new Error('Invalid email or password'));
     renderModalAt();
     fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'chair.dev@flowsched.local' } });
-    fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'wrong' } });
+    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'wrong' } });
     fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
     await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument());
     expect(screen.getByRole('alert')).toHaveTextContent('Invalid email or password');
@@ -79,7 +79,7 @@ describe('LoginModal', () => {
     });
     renderModalAt();
     fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'c@x.local' } });
-    fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'secret' } });
+    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'secret' } });
     fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
     await waitFor(() => expect(screen.getByText('Dashboard page')).toBeInTheDocument());
   });
@@ -92,7 +92,7 @@ describe('LoginModal', () => {
     });
     renderModalAt();
     fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'f@x.local' } });
-    fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'secret' } });
+    fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'secret' } });
     fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
     await waitFor(() => expect(screen.getByText('My workload page')).toBeInTheDocument());
   });

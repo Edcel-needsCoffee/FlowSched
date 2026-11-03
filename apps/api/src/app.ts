@@ -5,6 +5,7 @@ import cors from 'cors';
 import type { NextFunction, Request, Response } from 'express';
 import { healthRouter } from './routes/health.routes.js';
 import { authRouter } from './routes/auth.routes.js';
+import { passwordResetRouter } from './routes/password-reset.routes.js';
 import { userRouter } from './routes/user.routes.js';
 import { subjectRouter } from './routes/subject.routes.js';
 import { facultyRouter } from './routes/faculty.routes.js';
@@ -14,6 +15,9 @@ import { termRouter } from './routes/term.routes.js';
 import { workloadAssignmentRouter } from './routes/workload-assignment.routes.js';
 import { scheduleSlotRouter } from './routes/schedule-slot.routes.js';
 import { scheduleViewRouter } from './routes/schedule-view.routes.js';
+import { teachingLoadRouter } from './routes/teaching-load.routes.js';
+import { designationRouter } from './routes/designation.routes.js';
+import { facultyDesignationRouter } from './routes/faculty-designation.routes.js';
 import { dashboardRouter } from './routes/dashboard.routes.js';
 import { avatarDir } from './services/avatar.service.js';
 import { notFoundHandler } from './middleware/notFound.js';
@@ -37,6 +41,7 @@ export function createApp(): express.Express {
 
   app.use('/api', healthRouter);
   app.use('/api', authRouter);
+  app.use('/api', passwordResetRouter);
   app.use('/api', userRouter);
   app.use('/api', subjectRouter);
   app.use('/api', facultyRouter);
@@ -46,6 +51,9 @@ export function createApp(): express.Express {
   app.use('/api', workloadAssignmentRouter);
   app.use('/api', scheduleSlotRouter);
   app.use('/api', scheduleViewRouter);
+  app.use('/api', teachingLoadRouter);
+  app.use('/api', designationRouter);
+  app.use('/api', facultyDesignationRouter);
   app.use('/api', dashboardRouter);
 
   // ---------------------------------------------------------------------------

@@ -223,3 +223,31 @@ export async function logoutRequest(refreshToken: string | null): Promise<void> 
     // Logout is best-effort from the client; local state clears regardless.
   }
 }
+
+async function postPublic<T>(path: string, payload: unknown): Promise<T> {
+  const res = await fetch(`${apiBase}${path}`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  const body = (await res.json().catch(() => ({}))) as T & { error?: { message?: string } };
+  if (!res.ok) {
+    throw toApiError(res.status, body.error?.message ?? 'Request failed');
+  }
+  return body as T;
+}
+
+/** Step 1 — request a 6-digit PIN to the account email (Gmail SMTP). */
+export function forgotPasswordRequest(email: string): Promise<{ message: string }> {
+  return postPublic('/api/auth/forgot-password', { email });
+}
+
+/** Step 2 — trade the 6-digit PIN for a short-lived reset token. */
+export function verifyPinRequest(email: string, code: string): Promise<{ resetToken: string }> {
+  return postPublic('/api/auth/verify-pin', { email, code });
+}
+
+/** Step 3 — set the new password with the reset token. */
+export function resetPasswordRequest(resetToken: string, new_password: string): Promise<{ message: string }> {
+  return postPublic('/api/auth/reset-password', { resetToken, new_password });
+}

@@ -5,6 +5,7 @@ import { useAuthStore } from '../store/auth.store';
 import { selectSelectedTerm, useTermStore } from '../store/term.store';
 import { EmailForm } from './AccountEmailForm';
 import { PasswordForm } from './AccountPasswordForm';
+import { AccountForgotPasswordCard } from './AccountForgotCard';
 
 /**
  * Account Settings — profile photo, editable email, and password change.
@@ -59,6 +60,7 @@ export function AccountSettingsPage(): JSX.Element {
         </div>
         <EmailForm />
         <PasswordForm />
+        {user?.role === 'CHAIR' ? <AccountForgotPasswordCard /> : null}
       </div>
     </section>
   );

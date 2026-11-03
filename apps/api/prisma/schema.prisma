@@ -31,8 +31,22 @@ model User {
   is_active     Boolean  @default(true)
   created_at    DateTime @default(now())
   updated_at    DateTime @default(now()) @updatedAt
+  facultyDesignations FacultyDesignation[]
 
   @@map("users")
+}
+
+model PasswordReset {
+  id          String    @id @default(uuid())
+  email       String
+  code_hash   String
+  expires_at  DateTime
+  attempts    Int       @default(0)
+  consumed_at DateTime?
+  created_at  DateTime  @default(now())
+
+  @@index([email])
+  @@map("password_resets")
 }
 
 model Faculty {
@@ -51,6 +65,7 @@ model Faculty {
   deleted_at        DateTime?
   user              User?
   assignments       WorkloadAssignment[]
+  facultyDesignations FacultyDesignation[]
 
   @@map("faculty")
 }
@@ -103,6 +118,7 @@ model AcademicTerm {
   is_active   Boolean  @default(false)
   created_at  DateTime @default(now())
   assignments WorkloadAssignment[]
+  facultyDesignations FacultyDesignation[]
 
   @@unique([school_year, semester])
   @@map("academic_terms")
@@ -149,4 +165,41 @@ model ScheduleSlot {
   @@index([room_id, day_of_week])
   @@index([workload_assignment_id, day_of_week])
   @@map("schedule_slots")
+}
+
+model Designation {
+  id                   String   @id @default(uuid())
+  name                 String   @unique
+  default_hours        Float
+  service_credit_hours Float    @default(0)
+  grants_service_credit Boolean @default(false)
+  created_at           DateTime @default(now())
+  updated_at           DateTime @updatedAt
+  deleted_at           DateTime?
+  facultyDesignations  FacultyDesignation[]
+
+  @@map("designations")
+}
+
+model FacultyDesignation {
+  id                   String   @id @default(uuid())
+  faculty_id           String
+  faculty              Faculty  @relation(fields: [faculty_id], references: [id], onDelete: Restrict)
+  designation_id       String
+  designation          Designation @relation(fields: [designation_id], references: [id], onDelete: Restrict)
+  term_id              String
+  term                 AcademicTerm @relation(fields: [term_id], references: [id], onDelete: Restrict)
+  hours                Float
+  service_credit       Float    @default(0)
+  assigned_by_user_id  String?
+  assigned_by          User?    @relation(fields: [assigned_by_user_id], references: [id], onDelete: Restrict)
+  created_at           DateTime @default(now())
+  updated_at           DateTime @updatedAt
+  deleted_at           DateTime?
+
+  @@unique([faculty_id, designation_id, term_id])
+  @@index([faculty_id])
+  @@index([designation_id])
+  @@index([term_id])
+  @@map("faculty_designations")
 }

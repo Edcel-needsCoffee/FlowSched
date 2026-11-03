@@ -1,0 +1,149 @@
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mc:/FLOWSCHED/apps/api[39m
+
+ [32m✓[39m src/services/teaching-load.service.test.ts [2m([22m[2m10 tests[22m[2m)[22m[90m 21[2mms[22m[39m
+(node:33668) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:30108) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:2488) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:31352) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:30552) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:33760) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:14436) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:33624) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:21044) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:4900) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:33580) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ [32m✓[39m src/routes/term.routes.test.ts [2m([22m[2m5 tests[22m[2m)[22m[33m 4932[2mms[22m[39m
+   [33m[2m✓[22m[39m AcademicTerm API[2m > [22mcreates a term (inactive by default) with a display label [33m3232[2mms[22m[39m
+   [33m[2m✓[22m[39m AcademicTerm API[2m > [22mkeeps exactly one active term: activating one deactivates the other [33m386[2mms[22m[39m
+ [32m✓[39m src/routes/dashboard.routes.test.ts [2m([22m[2m3 tests[22m[2m)[22m[33m 5435[2mms[22m[39m
+   [33m[2m✓[22m[39m Dashboard summary API[2m > [22mchair gets live department numbers scoped to the term [33m1401[2mms[22m[39m
+   [33m[2m✓[22m[39m Dashboard summary API[2m > [22mrequires auth and rejects a malformed termId [33m351[2mms[22m[39m
+   [33m[2m✓[22m[39m Dashboard summary API[2m > [22mfaculty gets only their own summary, never another faculty data [33m2228[2mms[22m[39m
+ [32m✓[39m src/routes/room.routes.test.ts [2m([22m[2m7 tests[22m[2m)[22m[33m 6037[2mms[22m[39m
+   [33m[2m✓[22m[39m Rooms API[2m > [22mrejects a duplicate name with a 409 (case-insensitive) and writes nothing [33m443[2mms[22m[39m
+   [33m[2m✓[22m[39m Rooms API[2m > [22mtoggles maintenance with a single-field PATCH and back again [33m3110[2mms[22m[39m
+   [33m[2m✓[22m[39m Rooms API[2m > [22mrejects a rename that collides with another room [33m421[2mms[22m[39m
+   [33m[2m✓[22m[39m Rooms API[2m > [22mlists rooms and filters by name [33m614[2mms[22m[39m
+ [32m✓[39m src/validation/schedule-slot-reset.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 10[2mms[22m[39m
+(node:21628) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ [32m✓[39m src/validation/user.validation.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 17[2mms[22m[39m
+ [32m✓[39m src/routes/section.routes.test.ts [2m([22m[2m6 tests[22m[2m)[22m[33m 7041[2mms[22m[39m
+   [33m[2m✓[22m[39m Sections API[2m > [22mcreates a section with a display label [33m653[2mms[22m[39m
+   [33m[2m✓[22m[39m Sections API[2m > [22mlists and filters sections by year level [33m532[2mms[22m[39m
+   [33m[2m✓[22m[39m Sections API[2m > [22mupdates, blocks deletion while in use, then deletes when free [33m4231[2mms[22m[39m
+   [33m[2m✓[22m[39m Sections API[2m > [22mblocks Faculty from writes and anonymous reads [33m467[2mms[22m[39m
+(node:15396) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ [32m✓[39m src/routes/teaching-load.routes.test.ts [2m([22m[2m5 tests[22m[2m)[22m[33m 7446[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/faculty/:id/teaching-load[2m > [22mreturns the teaching load for a seeded faculty (CHAIR may read any) [33m2947[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/faculty/:id/teaching-load[2m > [22mfaculty can read their own load but not another faculty's (403) [33m320[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/faculty/:id/teaching-load[2m > [22mreturns 404 for an unknown faculty [33m364[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/faculty/:id/teaching-load[2m > [22mreturns 400 for a bad faculty id or termId [33m539[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/faculty/:id/teaching-load[2m > [22mrequires authentication [33m377[2mms[22m[39m
+ [32m✓[39m src/services/auth.service.test.ts [2m([22m[2m3 tests[22m[2m)[22m[33m 305[2mms[22m[39m
+(node:15868) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ [32m✓[39m src/routes/designation.routes.test.ts [2m([22m[2m6 tests[22m[2m)[22m[33m 9237[2mms[22m[39m
+   [33m[2m✓[22m[39m Designations API[2m > [22mCRUD: create, list, update, soft-delete [33m3152[2mms[22m[39m
+   [33m[2m✓[22m[39m Designations API[2m > [22mduplicate name returns 409 [33m626[2mms[22m[39m
+   [33m[2m✓[22m[39m Designations API[2m > [22mFACULTY gets 403 on every designation write [33m428[2mms[22m[39m
+   [33m[2m✓[22m[39m Designations API[2m > [22massign designation + duplicate 409; soft-delete then re-assign succeeds [33m3010[2mms[22m[39m
+   [33m[2m✓[22m[39m Designations API[2m > [22mFACULTY can read own designations, 403 on another faculty's [33m614[2mms[22m[39m
+   [33m[2m✓[22m[39m Designations API[2m > [22mengine integration: designation hours flow into total_faculty_time; service_credits only for grants=true [33m1036[2mms[22m[39m
+ [32m✓[39m src/auth.test.ts [2m([22m[2m11 tests[22m[2m)[22m[33m 1937[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/login[2m > [22mreturns tokens on success [33m684[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/refresh + logout[2m > [22missues a new access token and returns the current user [33m478[2mms[22m[39m
+ [32m✓[39m src/health.test.ts [2m([22m[2m1 test[22m[2m)[22m[90m 45[2mms[22m[39m
+ [32m✓[39m src/routes/workload-assignment.routes.test.ts [2m([22m[2m9 tests[22m[2m)[22m[33m 11797[2mms[22m[39m
+   [33m[2m✓[22m[39m WorkloadAssignment API[2m > [22mcreates an assignment with nested display data and hour totals [33m633[2mms[22m[39m
+   [33m[2m✓[22m[39m WorkloadAssignment API[2m > [22mrejects a duplicate with a 409 that names the existing assignment [33m753[2mms[22m[39m
+   [33m[2m✓[22m[39m WorkloadAssignment API[2m > [22mfilters by term, faculty and section, and soft-deletes [33m5029[2mms[22m[39m
+   [33m[2m✓[22m[39m WorkloadAssignment API[2m > [22mblocks Faculty from writes but allows reads [33m596[2mms[22m[39m
+   [33m[2m✓[22m[39m WorkloadAssignment API[2m > [22mre-points subject and section via PATCH and refuses faculty/term drift [33m2371[2mms[22m[39m
+   [33m[2m✓[22m[39m WorkloadAssignment API[2m > [22mblocks deleting an assignment that already has scheduled slots [33m859[2mms[22m[39m
+   [33m[2m✓[22m[39m WorkloadAssignment API[2m > [22mpaginates the list and matches the search term across related rows [33m774[2mms[22m[39m
+ [32m✓[39m src/routes/subject.routes.test.ts [2m([22m[2m32 tests[22m[2m)[22m[33m 11870[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/subjects[2m > [22mreturns 409 for a duplicate code (case-insensitive) [33m370[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/subjects[2m > [22mreturns 403 when a non-CHAIR role tries to create [33m2932[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/subjects[2m > [22mpaginates and reports meta totals [33m400[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/subjects[2m > [22msearches by code and title, case-insensitively [33m586[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/subjects[2m > [22mexcludes soft-deleted subjects from the default list [33m706[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/subjects[2m > [22msorts by title asc when requested [33m2167[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/subjects[2m > [22mreturns 400 for an out-of-range page [33m307[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/subjects/:id[2m > [22mreturns 404 for an unknown id [33m376[2mms[22m[39m
+   [33m[2m✓[22m[39m PATCH /api/subjects/:id[2m > [22mkeeps the code unchanged when PATCH omits it [33m505[2mms[22m[39m
+   [33m[2m✓[22m[39m PATCH /api/subjects/:id[2m > [22mrejects a code change that collides with another subject [33m320[2mms[22m[39m
+[90mstderr[2m | src/routes/schedule-slot.routes.test.ts[2m > [22m[2mScheduleSlot API — override, move, roles[2m > [22m[2mcreates the conflicting slot anyway when the override is confirmed
+[22m[39m[schedule-slot] override {"action":"created","actor_user_id":"ca23d9a2-8672-439d-84d2-67bb3d27dbc0","actor_role":"CHAIR","workload_assignment_id":"9f2f0f18-2208-4a7a-9405-e062be6b2181","slot_id":"1ae38ce7-f6f0-4539-844a-67c8df89bf7f","day_of_week":"MON","start_time":"08:00","end_time":"09:00","room_id":"006fa0e3-469c-4b15-b583-2d2f3afc9b52","overridden_code":"FACULTY_CONFLICT","overridden_message":"Faculty conflict: Ada Lovelace is already scheduled 7:00 AM–9:00 AM on MON (SLFX-1 · SLFX-1A).","overridden_slot_ids":["bf009781-4dbb-4fe0-bcf5-c31c5db6b74f"],"reason":"Approved by the Dean (test)"}
+
+[90mstderr[2m | src/routes/schedule-slot.routes.test.ts[2m > [22m[2mScheduleSlot API — override, move, roles[2m > [22m[2moverrides a maintenance block when confirmed
+[22m[39m[schedule-slot] override {"action":"created","actor_user_id":"ca23d9a2-8672-439d-84d2-67bb3d27dbc0","actor_role":"CHAIR","workload_assignment_id":"dcd5d386-eb64-4001-abff-a0ed54d87db2","slot_id":"3c386df2-8f09-44c1-bcb1-57046505b02a","day_of_week":"FRI","start_time":"15:00","end_time":"16:00","room_id":"9f621c66-af11-43e7-bc41-4f5729f3ec09","overridden_code":"ROOM_MAINTENANCE","overridden_message":"Room maintenance: SLFX-Room B is currently flagged as under maintenance.","overridden_slot_ids":[],"reason":null}
+
+[90mstderr[2m | src/routes/schedule-slot.routes.test.ts[2m > [22m[2mScheduleSlot API — override, move, roles[2m > [22m[2mmoves a placed block: clean move succeeds, conflicting move 409s and persists nothing
+[22m[39m[schedule-slot] override {"action":"moved","actor_user_id":"ca23d9a2-8672-439d-84d2-67bb3d27dbc0","actor_role":"CHAIR","workload_assignment_id":"e98c3817-df28-4631-920c-cb20105166a3","slot_id":"a897f356-8401-4b7f-a773-a56399cba97e","day_of_week":"TUE","start_time":"10:30","end_time":"11:30","room_id":"4371faf1-b60c-4ec0-ae95-438ad36e9343","overridden_code":"ROOM_CONFLICT","overridden_message":"Room conflict: SLFX-Room A is already booked 10:00 AM–11:00 AM on TUE by SLFX-2 · SLFX-1A.","overridden_slot_ids":["8ce6ced1-442f-41bb-aaa5-37b9f92e5fd3"],"reason":null}
+
+ [32m✓[39m src/routes/faculty.routes.test.ts [2m([22m[2m29 tests[22m[2m)[22m[33m 14687[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/faculty[2m > [22mcreates a faculty member and returns 201 with defaults applied [33m1473[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/faculty[2m > [22mreturns 409 for a duplicate employee_no (exact match) [33m1303[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/faculty[2m > [22mreturns 409 for a duplicate employee_no (case-insensitive) [33m583[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/faculty[2m > [22mrejects invalid values with 400 [33m301[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/faculty[2m > [22mcreates a linked FACULTY login in the same request when account is provided [33m377[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/faculty[2m > [22mrejects account provisioning with a 409 when the email is already taken [33m1124[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/faculty[2m > [22mlists faculty with pagination metadata (counts scoped to this suite prefix) [33m3600[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/faculty[2m > [22msearches by employee_no and by name [33m314[2mms[22m[39m
+   [33m[2m✓[22m[39m PATCH /api/faculty/:id[2m > [22mrejects invalid values with 400 [33m469[2mms[22m[39m
+   [33m[2m✓[22m[39m DELETE /api/faculty/:id[2m > [22mblocks deleting a faculty member with active WorkloadAssignment rows (409, clear message) [33m308[2mms[22m[39m
+   [33m[2m✓[22m[39m DELETE /api/faculty/:id[2m > [22mallows deletion once the assignments themselves are soft-deleted (guard is active-only) [33m365[2mms[22m[39m
+   [33m[2m✓[22m[39m DELETE /api/faculty/:id[2m > [22mallows a faculty member without an active login to be deleted without confirmation [33m312[2mms[22m[39m
+   [33m[2m✓[22m[39m DELETE /api/faculty/:id[2m > [22mreturns 403 for a non-CHAIR role [33m303[2mms[22m[39m
+ [32m✓[39m src/routes/schedule-slot.routes.test.ts [2m([22m[2m15 tests[22m[2m)[22m[33m 16621[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — placement + conflict detection[2m > [22mplaces a clean slot and round-trips the times exactly [33m954[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — placement + conflict detection[2m > [22mrejects a LECTURE block longer than the 2h single-meeting cap [33m585[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — placement + conflict detection[2m > [22mrejects a LAB block longer than the 3h single-meeting cap [33m1570[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — placement + conflict detection[2m > [22mallows back-to-back blocks (touching ends are not an overlap) [33m4197[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — placement + conflict detection[2m > [22mdetects an overlapping faculty booking and writes nothing [33m599[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — placement + conflict detection[2m > [22mdetects an overlapping room booking for a different faculty [33m1905[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — placement + conflict detection[2m > [22mflags a room under maintenance [33m601[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — override, move, roles[2m > [22mcreates the conflicting slot anyway when the override is confirmed [33m828[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — override, move, roles[2m > [22moverrides a maintenance block when confirmed [33m324[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — override, move, roles[2m > [22mmoves a placed block: clean move succeeds, conflicting move 409s and persists nothing [33m1212[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — override, move, roles[2m > [22mdeletes a placed block [33m487[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — override, move, roles[2m > [22mblocks Faculty from every write path but allows reads [33m812[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — override, move, roles[2m > [22mvalidates the time range and unknown references [33m641[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — partial durations (custom block sizes)[2m > [22mplaces a partial 1.5h LAB block, then the remaining 1.5h separately, without exceeding the 3h budget [33m619[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — partial durations (custom block sizes)[2m > [22mrejects a single placement larger than the remaining session hours and writes nothing [33m444[2mms[22m[39m
+ [32m✓[39m src/routes/schedule-view.routes.test.ts [2m([22m[2m14 tests[22m[2m)[22m[33m 16763[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/section/:sectionId (Student Class Program)[2m > [22mreturns the section slots sorted by day then time in the flat row shape [33m2380[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/section/:sectionId (Student Class Program)[2m > [22mfilters by term; without termId it returns the raw cross-term schedule [33m1057[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/section/:sectionId (Student Class Program)[2m > [22mdoes not leak other sections' slots into the section program [33m712[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/section/:sectionId (Student Class Program)[2m > [22m404s unknown sections and 400s malformed ids / termIds [33m3752[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/faculty/:facultyId (Faculty Class Program)[2m > [22maggregates one faculty member's slots across all their sections [33m1266[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/faculty/:facultyId (Faculty Class Program)[2m > [22mlets a FACULTY-role account view its own schedule but 403s on anyone else [33m1018[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/faculty/:facultyId (Faculty Class Program)[2m > [22mlets management roles view any faculty member [33m1447[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/faculty/:facultyId (Faculty Class Program)[2m > [22m404s unknown faculty ids and 400s malformed ones [33m567[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/room/:roomId (Classroom Utilization tab)[2m > [22mreturns every slot booked into the room across sections and faculty [33m845[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/room/:roomId (Classroom Utilization tab)[2m > [22mrespects the term filter [33m651[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/room/:roomId (Classroom Utilization tab)[2m > [22m404s unknown rooms and 400s malformed ids [33m539[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/rooms-overview (all utilization tabs at once)[2m > [22mreturns all rooms with their booked slots in one call [33m1023[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/rooms-overview (all utilization tabs at once)[2m > [22mrespects the term filter and is open to every authenticated role [33m461[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mrequires authentication on every view endpoint [33m329[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m17 passed[39m[22m[90m (17)[39m
+[2m      Tests [22m [1m[32m166 passed[39m[22m[90m (166)[39m
+[2m   Start at [22m 12:06:08
+[2m   Duration [22m 23.14s[2m (transform 3.00s, setup 0ms, collect 60.92s, tests 114.20s, environment 12ms, prepare 6.60s)[22m
+
+COMPLETE_MARKER_21840 

@@ -1,0 +1,269 @@
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90mc:/FLOWSCHED/apps/api[39m
+
+ [32m✓[39m src/services/teaching-load.service.test.ts [2m([22m[2m10 tests[22m[2m)[22m[90m 24[2mms[22m[39m
+(node:13612) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:33204) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:32728) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:24040) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:32068) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:22096) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:11608) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:32628) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:33504) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:12088) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+(node:30072) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ [32m✓[39m src/routes/term.routes.test.ts [2m([22m[2m5 tests[22m[2m)[22m[33m 3365[2mms[22m[39m
+   [33m[2m✓[22m[39m AcademicTerm API[2m > [22mrejects a duplicate (school_year, semester) with a 409 [33m486[2mms[22m[39m
+   [33m[2m✓[22m[39m AcademicTerm API[2m > [22mkeeps exactly one active term: activating one deactivates the other [33m1555[2mms[22m[39m
+(node:33260) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ [31m❯[39m src/routes/designation.routes.test.ts [2m([22m[2m6 tests[22m[2m | [22m[31m6 failed[39m[2m)[22m[33m 5659[2mms[22m[39m
+[31m   [31m×[31m Designations API[2m > [22mCRUD: create, list, update, soft-delete[33m 420[2mms[22m[31m[39m
+[31m     → 
+Invalid `prisma.subject.deleteMany()` invocation in
+c:\FLOWSCHED\apps\api\src\routes\designation.routes.test.ts:50:24
+
+  47   where: { faculty: { employee_no: { startsWith: PREFIX } } },
+  48 });
+  49 await prisma.designation.deleteMany({ where: { name: { startsWith: PREFIX } } });
+→ 50 await prisma.subject.deleteMany(
+Foreign key constraint violated on the foreign key[39m
+[31m   [31m×[31m Designations API[2m > [22mduplicate name returns 409[90m 136[2mms[22m[31m[39m
+[31m     → 
+Invalid `prisma.subject.deleteMany()` invocation in
+c:\FLOWSCHED\apps\api\src\routes\designation.routes.test.ts:50:24
+
+  47   where: { faculty: { employee_no: { startsWith: PREFIX } } },
+  48 });
+  49 await prisma.designation.deleteMany({ where: { name: { startsWith: PREFIX } } });
+→ 50 await prisma.subject.deleteMany(
+Foreign key constraint violated on the foreign key[39m
+[31m   [31m×[31m Designations API[2m > [22mFACULTY gets 403 on every designation write[90m 112[2mms[22m[31m[39m
+[31m     → 
+Invalid `prisma.subject.deleteMany()` invocation in
+c:\FLOWSCHED\apps\api\src\routes\designation.routes.test.ts:50:24
+
+  47   where: { faculty: { employee_no: { startsWith: PREFIX } } },
+  48 });
+  49 await prisma.designation.deleteMany({ where: { name: { startsWith: PREFIX } } });
+→ 50 await prisma.subject.deleteMany(
+Foreign key constraint violated on the foreign key[39m
+[31m   [31m×[31m Designations API[2m > [22massign designation + duplicate 409; soft-delete then re-assign succeeds[33m 3981[2mms[22m[31m[39m
+[31m     → 
+Invalid `prisma.subject.deleteMany()` invocation in
+c:\FLOWSCHED\apps\api\src\routes\designation.routes.test.ts:50:24
+
+  47   where: { faculty: { employee_no: { startsWith: PREFIX } } },
+  48 });
+  49 await prisma.designation.deleteMany({ where: { name: { startsWith: PREFIX } } });
+→ 50 await prisma.subject.deleteMany(
+Foreign key constraint violated on the foreign key[39m
+[31m   [31m×[31m Designations API[2m > [22mFACULTY can read own designations, 403 on another faculty's[33m 448[2mms[22m[31m[39m
+[31m     → 
+Invalid `prisma.subject.deleteMany()` invocation in
+c:\FLOWSCHED\apps\api\src\routes\designation.routes.test.ts:50:24
+
+  47   where: { faculty: { employee_no: { startsWith: PREFIX } } },
+  48 });
+  49 await prisma.designation.deleteMany({ where: { name: { startsWith: PREFIX } } });
+→ 50 await prisma.subject.deleteMany(
+Foreign key constraint violated on the foreign key[39m
+[31m   [31m×[31m Designations API[2m > [22mengine integration: designation hours flow into total_faculty_time; service_credits only for grants=true[90m 123[2mms[22m[31m[39m
+[31m     → 
+Invalid `prisma.subject.deleteMany()` invocation in
+c:\FLOWSCHED\apps\api\src\routes\designation.routes.test.ts:50:24
+
+  47   where: { faculty: { employee_no: { startsWith: PREFIX } } },
+  48 });
+  49 await prisma.designation.deleteMany({ where: { name: { startsWith: PREFIX } } });
+→ 50 await prisma.subject.deleteMany(
+Foreign key constraint violated on the foreign key[39m
+ [32m✓[39m src/validation/schedule-slot-reset.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 6[2mms[22m[39m
+ [32m✓[39m src/routes/teaching-load.routes.test.ts [2m([22m[2m5 tests[22m[2m)[22m[33m 6778[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/faculty/:id/teaching-load[2m > [22mreturns the teaching load for a seeded faculty (CHAIR may read any) [33m1171[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/faculty/:id/teaching-load[2m > [22mfaculty can read their own load but not another faculty's (403) [33m778[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/faculty/:id/teaching-load[2m > [22mreturns 400 for a bad faculty id or termId [33m1591[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/faculty/:id/teaching-load[2m > [22mrequires authentication [33m676[2mms[22m[39m
+ [32m✓[39m src/validation/user.validation.test.ts [2m([22m[2m5 tests[22m[2m)[22m[90m 5[2mms[22m[39m
+(node:21356) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ [32m✓[39m src/routes/dashboard.routes.test.ts [2m([22m[2m3 tests[22m[2m)[22m[33m 7861[2mms[22m[39m
+   [33m[2m✓[22m[39m Dashboard summary API[2m > [22mchair gets live department numbers scoped to the term [33m2446[2mms[22m[39m
+   [33m[2m✓[22m[39m Dashboard summary API[2m > [22mrequires auth and rejects a malformed termId [33m920[2mms[22m[39m
+   [33m[2m✓[22m[39m Dashboard summary API[2m > [22mfaculty gets only their own summary, never another faculty data [33m4349[2mms[22m[39m
+ [32m✓[39m src/services/auth.service.test.ts [2m([22m[2m3 tests[22m[2m)[22m[90m 279[2mms[22m[39m
+ [32m✓[39m src/auth.test.ts [2m([22m[2m11 tests[22m[2m)[22m[33m 3081[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/login[2m > [22mreturns tokens on success [33m1675[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/login[2m > [22mreturns 401 with a generic message for a wrong password [33m472[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/auth/refresh + logout[2m > [22missues a new access token and returns the current user [33m301[2mms[22m[39m
+(node:22840) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+ [32m✓[39m src/health.test.ts [2m([22m[2m1 test[22m[2m)[22m[90m 33[2mms[22m[39m
+ [32m✓[39m src/routes/room.routes.test.ts [2m([22m[2m7 tests[22m[2m)[22m[33m 11489[2mms[22m[39m
+   [33m[2m✓[22m[39m Rooms API[2m > [22mcreates a room with a default (off) maintenance flag [33m1951[2mms[22m[39m
+   [33m[2m✓[22m[39m Rooms API[2m > [22mtoggles maintenance with a single-field PATCH and back again [33m1119[2mms[22m[39m
+   [33m[2m✓[22m[39m Rooms API[2m > [22mrejects a rename that collides with another room [33m4546[2mms[22m[39m
+   [33m[2m✓[22m[39m Rooms API[2m > [22mrequires authentication to read and blocks Faculty from writing [33m517[2mms[22m[39m
+[90mstderr[2m | src/routes/schedule-slot.routes.test.ts[2m > [22m[2mScheduleSlot API — override, move, roles[2m > [22m[2mcreates the conflicting slot anyway when the override is confirmed
+[22m[39m[schedule-slot] override {"action":"created","actor_user_id":"33552f49-6fe6-467b-81d9-2d6606a4f5e6","actor_role":"CHAIR","workload_assignment_id":"0c170b7c-39e6-4416-b126-72d4ae5bd775","slot_id":"5cd98a31-9a01-4723-8b94-f9c604ad03b3","day_of_week":"MON","start_time":"08:00","end_time":"09:00","room_id":"cc44d3c4-1396-4ba9-9982-9b72cb71540b","overridden_code":"FACULTY_CONFLICT","overridden_message":"Faculty conflict: Ada Lovelace is already scheduled 7:00 AM–9:00 AM on MON (SLFX-1 · SLFX-1A).","overridden_slot_ids":["7592cd10-416b-40a5-98aa-832dc09117d3"],"reason":"Approved by the Dean (test)"}
+
+ [32m✓[39m src/routes/workload-assignment.routes.test.ts [2m([22m[2m9 tests[22m[2m)[22m[33m 13039[2mms[22m[39m
+   [33m[2m✓[22m[39m WorkloadAssignment API[2m > [22mcreates an assignment with nested display data and hour totals [33m2211[2mms[22m[39m
+   [33m[2m✓[22m[39m WorkloadAssignment API[2m > [22mrejects a duplicate with a 409 that names the existing assignment [33m793[2mms[22m[39m
+   [33m[2m✓[22m[39m WorkloadAssignment API[2m > [22mrejects unknown references with the offending field [33m1385[2mms[22m[39m
+   [33m[2m✓[22m[39m WorkloadAssignment API[2m > [22mfilters by term, faculty and section, and soft-deletes [33m2323[2mms[22m[39m
+   [33m[2m✓[22m[39m WorkloadAssignment API[2m > [22mblocks Faculty from writes but allows reads [33m383[2mms[22m[39m
+   [33m[2m✓[22m[39m WorkloadAssignment API[2m > [22mre-points subject and section via PATCH and refuses faculty/term drift [33m1386[2mms[22m[39m
+   [33m[2m✓[22m[39m WorkloadAssignment API[2m > [22m404s a PATCH for an unknown assignment id [33m324[2mms[22m[39m
+   [33m[2m✓[22m[39m WorkloadAssignment API[2m > [22mblocks deleting an assignment that already has scheduled slots [33m1056[2mms[22m[39m
+   [33m[2m✓[22m[39m WorkloadAssignment API[2m > [22mpaginates the list and matches the search term across related rows [33m1989[2mms[22m[39m
+[90mstderr[2m | src/routes/schedule-slot.routes.test.ts[2m > [22m[2mScheduleSlot API — override, move, roles[2m > [22m[2moverrides a maintenance block when confirmed
+[22m[39m[schedule-slot] override {"action":"created","actor_user_id":"33552f49-6fe6-467b-81d9-2d6606a4f5e6","actor_role":"CHAIR","workload_assignment_id":"7d0c3abf-143c-4419-a6d8-e6a13e6d29ed","slot_id":"4be59a62-47e4-4c59-a669-60458d4a4eed","day_of_week":"FRI","start_time":"15:00","end_time":"16:00","room_id":"5d551887-9bed-4c9a-a144-9c2cfaa673b1","overridden_code":"ROOM_MAINTENANCE","overridden_message":"Room maintenance: SLFX-Room B is currently flagged as under maintenance.","overridden_slot_ids":[],"reason":null}
+
+ [32m✓[39m src/routes/subject.routes.test.ts [2m([22m[2m32 tests[22m[2m)[22m[33m 13590[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/subjects[2m > [22mcreates a subject and returns 201 with the stored row [33m707[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/subjects[2m > [22mreturns 409 for a duplicate code (exact match) [33m497[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/subjects[2m > [22mallows re-creating the code of a soft-deleted subject (spec §7) [33m659[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/subjects[2m > [22mreturns 200 for any authenticated role [33m712[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/subjects[2m > [22mreturns 401 without a token [33m762[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/subjects[2m > [22mpaginates and reports meta totals [33m1892[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/subjects[2m > [22msearches by code and title, case-insensitively [33m609[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/subjects[2m > [22msorts by title asc when requested [33m839[2mms[22m[39m
+   [33m[2m✓[22m[39m PATCH /api/subjects/:id[2m > [22mrejects a code change that collides with another subject [33m431[2mms[22m[39m
+   [33m[2m✓[22m[39m PATCH /api/subjects/:id[2m > [22mallows a case-only code rename (same subject) [33m1035[2mms[22m[39m
+   [33m[2m✓[22m[39m DELETE /api/subjects/:id[2m > [22msoft-deletes: row stays in DB, disappears from reads [33m1061[2mms[22m[39m
+   [33m[2m✓[22m[39m DELETE /api/subjects/:id[2m > [22mreturns 403 for a non-CHAIR role [33m1080[2mms[22m[39m
+ [32m✓[39m src/routes/section.routes.test.ts [2m([22m[2m6 tests[22m[2m)[22m[33m 14966[2mms[22m[39m
+   [33m[2m✓[22m[39m Sections API[2m > [22mcreates a section with a display label [33m353[2mms[22m[39m
+   [33m[2m✓[22m[39m Sections API[2m > [22mrejects a duplicate (year_level, name) but allows the same name in another year [33m2946[2mms[22m[39m
+   [33m[2m✓[22m[39m Sections API[2m > [22mvalidates the year level and name [33m2164[2mms[22m[39m
+   [33m[2m✓[22m[39m Sections API[2m > [22mlists and filters sections by year level [33m5236[2mms[22m[39m
+   [33m[2m✓[22m[39m Sections API[2m > [22mupdates, blocks deletion while in use, then deletes when free [33m2250[2mms[22m[39m
+[90mstderr[2m | src/routes/schedule-slot.routes.test.ts[2m > [22m[2mScheduleSlot API — override, move, roles[2m > [22m[2mmoves a placed block: clean move succeeds, conflicting move 409s and persists nothing
+[22m[39m[schedule-slot] override {"action":"moved","actor_user_id":"33552f49-6fe6-467b-81d9-2d6606a4f5e6","actor_role":"CHAIR","workload_assignment_id":"953d9a13-7c49-436d-966f-023326f218a7","slot_id":"3a4026bd-550e-446f-b275-ce9658b121d9","day_of_week":"TUE","start_time":"10:30","end_time":"11:30","room_id":"1af74196-ff27-4afd-a581-625e12348165","overridden_code":"ROOM_CONFLICT","overridden_message":"Room conflict: SLFX-Room A is already booked 10:00 AM–11:00 AM on TUE by SLFX-2 · SLFX-1A.","overridden_slot_ids":["d98f85be-5ff1-49d8-a432-9adaa73e4b95"],"reason":null}
+
+ [32m✓[39m src/routes/schedule-view.routes.test.ts [2m([22m[2m14 tests[22m[2m)[22m[33m 18031[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/section/:sectionId (Student Class Program)[2m > [22mreturns the section slots sorted by day then time in the flat row shape [33m3488[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/section/:sectionId (Student Class Program)[2m > [22mfilters by term; without termId it returns the raw cross-term schedule [33m4716[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/section/:sectionId (Student Class Program)[2m > [22mdoes not leak other sections' slots into the section program [33m1061[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/section/:sectionId (Student Class Program)[2m > [22m404s unknown sections and 400s malformed ids / termIds [33m618[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/faculty/:facultyId (Faculty Class Program)[2m > [22maggregates one faculty member's slots across all their sections [33m1436[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/faculty/:facultyId (Faculty Class Program)[2m > [22mlets a FACULTY-role account view its own schedule but 403s on anyone else [33m645[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/faculty/:facultyId (Faculty Class Program)[2m > [22mlets management roles view any faculty member [33m837[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/faculty/:facultyId (Faculty Class Program)[2m > [22m404s unknown faculty ids and 400s malformed ones [33m565[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/room/:roomId (Classroom Utilization tab)[2m > [22mreturns every slot booked into the room across sections and faculty [33m636[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/room/:roomId (Classroom Utilization tab)[2m > [22mrespects the term filter [33m879[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/room/:roomId (Classroom Utilization tab)[2m > [22m404s unknown rooms and 400s malformed ids [33m356[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/rooms-overview (all utilization tabs at once)[2m > [22mreturns all rooms with their booked slots in one call [33m544[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mGET /schedule-views/rooms-overview (all utilization tabs at once)[2m > [22mrespects the term filter and is open to every authenticated role [33m468[2mms[22m[39m
+   [33m[2m✓[22m[39m Schedule-view API[2m > [22mrequires authentication on every view endpoint [33m644[2mms[22m[39m
+ [32m✓[39m src/routes/schedule-slot.routes.test.ts [2m([22m[2m15 tests[22m[2m)[22m[33m 18465[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — placement + conflict detection[2m > [22mplaces a clean slot and round-trips the times exactly [33m4375[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — placement + conflict detection[2m > [22mrejects a LECTURE block longer than the 2h single-meeting cap [33m477[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — placement + conflict detection[2m > [22mrejects a LAB block longer than the 3h single-meeting cap [33m344[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — placement + conflict detection[2m > [22mallows back-to-back blocks (touching ends are not an overlap) [33m830[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — placement + conflict detection[2m > [22mdetects an overlapping faculty booking and writes nothing [33m882[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — placement + conflict detection[2m > [22mdetects an overlapping room booking for a different faculty [33m2507[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — placement + conflict detection[2m > [22mflags a room under maintenance [33m1092[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — override, move, roles[2m > [22mcreates the conflicting slot anyway when the override is confirmed [33m1575[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — override, move, roles[2m > [22moverrides a maintenance block when confirmed [33m701[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — override, move, roles[2m > [22mmoves a placed block: clean move succeeds, conflicting move 409s and persists nothing [33m1688[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — override, move, roles[2m > [22mdeletes a placed block [33m613[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — override, move, roles[2m > [22mblocks Faculty from every write path but allows reads [33m595[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — override, move, roles[2m > [22mvalidates the time range and unknown references [33m352[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — partial durations (custom block sizes)[2m > [22mplaces a partial 1.5h LAB block, then the remaining 1.5h separately, without exceeding the 3h budget [33m930[2mms[22m[39m
+   [33m[2m✓[22m[39m ScheduleSlot API — partial durations (custom block sizes)[2m > [22mrejects a single placement larger than the remaining session hours and writes nothing [33m769[2mms[22m[39m
+ [32m✓[39m src/routes/faculty.routes.test.ts [2m([22m[2m29 tests[22m[2m)[22m[33m 18916[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/faculty[2m > [22mcreates a faculty member and returns 201 with defaults applied [33m863[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/faculty[2m > [22mreturns 409 for a duplicate employee_no (exact match) [33m4072[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/faculty[2m > [22mreturns 409 for a duplicate employee_no (case-insensitive) [33m4401[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/faculty[2m > [22mreturns 401 without a token [33m951[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/faculty[2m > [22mreturns 403 for a FACULTY role [33m1077[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/faculty[2m > [22mcreates a linked FACULTY login in the same request when account is provided [33m1044[2mms[22m[39m
+   [33m[2m✓[22m[39m POST /api/faculty[2m > [22mrejects account provisioning with a 409 when the email is already taken [33m1274[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/faculty[2m > [22mlists faculty with pagination metadata (counts scoped to this suite prefix) [33m493[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/faculty[2m > [22msearches by employee_no and by name [33m337[2mms[22m[39m
+   [33m[2m✓[22m[39m GET /api/faculty/:id[2m > [22mreturns 401 without a token [33m326[2mms[22m[39m
+   [33m[2m✓[22m[39m PATCH /api/faculty/:id[2m > [22mrejects invalid values with 400 [33m353[2mms[22m[39m
+   [33m[2m✓[22m[39m PATCH /api/faculty/:id[2m > [22mrejects an empty body with 400 [33m373[2mms[22m[39m
+   [33m[2m✓[22m[39m DELETE /api/faculty/:id[2m > [22msoft-deletes only: the row stays in the DB and disappears from reads [33m386[2mms[22m[39m
+   [33m[2m✓[22m[39m DELETE /api/faculty/:id[2m > [22mblocks deleting a faculty member with active WorkloadAssignment rows (409, clear message) [33m328[2mms[22m[39m
+   [33m[2m✓[22m[39m DELETE /api/faculty/:id[2m > [22mallows deletion once the assignments themselves are soft-deleted (guard is active-only) [33m369[2mms[22m[39m
+   [33m[2m✓[22m[39m DELETE /api/faculty/:id[2m > [22mblocks deleting a faculty member with an active login unless confirmed [33m382[2mms[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯[1m[7m Failed Suites 1 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/routes/designation.routes.test.ts[2m [ src/routes/designation.routes.test.ts ][22m
+[31m[1mPrismaClientKnownRequestError[22m: 
+Invalid `prisma.subject.deleteMany()` invocation in
+c:\FLOWSCHED\apps\api\src\routes\designation.routes.test.ts:50:24
+
+  47   where: { faculty: { employee_no: { startsWith: PREFIX } } },
+  48 });
+  49 await prisma.designation.deleteMany({ where: { name: { startsWith: PREFIX } } });
+→ 50 await prisma.subject.deleteMany(
+Foreign key constraint violated on the foreign key[39m
+[90m [2m❯[22m ei.handleRequestError ../../node_modules/@prisma/client/src/runtime/RequestHandler.ts:[2m228:13[22m[39m
+[90m [2m❯[22m ei.handleAndLogRequestError ../../node_modules/@prisma/client/src/runtime/RequestHandler.ts:[2m174:12[22m[39m
+[90m [2m❯[22m ei.request ../../node_modules/@prisma/client/src/runtime/RequestHandler.ts:[2m143:12[22m[39m
+[90m [2m❯[22m a ../../node_modules/@prisma/client/src/runtime/getPrismaClient.ts:[2m833:24[22m[39m
+[36m [2m❯[22m cleanFixtures src/routes/designation.routes.test.ts:[2m50:3[22m[39m
+    [90m 48| [39m  })[33m;[39m
+    [90m 49| [39m  [35mawait[39m prisma[33m.[39mdesignation[33m.[39m[34mdeleteMany[39m({ where[33m:[39m { name[33m:[39m { startsWith[33m:[39m [33mP[39m…
+    [90m 50| [39m  [35mawait[39m prisma[33m.[39msubject[33m.[39m[34mdeleteMany[39m({ where[33m:[39m { code[33m:[39m { startsWith[33m:[39m [33mPREFI[39m…
+    [90m   | [39m  [31m^[39m
+    [90m 51| [39m  [35mawait[39m prisma[33m.[39msection[33m.[39m[34mdeleteMany[39m({ where[33m:[39m { name[33m:[39m { startsWith[33m:[39m [33mPREFI[39m…
+    [90m 52| [39m  [35mawait[39m prisma[33m.[39mworkloadAssignment[33m.[39m[34mdeleteMany[39m({
+[90m [2m❯[22m src/routes/designation.routes.test.ts:[2m63:3[22m[39m
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/7]⎯[22m[39m
+
+[31m⎯⎯⎯⎯⎯⎯⎯[1m[7m Failed Tests 6 [27m[22m⎯⎯⎯⎯⎯⎯⎯[39m
+
+[31m[1m[7m FAIL [27m[22m[39m src/routes/designation.routes.test.ts[2m > [22mDesignations API[2m > [22mCRUD: create, list, update, soft-delete
+[31m[1m[7m FAIL [27m[22m[39m src/routes/designation.routes.test.ts[2m > [22mDesignations API[2m > [22mduplicate name returns 409
+[31m[1m[7m FAIL [27m[22m[39m src/routes/designation.routes.test.ts[2m > [22mDesignations API[2m > [22mFACULTY gets 403 on every designation write
+[31m[1m[7m FAIL [27m[22m[39m src/routes/designation.routes.test.ts[2m > [22mDesignations API[2m > [22massign designation + duplicate 409; soft-delete then re-assign succeeds
+[31m[1m[7m FAIL [27m[22m[39m src/routes/designation.routes.test.ts[2m > [22mDesignations API[2m > [22mFACULTY can read own designations, 403 on another faculty's
+[31m[1m[7m FAIL [27m[22m[39m src/routes/designation.routes.test.ts[2m > [22mDesignations API[2m > [22mengine integration: designation hours flow into total_faculty_time; service_credits only for grants=true
+[31m[1mPrismaClientKnownRequestError[22m: 
+Invalid `prisma.subject.deleteMany()` invocation in
+c:\FLOWSCHED\apps\api\src\routes\designation.routes.test.ts:50:24
+
+  47   where: { faculty: { employee_no: { startsWith: PREFIX } } },
+  48 });
+  49 await prisma.designation.deleteMany({ where: { name: { startsWith: PREFIX } } });
+→ 50 await prisma.subject.deleteMany(
+Foreign key constraint violated on the foreign key[39m
+[90m [2m❯[22m ei.handleRequestError ../../node_modules/@prisma/client/src/runtime/RequestHandler.ts:[2m228:13[22m[39m
+[90m [2m❯[22m ei.handleAndLogRequestError ../../node_modules/@prisma/client/src/runtime/RequestHandler.ts:[2m174:12[22m[39m
+[90m [2m❯[22m ei.request ../../node_modules/@prisma/client/src/runtime/RequestHandler.ts:[2m143:12[22m[39m
+[90m [2m❯[22m a ../../node_modules/@prisma/client/src/runtime/getPrismaClient.ts:[2m833:24[22m[39m
+[36m [2m❯[22m cleanFixtures src/routes/designation.routes.test.ts:[2m50:3[22m[39m
+    [90m 48| [39m  })[33m;[39m
+    [90m 49| [39m  [35mawait[39m prisma[33m.[39mdesignation[33m.[39m[34mdeleteMany[39m({ where[33m:[39m { name[33m:[39m { startsWith[33m:[39m [33mP[39m…
+    [90m 50| [39m  [35mawait[39m prisma[33m.[39msubject[33m.[39m[34mdeleteMany[39m({ where[33m:[39m { code[33m:[39m { startsWith[33m:[39m [33mPREFI[39m…
+    [90m   | [39m  [31m^[39m
+    [90m 51| [39m  [35mawait[39m prisma[33m.[39msection[33m.[39m[34mdeleteMany[39m({ where[33m:[39m { name[33m:[39m { startsWith[33m:[39m [33mPREFI[39m…
+    [90m 52| [39m  [35mawait[39m prisma[33m.[39mworkloadAssignment[33m.[39m[34mdeleteMany[39m({
+
+[31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/7]⎯[22m[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m16 passed[39m[22m[90m (17)[39m
+[2m      Tests [22m [1m[31m6 failed[39m[22m[2m | [22m[1m[32m160 passed[39m[22m[90m (166)[39m
+[2m   Start at [22m 12:05:13
+[2m   Duration [22m 25.68s[2m (transform 2.92s, setup 0ms, collect 60.51s, tests 135.59s, environment 11ms, prepare 8.96s)[22m
+
+COMPLETE_MARKER_21657 
