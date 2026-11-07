@@ -58,6 +58,12 @@ async function main(): Promise<void> {
   });
 
   // Sections + faculty, so every filter dropdown and the Workload Assignment
+  // Local-only academic administrator; replace credentials outside development.
+  await prisma.user.upsert({where:{email:'admin.dev@flowsched.local'},update:{},create:{email:'admin.dev@flowsched.local',password_hash:devPasswordHash,role:'ACADEMIC_ADMIN'}});
+  await prisma.loadSettings.upsert({where:{id:'singleton'},create:{id:'singleton'},update:{}});
+  await prisma.formSettings.upsert({where:{id:'singleton'},create:{id:'singleton'},update:{}});
+
+  // Sections + faculty, so every filter dropdown and the Workload Assignment
   // page's form (faculty × subject × section) have real options on a fresh
   // database. No WorkloadAssignments are seeded on purpose: the Workload
   // Assignment page is the intended first-run path for creating them.

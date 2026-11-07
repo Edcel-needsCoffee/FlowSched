@@ -55,7 +55,7 @@ function toAuthPayload(decoded: string | JwtPayload): AuthTokenPayload {
     throw new Error('Invalid token payload');
   }
   const { userId, role, facultyId } = decoded as Record<string, unknown>;
-  if (typeof userId !== 'string' || typeof role !== 'string') {
+  if (typeof userId !== 'string' || !['CHAIR','FACULTY','ACADEMIC_ADMIN'].includes(String(role))) {
     throw new Error('Invalid token payload');
   }
   return {

@@ -19,6 +19,11 @@ const CHECKS: string[] = [];
 // baked into the initial migration (prisma/migrations/*_sqlite_init/), and
 // re-running it here is idempotent (DROP IF EXISTS + CREATE).
 const SOFT_DELETE_INDEXES = [
+  'DROP INDEX IF EXISTS "designations_name_key"',
+  'CREATE UNIQUE INDEX "designations_name_key" ON "designations"("name") WHERE "deleted_at" IS NULL',
+  'DROP INDEX IF EXISTS "faculty_designations_faculty_id_designation_id_term_id_key"',
+  'CREATE UNIQUE INDEX "faculty_designations_faculty_id_designation_id_term_id_key" ON "faculty_designations"("faculty_id","designation_id","term_id") WHERE "deleted_at" IS NULL',
+  'CREATE UNIQUE INDEX IF NOT EXISTS "faculty_sessions_active_slot_key" ON "faculty_sessions"("faculty_id","term_id","day_of_week","start_time","end_time") WHERE "deleted_at" IS NULL',
   'DROP INDEX IF EXISTS "subjects_code_key"',
   'CREATE UNIQUE INDEX "subjects_code_key" ON "subjects"("code") WHERE "deleted_at" IS NULL',
   'DROP INDEX IF EXISTS "faculty_employee_no_key"',

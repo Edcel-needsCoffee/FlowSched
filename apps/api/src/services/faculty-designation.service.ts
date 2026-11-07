@@ -95,6 +95,8 @@ export async function assignDesignation(
   if (!term) {
     throw ApiError.notFound('Term not found');
   }
+  const designation = await import('../repositories/designation.repository.js').then(r=>r.findActiveById(data.designation_id));
+  if(!designation) throw ApiError.notFound('Designation not found');
 
   // Duplicate active assignment check
   const dup = await findActiveDuplicate(
@@ -110,7 +112,8 @@ export async function assignDesignation(
   }
 
   // If designation does not grant service credit, force service_credit to 0
-  const serviceCredit = data.service_credit ?? 0;
+  const serviceCredit = designation.grants_service_credit && !/\b(chair|chairman|dean)\b/i.test(designation.name) ? data.service_credit??designation.service_credit_hours : 0;
+  const actor=userId?await import('../config/prisma.js').then(({prisma})=>prisma.user.findUnique({where:{id:userId}})):null;
 
   const row = await createFacultyDesignationRow({
     faculty_id: facultyId,
@@ -118,6 +121,7 @@ export async function assignDesignation(
     term_id: data.term_id,
     hours: data.hours,
     service_credit: serviceCredit,
+    assigned_by_user_id: actor?.id,
     // assigned_by_user_id omitted: column is optional (String?) and token userId
     // is a string not matching DB UUIDs — proper FK resolution handled in Bite 2b.
   });
@@ -137,7 +141,7 @@ export async function updateFacultyDesignation(
 
   const row = await updateFacultyDesignationRow(id, {
     ...(data.hours !== undefined ? { hours: data.hours } : {}),
-    ...(data.service_credit !== undefined ? { service_credit: data.service_credit } : {}),
+    ...(data.service_credit !== undefined ? { service_credit: existing.designation.grants_service_credit && !/\b(chair|chairman|dean)\b/i.test(existing.designation.name) ? data.service_credit : 0 } : {}),
   });
   return toFacultyDesignationDto(row);
 }

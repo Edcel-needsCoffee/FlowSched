@@ -34,7 +34,7 @@ designationRouter.get(
 designationRouter.post(
   '/designations',
   requireAuth,
-  requireRole('CHAIR'),
+  requireRole('CHAIR','ACADEMIC_ADMIN'),
   asyncHandler(async (req, res) => {
     res.status(201).json({ designation: await createDesignation(req.body) });
   }),
@@ -43,7 +43,7 @@ designationRouter.post(
 designationRouter.patch(
   '/designations/:id',
   requireAuth,
-  requireRole('CHAIR'),
+  requireRole('CHAIR','ACADEMIC_ADMIN'),
   asyncHandler(async (req, res) => {
     res.status(200).json({ designation: await updateDesignation(parseId(req), req.body) });
   }),
@@ -52,7 +52,7 @@ designationRouter.patch(
 designationRouter.delete(
   '/designations/:id',
   requireAuth,
-  requireRole('CHAIR'),
+  requireRole('CHAIR','ACADEMIC_ADMIN'),
   asyncHandler(async (req, res) => {
     await deleteDesignation(parseId(req));
     res.status(204).send();

@@ -16,6 +16,9 @@ import { workloadAssignmentRouter } from './routes/workload-assignment.routes.js
 import { scheduleSlotRouter } from './routes/schedule-slot.routes.js';
 import { scheduleViewRouter } from './routes/schedule-view.routes.js';
 import { teachingLoadRouter } from './routes/teaching-load.routes.js';
+import { facultyProgramRouter } from './routes/faculty-program.routes.js';
+import { formRouter } from './routes/form.routes.js';
+import { formLogoDir } from './services/form.service.js';
 import { designationRouter } from './routes/designation.routes.js';
 import { facultyDesignationRouter } from './routes/faculty-designation.routes.js';
 import { dashboardRouter } from './routes/dashboard.routes.js';
@@ -52,6 +55,9 @@ export function createApp(): express.Express {
   app.use('/api', scheduleSlotRouter);
   app.use('/api', scheduleViewRouter);
   app.use('/api', teachingLoadRouter);
+  app.use('/api', facultyProgramRouter);
+  app.use('/api', formRouter);
+  app.use('/uploads/form-logos',express.static(formLogoDir(),{fallthrough:false,maxAge:'1h'}));
   app.use('/api', designationRouter);
   app.use('/api', facultyDesignationRouter);
   app.use('/api', dashboardRouter);

@@ -94,6 +94,7 @@ export async function listDesignations(rawQuery: unknown): Promise<DesignationLi
 
 export async function createDesignation(rawBody: unknown): Promise<DesignationDto> {
   const data = parseOrBadRequest(createDesignationSchema, rawBody);
+  if(/\b(chair|chairman|dean)\b/i.test(data.name) && data.grants_service_credit) throw ApiError.badRequest('Chair and Dean designations cannot grant Service Credits');
 
   // Case-insensitive duplicate check among active designations
   const existing = await findActiveByName(data.name);
@@ -120,6 +121,7 @@ export async function updateDesignation(id: string, rawBody: unknown): Promise<D
   }
 
   const data = parseOrBadRequest(updateDesignationSchema, rawBody);
+  if(/\b(chair|chairman|dean)\b/i.test(data.name??existing.name) && (data.grants_service_credit??existing.grants_service_credit)) throw ApiError.badRequest('Chair and Dean designations cannot grant Service Credits');
 
   if (data.name !== undefined && data.name !== existing.name) {
     const dup = await findActiveByName(data.name, id);

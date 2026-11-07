@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { ApiError } from '../errors/apiError.js';
 import { requireAuth, requireRole } from '../middleware/auth.middleware.js';
 import { getLoadSettings, putLoadSettings } from '../services/load-settings.service.js';
+import { assertFacultyScope } from '../services/faculty-program.service.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { uuidIdSchema } from '../validation/subject.validation.js';
 import { getFacultyTeachingLoad } from '../services/teaching-load.service.js';
@@ -44,6 +45,7 @@ teachingLoadRouter.get(
       throw ApiError.badRequest('Invalid termId');
     }
     const { termId } = termParsed.data;
+    await assertFacultyScope(req.user!,facultyId,termId);
 
     // Faculty-role accounts are scoped to their own data (same self-scope as
     // the schedule-view faculty endpoint). CHAIR may request any faculty.

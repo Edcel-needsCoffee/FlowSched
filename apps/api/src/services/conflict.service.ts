@@ -3,6 +3,7 @@ import * as roomRepository from '../repositories/room.repository.js';
 import * as scheduleSlotRepository from '../repositories/schedule-slot.repository.js';
 import type { ScheduleSlotWithRelations } from '../repositories/schedule-slot.repository.js';
 import { formatTimeOfDay, humanizeTimeOfDay } from '../utils/time.js';
+import { prisma } from '../config/prisma.js';
 
 /**
  * Conflict detection for the weekly grid.
@@ -44,6 +45,7 @@ export interface ConflictResult {
 }
 
 export interface DetectConflictInput {
+  termId?: string;
   /** Faculty of the workload assignment being placed (always known). */
   facultyId: string;
   /** Room being requested; null/undefined = TBA (no room clash possible). */
@@ -82,6 +84,7 @@ function rangeLabel(start: string, end: string): string {
  */
 export async function detectConflict(input: DetectConflictInput): Promise<ConflictResult | null> {
   const overlapQuery = {
+    termId: input.termId,
     day: input.day,
     startTime: input.startTime,
     endTime: input.endTime,
@@ -89,6 +92,8 @@ export async function detectConflict(input: DetectConflictInput): Promise<Confli
   };
 
   if (input.facultyId) {
+    const sessions=await prisma.facultySession.findMany({where:{faculty_id:input.facultyId,...(input.termId?{term_id:input.termId}:{}),deleted_at:null,day_of_week:input.day,start_time:{lt:input.endTime},end_time:{gt:input.startTime},OR:[{faculty_designation_id:null},{faculty_designation:{deleted_at:null,designation:{deleted_at:null}}}]}});
+    if(sessions.length) return {code:'FACULTY_CONFLICT',message:`Faculty has a ${sessions[0].type.toLowerCase()} session at this time.`,details:{day_of_week:input.day,start_time:formatTimeOfDay(input.startTime),end_time:formatTimeOfDay(input.endTime),faculty_id:input.facultyId,room_id:input.roomId??null,conflicting_slots:sessions.map(s=>({slot_id:s.id,assignment_id:'',day_of_week:s.day_of_week as DayOfWeek,start_time:s.start_time,end_time:s.end_time,room_name:null,faculty_name:'',subject_code:s.type,section_label:''}))}};
     const facultyOverlaps = await scheduleSlotRepository.findFacultyOverlaps(
       input.facultyId,
       overlapQuery,

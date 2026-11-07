@@ -1,6 +1,7 @@
 import { prisma } from '../config/prisma.js';
 import { DEFAULT_LOAD_CONFIG, type TeachingLoadConfig } from './teaching-load.config.js';
 import { getLoadConfig } from './load-settings.service.js';
+import * as programRepository from '../repositories/faculty-program.repository.js';
 
 export { DEFAULT_LOAD_CONFIG };
 
@@ -66,6 +67,8 @@ export interface TeachingLoadOutput {
   students_by_section: { section_id: string; section_name: string; student_count: number | null }[];
   total_students: number;
   weekly_hours: number;
+  effectivity: { start: string | null; end: string | null; source: 'TERM' | 'FACULTY' };
+  sessions: { id: string; type: string; day_of_week: string; start_time: string; end_time: string; faculty_designation_id: string | null }[];
   warnings: string[];
 }
 
@@ -277,6 +280,8 @@ export function calculateTeachingLoad(
     students_by_section: [...new Map((input.students ?? []).map((s) => [s.section_id, s])).values()],
     total_students: round2([...new Map((input.students ?? []).map((s) => [s.section_id, s])).values()].reduce((sum, s) => sum + (s.student_count ?? 0), 0)),
     weekly_hours: round2(config.facultyWeeklyHours),
+    effectivity: {start:null,end:null,source:'TERM'},
+    sessions: [],
     warnings,
   };
 }
@@ -318,6 +323,7 @@ export async function getFacultyTeachingLoad(
         faculty_id: facultyId,
         term_id: termId,
         deleted_at: null,
+        designation: {deleted_at:null},
       },
       include: {
         designation: true,
@@ -325,23 +331,38 @@ export async function getFacultyTeachingLoad(
     }),
   ]);
 
-  // TODO Bite 2b: load other_functions and overload_plotted_hours from their
-  // (not-yet-existing) tables and pass them through here.
+  const [functions,sessions,term,handled,students,config]=await Promise.all([
+    programRepository.getFacultyLoad(facultyId,termId),programRepository.listSessions(facultyId,termId),
+    prisma.academicTerm.findUnique({where:{id:termId}}),programRepository.getHandledSections(facultyId,termId),programRepository.getStudents(facultyId,termId),getLoadConfig(),
+  ]);
+  if(!term) throw new Error('Term not found');
+  const hours=(s:{start_time:string;end_time:string})=>round2((Number(s.end_time.slice(0,2))*60+Number(s.end_time.slice(3,5))-Number(s.start_time.slice(0,2))*60-Number(s.start_time.slice(3,5)))/60);
+  const sumHours=(type:string,id?:string)=>round2(sessions.filter(s=>s.type===type && (!id || s.faculty_designation_id===id) && hours(s)>=config.minDesignationSessionHours).reduce((sum,s)=>sum+hours(s),0));
+  const countMap=new Map(students.map(s=>[s.section_id,s.student_count]));
   const input: TeachingLoadInput = {
     assignments: rows.map((row) => ({
       subject_id: row.subject_id,
       lecture_hours: row.subject.lecture_hours ?? 0,
       lab_hours: row.subject.lab_hours ?? 0,
     })),
-    otherFunctions: { research: 0, extension: 0, imp: 0, consultation: 0 },
+    otherFunctions: { research: functions?.research_hours??config.minFunctionHours.research, extension: functions?.extension_hours??config.minFunctionHours.extension, imp: functions?.imp_hours??config.minFunctionHours.imp, consultation: functions?.consultation_hours??config.consultationHours },
+    functionPlottedHours:{research:sumHours('RESEARCH'),extension:sumHours('EXTENSION'),imp:sumHours('IMP'),consultation:sumHours('CONSULTATION')},
+    students:handled.map(({section})=>({section_id:section.id,section_name:`${section.name} (Year ${section.year_level})`,student_count:countMap.get(section.id)??null})),
     designations: designationRows.map((row) => ({
+      id: row.id,
       name: row.designation.name,
       hours: row.hours,
       service_credit: row.service_credit,
       grants_service_credit: row.designation.grants_service_credit,
+      plotted_hours:sumHours('DESIGNATION',row.id),
     })),
-    overload_plotted_hours: 0,
+    overload_plotted_hours: sumHours('OVERLOAD'),
   };
 
-  return calculateTeachingLoad(input, await getLoadConfig());
+  const result=calculateTeachingLoad(input,config);
+  result.effectivity={start:functions?.effectivity_start??term.effectivity_start,end:functions?.effectivity_end??term.effectivity_end,source:functions?.effectivity_start?'FACULTY':'TERM'};
+  result.sessions=sessions;
+  if(result.students_by_section.some(s=>s.student_count===null)) result.warnings.push('Student counts are missing for one or more handled sections.');
+  if(!result.effectivity.start) result.warnings.push('Term effectivity dates have not been configured.');
+  return result;
 }

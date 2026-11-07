@@ -6,6 +6,7 @@ import type { AuthUser } from '../../store/auth.store';
 export const ROLE_LABELS: Record<AuthUser['role'], string> = {
   CHAIR: 'Program Chair',
   FACULTY: 'Faculty',
+  ACADEMIC_ADMIN: 'Academic Administrator',
 };
 
 /** Derive a display name from the login email (chair accounts have no faculty record). */

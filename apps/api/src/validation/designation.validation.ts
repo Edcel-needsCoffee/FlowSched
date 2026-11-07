@@ -39,8 +39,7 @@ function hoursSchema(label: string) {
       (value) => (value === null || value === undefined ? undefined : value),
       z.coerce.number({ invalid_type_error: `${label} must be a number` }),
     )
-    .refine((n) => n > 0, `${label} must be greater than 0`)
-    .refine((n) => n <= 40, `${label} must be 40 or less`);
+    .refine((n) => Number.isFinite(n) && n >= 0, `${label} must be 0 or greater`);
 }
 
 export const createDesignationSchema = z

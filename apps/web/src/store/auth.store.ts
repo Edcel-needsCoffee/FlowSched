@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-export type AuthRole = 'CHAIR' | 'FACULTY';
+export type AuthRole = 'CHAIR' | 'FACULTY' | 'ACADEMIC_ADMIN';
 
 export interface AuthUser {
   id: string;

@@ -25,6 +25,7 @@ export interface ScheduleSlotCreateData {
 }
 
 export interface OverlapQuery {
+  termId?: string;
   day: DayOfWeek;
   /** Canonical "HH:MM" strings — zero-padded, so lexicographic lt/gt in the
    *  overlap filter matches chronological order. */
@@ -114,7 +115,7 @@ export async function findFacultyOverlaps(
   return prisma.scheduleSlot.findMany({
     where: {
       ...overlapWhere(query),
-      workload_assignment: { faculty_id: facultyId, deleted_at: null },
+      workload_assignment: { faculty_id: facultyId, deleted_at: null, ...(query.termId?{term_id:query.termId}:{}) },
     },
     include: scheduleSlotInclude,
     orderBy: { start_time: 'asc' },
@@ -127,7 +128,7 @@ export async function findRoomOverlaps(
   query: OverlapQuery,
 ): Promise<ScheduleSlotWithRelations[]> {
   return prisma.scheduleSlot.findMany({
-    where: { ...overlapWhere(query), room_id: roomId },
+    where: { ...overlapWhere(query), room_id: roomId, workload_assignment:{deleted_at:null,...(query.termId?{term_id:query.termId}:{})} },
     include: scheduleSlotInclude,
     orderBy: { start_time: 'asc' },
   });

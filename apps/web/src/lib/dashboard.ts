@@ -163,7 +163,7 @@ export function updateMe(input: UpdateMeInput): Promise<{
   user: {
     id: string;
     email: string;
-    role: 'CHAIR' | 'FACULTY';
+    role: 'CHAIR' | 'FACULTY' | 'ACADEMIC_ADMIN';
     facultyId: string | null;
     avatar_url: string | null;
   };

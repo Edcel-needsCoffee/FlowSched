@@ -1,0 +1,25 @@
+import { Router } from 'express';
+import { requireAuth } from '../middleware/auth.middleware.js';
+import { asyncHandler } from '../utils/asyncHandler.js';
+import { termIdQuery } from '../validation/faculty-program.validation.js';
+import { assertFacultyScope,validate,putFunctions,putFacultyEffectivity,getFacultyStudents,putFacultyStudents,saveFacultySession,deleteFacultySession } from '../services/faculty-program.service.js';
+import { listSessions } from '../repositories/faculty-program.repository.js';
+import { prisma } from '../config/prisma.js';
+import { ApiError } from '../errors/apiError.js';
+import { z } from 'zod';
+export const facultyProgramRouter=Router();
+facultyProgramRouter.use(requireAuth);
+facultyProgramRouter.put('/faculty/:id/functions',asyncHandler(async(req,res)=>{const {termId}=validate(termIdQuery,req.query);res.json({load:await putFunctions(req.user!,req.params.id,termId,req.body)});}));
+facultyProgramRouter.put('/faculty/:id/effectivity',asyncHandler(async(req,res)=>{const {termId}=validate(termIdQuery,req.query);res.json({load:await putFacultyEffectivity(req.user!,req.params.id,termId,req.body)});}));
+facultyProgramRouter.get('/faculty/:id/students',asyncHandler(async(req,res)=>{const {termId}=validate(termIdQuery,req.query);await assertFacultyScope(req.user!,req.params.id,termId);res.json(await getFacultyStudents(req.params.id,termId));}));
+facultyProgramRouter.put('/faculty/:id/students',asyncHandler(async(req,res)=>{const {termId}=validate(termIdQuery,req.query);res.json(await putFacultyStudents(req.user!,req.params.id,termId,req.body));}));
+facultyProgramRouter.get('/faculty/:id/sessions',asyncHandler(async(req,res)=>{const {termId}=validate(termIdQuery,req.query);await assertFacultyScope(req.user!,req.params.id,termId);res.json({data:await listSessions(req.params.id,termId)});}));
+facultyProgramRouter.post('/faculty/:id/sessions',asyncHandler(async(req,res)=>{const {termId}=validate(termIdQuery,req.query);res.status(201).json({session:await saveFacultySession(req.user!,req.params.id,termId,req.body)});}));
+facultyProgramRouter.patch('/faculty-sessions/:id',asyncHandler(async(req,res)=>{
+  const id=validate(z.string().uuid(),req.params.id);const row=await prisma.facultySession.findFirst({where:{id,deleted_at:null}});
+  if(!row) throw ApiError.notFound('Session not found');
+  await assertFacultyScope(req.user!,row.faculty_id,row.term_id);
+  const {type,faculty_designation_id,day_of_week,start_time,end_time}=row;
+  res.json({session:await saveFacultySession(req.user!,row.faculty_id,row.term_id,{type,faculty_designation_id,day_of_week,start_time,end_time,...req.body},id)});
+}));
+facultyProgramRouter.delete('/faculty-sessions/:id',asyncHandler(async(req,res)=>{await deleteFacultySession(req.user!,req.params.id);res.status(204).send();}));

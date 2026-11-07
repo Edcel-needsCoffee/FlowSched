@@ -43,7 +43,7 @@ facultyDesignationRouter.get(
 facultyDesignationRouter.post(
   '/faculty/:id/designations',
   requireAuth,
-  requireRole('CHAIR'),
+  requireRole('CHAIR','ACADEMIC_ADMIN'),
   asyncHandler(async (req: Request, res: Response) => {
     const facultyId = parseId(req);
     const user = req.user;
@@ -56,7 +56,7 @@ facultyDesignationRouter.post(
 facultyDesignationRouter.patch(
   '/faculty-designations/:id',
   requireAuth,
-  requireRole('CHAIR'),
+  requireRole('CHAIR','ACADEMIC_ADMIN'),
   asyncHandler(async (req: Request, res: Response) => {
     res.status(200).json({ designation: await updateFacultyDesignation(parseId(req), req.body) });
   }),
@@ -65,7 +65,7 @@ facultyDesignationRouter.patch(
 facultyDesignationRouter.delete(
   '/faculty-designations/:id',
   requireAuth,
-  requireRole('CHAIR'),
+  requireRole('CHAIR','ACADEMIC_ADMIN'),
   asyncHandler(async (req: Request, res: Response) => {
     await deleteFacultyDesignation(parseId(req));
     res.status(204).send();
