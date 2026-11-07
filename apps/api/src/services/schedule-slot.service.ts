@@ -108,6 +108,7 @@ export async function listScheduleSlots(rawQuery: unknown): Promise<ScheduleSlot
     termId: query.termId ?? null,
     facultyId: query.facultyId ?? null,
     sectionId: query.sectionId ?? null,
+    roomId: query.roomId ?? null,
   });
   return { data: rows.map(toScheduleSlotDto), meta: { total: rows.length } };
 }

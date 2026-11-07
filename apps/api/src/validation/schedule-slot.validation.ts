@@ -5,7 +5,8 @@ import { TIME_OF_DAY_PATTERN, timeOfDayToMinutes } from '../utils/time.js';
 export { uuidIdSchema } from './subject.validation.js';
 
 /** Grid filters are identical to the workload-assignment filters — reuse. */
-export { workloadAssignmentQuerySchema as scheduleSlotQuerySchema } from './workload-assignment.validation.js';
+import { workloadAssignmentQuerySchema } from './workload-assignment.validation.js';
+export const scheduleSlotQuerySchema=workloadAssignmentQuerySchema.extend({roomId:z.string().uuid().optional()});
 
 const uuidField = (label: string) =>
   z.preprocess(

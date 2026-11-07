@@ -194,6 +194,12 @@ interface OverrideState {
   details: ConflictDetails | null;
 }
 
+async function loadAllAssignments(query:Parameters<typeof listWorkloadAssignments>[0]) {
+  const first=await listWorkloadAssignments({...query,pageSize:200});
+  const rest=await Promise.all(Array.from({length:Math.max(0,(first.meta.pageCount??1)-1)},(_,i)=>listWorkloadAssignments({...query,pageSize:200,page:i+2})));
+  return {...first,data:[...first.data,...rest.flatMap(r=>r.data)]};
+}
+
 export function SchedulePage(): JSX.Element {
   const user = useAuthStore((s) => s.user);
   const { pushToast } = useToast();
@@ -238,6 +244,11 @@ export function SchedulePage(): JSX.Element {
   }, []);
 
   // Grid data, reloaded when the term changes or after any placement write.
+  const [scope,setScope]=useState<'room'|'faculty'|'section'>('room');
+  const [scopeFacultyId,setScopeFacultyId]=useState('');
+  const [scopeSectionId,setScopeSectionId]=useState('');
+  const [selectedRoomId,setSelectedRoomId]=useState('');
+  const selectedEntityId=scope==='room'?selectedRoomId:scope==='faculty'?scopeFacultyId:scopeSectionId;
   const [assignments, setAssignments] = useState<WorkloadAssignment[]>([]);
   const [slots, setSlots] = useState<ScheduleSlot[]>([]);
   const [gridStatus, setGridStatus] = useState<'loading' | 'error' | 'ready'>('loading');
@@ -252,10 +263,11 @@ export function SchedulePage(): JSX.Element {
       return;
     }
     const requestId = ++requestIdRef.current;
+    setGridStatus('loading');
     try {
       const [assignmentRes, slotRes] = await Promise.all([
-        listWorkloadAssignments({ termId: selectedTermId }),
-        listScheduleSlots({ termId: selectedTermId }),
+        loadAllAssignments({ termId: selectedTermId,...(scope==='faculty'&&scopeFacultyId?{facultyId:scopeFacultyId}:{}),...(scope==='section'&&scopeSectionId?{sectionId:scopeSectionId}:{}) }),
+        listScheduleSlots({ termId: selectedTermId,...(scope==='room'&&selectedRoomId?{roomId:selectedRoomId}:{}),...(scope==='faculty'&&scopeFacultyId?{facultyId:scopeFacultyId}:{}),...(scope==='section'&&scopeSectionId?{sectionId:scopeSectionId}:{}) }),
       ]);
       if (requestId !== requestIdRef.current) {
         return;
@@ -269,7 +281,7 @@ export function SchedulePage(): JSX.Element {
       }
       setGridStatus('error');
     }
-  }, [selectedTermId]);
+  }, [selectedTermId,scope,scopeFacultyId,scopeSectionId,selectedRoomId]);
 
   useEffect(() => {
     void loadGrid();
@@ -278,6 +290,7 @@ export function SchedulePage(): JSX.Element {
   // Filters dim non-matching blocks (transition-opacity) instead of hiding them.
   const [filterFacultyId, setFilterFacultyId] = useState('');
   const [filterSectionId, setFilterSectionId] = useState('');
+  const resetFacultyId=scope==='faculty'?scopeFacultyId:filterFacultyId;
   const isDimmed = useCallback(
     (facultyId: string, sectionId: string) =>
       (filterFacultyId !== '' && facultyId !== filterFacultyId) ||
@@ -288,7 +301,6 @@ export function SchedulePage(): JSX.Element {
   // The page is always room-scoped: nothing renders until a room is picked,
   // and the selected room is also the drop target for new blocks. Faculty and
   // Section act as secondary filters WITHIN the room (dimming non-matches).
-  const [selectedRoomId, setSelectedRoomId] = useState('');
   const selectedRoom = useMemo(
     () => rooms.find((room) => room.id === selectedRoomId) ?? null,
     [rooms, selectedRoomId],
@@ -296,8 +308,8 @@ export function SchedulePage(): JSX.Element {
 
   // Only the selected room's slots render; switching rooms re-scopes instantly.
   const visibleSlots = useMemo(
-    () => (selectedRoomId ? slots.filter((slot) => slot.room_id === selectedRoomId) : []),
-    [slots, selectedRoomId],
+    () => !selectedEntityId?[]:slots.filter(slot=>scope==='room'?slot.room_id===selectedRoomId:scope==='faculty'?slot.faculty_id===scopeFacultyId:slot.section_id===scopeSectionId),
+    [slots,selectedEntityId,scope,selectedRoomId,scopeFacultyId,scopeSectionId],
   );
 
   // Drag + placement state.
@@ -356,6 +368,8 @@ export function SchedulePage(): JSX.Element {
       remaining: number;
     }> = [];
     for (const assignment of assignments) {
+      if(scope==='faculty'&&assignment.faculty_id!==scopeFacultyId)continue;
+      if(scope==='section'&&assignment.section_id!==scopeSectionId)continue;
       if (assignment.remaining_hours <= 0) {
         continue;
       }
@@ -379,7 +393,7 @@ export function SchedulePage(): JSX.Element {
       }
     }
     return chunks;
-  }, [assignments]);
+  }, [assignments,scope,scopeFacultyId,scopeSectionId]);
 
   const slotsByDay = useMemo(() => {
     // Placed blocks pull their color live from the assignment record (Part 3
@@ -472,6 +486,7 @@ export function SchedulePage(): JSX.Element {
     }
     const target = cellId(cell.day, cell.hour, cell.offset);
     if (info.type === 'new') {
+      if(scope!=='room'&&!selectedRoomId){pushToast('info','Choose a room for new teaching blocks.');return;}
       // Exactly the picker's selected duration — not the full remaining chunk.
       // The page-level selected room IS the drop target.
       const placement = chunkPlacement(info, cell);
@@ -558,7 +573,7 @@ export function SchedulePage(): JSX.Element {
       return;
     }
     try {
-      const res = await listWorkloadAssignments({ termId: selectedTermId });
+      const res = await loadAllAssignments({ termId: selectedTermId,...(scope==='faculty'?{facultyId:scopeFacultyId}:{}),...(scope==='section'?{sectionId:scopeSectionId}:{}) });
       setAssignments(res.data);
     } catch {
       // Keep the previous list; remaining-hour counts refresh on the next load.
@@ -682,7 +697,7 @@ export function SchedulePage(): JSX.Element {
     if (!canEdit || !selectedTermId || resetBusy) {
       return;
     }
-    if (resetScope === 'faculty' && !filterFacultyId) {
+    if (resetScope === 'faculty' && !resetFacultyId) {
       setResetError('Pick a faculty member in the Faculty filter first.');
       return;
     }
@@ -699,7 +714,7 @@ export function SchedulePage(): JSX.Element {
     try {
       const res = await resetSchedule({
         term_id: selectedTermId,
-        ...(resetScope === 'faculty' ? { faculty_id: filterFacultyId } : {}),
+        ...(resetScope === 'faculty' ? { faculty_id: resetFacultyId } : {}),
         ...(resetScope === 'room' ? { room_id: selectedRoomId } : {}),
         password: resetPassword,
       });
@@ -823,24 +838,26 @@ export function SchedulePage(): JSX.Element {
 
   return (
     <section aria-labelledby="schedule-title" className="space-y-4">
+      <div role="tablist" aria-label="Scheduling scope" className="flex gap-2">{(['room','faculty','section'] as const).map(value=><button key={value} role="tab" aria-selected={scope===value} onClick={()=>{setScope(value);setInspectedSlotId(null);}} className={`rounded-lg border px-4 py-2 text-sm ${scope===value?'border-leaf-500 bg-leaf-100':'border-leaf-100 bg-white'}`}>By {value[0].toUpperCase()+value.slice(1)}</button>)}</div>
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 id="schedule-title" className="text-2xl font-semibold text-primary-dark">
             Schedule
           </h1>
           <p className="mt-1 text-sm text-slate-600">
-            {selectedRoom
-              ? `Scheduling ${selectedRoom.name} for ${term ? term.label : '…'}. Drag a class from the panel onto the grid — Tab + Space works too.`
-              : `Scheduling for ${term ? term.label : '…'} — select a room to begin.`}
+            {scope==='room'?(selectedRoom?`Scheduling ${selectedRoom.name} for ${term ? term.label : '…'}. Drag a class from the panel onto the grid — Tab + Space works too.`:`Scheduling for ${term ? term.label : '…'} — select a room to begin.`):`Scheduling by ${scope} for ${term?.label??'…'}. Select an entity, then choose a room for new blocks.`}
           </p>
         </div>
         {/* Room selection is the page's entry point: everything below scopes to
             it. Faculty/Section act as secondary filters WITHIN the room. */}
         <div className="flex flex-wrap items-center gap-3">
+          {scope==='faculty'&&<label className="text-xs">Faculty<select aria-label="Select faculty schedule" value={scopeFacultyId} onChange={e=>setScopeFacultyId(e.target.value)} className={selectCls}><option value="">Select faculty…</option>{faculty.map(f=><option key={f.id} value={f.id}>{f.last_name}, {f.first_name}</option>)}</select></label>}
+          {scope==='section'&&<label className="text-xs">Section<select aria-label="Select section schedule" value={scopeSectionId} onChange={e=>setScopeSectionId(e.target.value)} className={selectCls}><option value="">Select section…</option>{sections.map(s=><option key={s.id} value={s.id}>{s.label}</option>)}</select></label>}
+          {selectedEntityId&&<a className="text-sm text-leaf-700 underline" href={`/print/${scope==='room'?'rooms':scope==='faculty'?'faculty':'sections'}/${selectedEntityId}?termId=${selectedTermId}`}>Print {scope} program</a>}
           <label className="flex items-center gap-1.5 text-xs text-ink/60">
-            Room
+            {scope==='room'?'Room':'Room for new blocks'}
             <select
-              aria-label="Select room to view its schedule"
+              aria-label={scope==='room'?'Select room to view its schedule':'Room for new blocks'}
               value={selectedRoomId}
               onChange={(event) => setSelectedRoomId(event.target.value)}
               className={selectCls}
@@ -891,7 +908,7 @@ export function SchedulePage(): JSX.Element {
           <button
             type="button"
             onClick={() => void handleExport()}
-            disabled={exporting}
+            disabled={exporting||!selectedEntityId}
             className="inline-flex items-center gap-1.5 self-end rounded-lg border border-leaf-200 bg-white px-3 py-1.5 text-xs font-semibold text-ink transition-colors hover:border-leaf-400 hover:bg-leaf-50 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <svg
@@ -914,7 +931,7 @@ export function SchedulePage(): JSX.Element {
             <button
               type="button"
               onClick={() => {
-                setResetScope(filterFacultyId ? 'faculty' : selectedRoomId ? 'room' : 'all');
+                setResetScope(resetFacultyId ? 'faculty' : selectedRoomId ? 'room' : 'all');
                 setResetPassword('');
                 setResetError(null);
                 setResetOpen(true);
@@ -934,16 +951,16 @@ export function SchedulePage(): JSX.Element {
             Seed or activate an academic term, then reload this page.
           </p>
         </div>
-      ) : termStatus === 'ready' && !selectedRoomId ? (
+      ) : termStatus === 'ready' && !selectedEntityId ? (
         // Entry gate: no grid, no sidebar — the room choice comes first
         // (ui-ux.md Section 12 empty-state pattern).
         <div
           role="status"
           className="rounded-xl border border-dashed border-leaf-200 bg-white px-4 py-12 text-center"
         >
-          <h2 className="text-base font-semibold text-ink">Select a room to view its schedule</h2>
+          <h2 className="text-base font-semibold text-ink">{scope==='room'?'Select a room to view its schedule':`Select a ${scope} to view its schedule`}</h2>
           <p className="mt-2 text-sm text-ink/60">
-            Pick a room above — the week grid and the unassigned-classes panel will load for it.
+            Pick an entity above — the week grid and the unassigned-classes panel will load for it.
           </p>
         </div>
       ) : gridStatus === 'error' ? (
@@ -978,7 +995,7 @@ export function SchedulePage(): JSX.Element {
               role="status"
               className="mb-3 rounded-xl border border-dashed border-leaf-200 bg-white px-4 py-3 text-center text-sm text-ink/60"
             >
-              No classes scheduled in {selectedRoom?.name ?? 'this room'} yet — drag a class from
+              No classes scheduled in {scope==='room'?(selectedRoom?.name??'this room'):`this ${scope}`} yet — drag a class from
               the panel to place one.
             </p>
           ) : null}
@@ -1232,11 +1249,11 @@ export function SchedulePage(): JSX.Element {
                 value="faculty"
                 checked={resetScope === 'faculty'}
                 onChange={() => setResetScope('faculty')}
-                disabled={!filterFacultyId}
+                disabled={!resetFacultyId}
               />
               This faculty member
-              {filterFacultyId
-                ? ` (${faculty.find((m) => m.id === filterFacultyId)?.last_name ?? ''})`
+              {resetFacultyId
+                ? ` (${faculty.find((m) => m.id === resetFacultyId)?.last_name ?? ''})`
                 : ' — pick one in the Faculty filter'}
             </label>
             <label className="flex items-center gap-2 text-sm text-slate-700">

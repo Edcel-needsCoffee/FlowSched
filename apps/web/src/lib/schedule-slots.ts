@@ -64,6 +64,7 @@ export interface ScheduleSlotListResult {
 }
 
 export interface ScheduleSlotQuery {
+  roomId?: string;
   termId?: string;
   facultyId?: string;
   sectionId?: string;
@@ -116,6 +117,7 @@ export function listScheduleSlots(query: ScheduleSlotQuery = {}): Promise<Schedu
   if (query.termId) params.set('termId', query.termId);
   if (query.facultyId) params.set('facultyId', query.facultyId);
   if (query.sectionId) params.set('sectionId', query.sectionId);
+  if (query.roomId) params.set('roomId',query.roomId);
   const qs = params.toString();
   return apiFetch<ScheduleSlotListResult>(`/api/schedule-slots${qs ? `?${qs}` : ''}`);
 }

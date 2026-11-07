@@ -44,6 +44,15 @@ afterAll(async()=>{
   await prisma.signatoryOption.deleteMany({where:{name:{startsWith:prefix}}});
 });
 describe('faculty program APIs',()=>{
+  it('schedule slots accept faculty, section and room scopes with validated UUIDs',async()=>{
+    await prisma.scheduleSlot.create({data:{workload_assignment_id:assignment,session_type:'LECTURE',day_of_week:'MON',start_time:'14:00',end_time:'15:00'}});
+    for(const query of [`facultyId=${faculty}`,`sectionId=${section}`]){
+      const res=await request(app).get(`/api/schedule-slots?termId=${term}&${query}`).set('Authorization',`Bearer ${chair}`);expect(res.status).toBe(200);expect(res.body.data).toHaveLength(1);
+    }
+    expect((await request(app).get(`/api/schedule-slots?termId=${term}&facultyId=${other}`).set('Authorization',`Bearer ${chair}`)).body.data).toHaveLength(0);
+    const roomScope=await request(app).get(`/api/schedule-slots?termId=${term}&roomId=${section}`).set('Authorization',`Bearer ${chair}`);expect(roomScope.status).toBe(200);expect(roomScope.body.data).toHaveLength(0);
+    expect((await request(app).get('/api/schedule-slots?roomId=invalid').set('Authorization',`Bearer ${chair}`)).status).toBe(400);
+  });
   it('F10: faculty cannot read or edit someone else’s load, sessions, functions, or students',async()=>{
     for(const part of ['teaching-load','sessions','students']) expect((await request(app).get(endpoint(part)).set('Authorization',`Bearer ${outsider}`)).status).toBe(403);
     for(const part of ['functions','students']) expect((await request(app).put(endpoint(part)).set('Authorization',`Bearer ${outsider}`).send({})).status).toBe(403);

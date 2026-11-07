@@ -767,6 +767,30 @@ describe('SchedulePage — room-first flow (no unscoped view)', () => {
   });
 });
 
+describe('SchedulePage — entity scopes',()=>{
+  it('requires a faculty selection and shows that faculty across rooms',async()=>{
+    vi.mocked(listScheduleSlots).mockResolvedValue({data:[makeSlot(),makeSlot({id:'different-room',room_id:'room-2',subject_code:'IE 411',start_time:'10:00',end_time:'11:00'})],meta:{total:2}});
+    render(<ToastProvider><SchedulePage/></ToastProvider>);
+    fireEvent.click(screen.getByRole('tab',{name:'By Faculty'}));
+    expect(screen.getByText('Select a faculty to view its schedule')).toBeInTheDocument();
+    await within(screen.getByLabelText('Select faculty schedule')).findByRole('option',{name:'Lovelace, Ada'});
+    fireEvent.change(await screen.findByLabelText('Select faculty schedule'),{target:{value:'faculty-1'}});
+    expect(await screen.findByText('IE 411')).toBeInTheDocument();
+    expect(screen.getByRole('link',{name:'Print faculty program'})).toHaveAttribute('href','/print/faculty/faculty-1?termId=term-1');
+    expect(listScheduleSlots).toHaveBeenLastCalledWith({termId:'term-1',facultyId:'faculty-1'});
+  });
+  it('requires a section selection and scopes unassigned classes and the print link',async()=>{
+    render(<ToastProvider><SchedulePage/></ToastProvider>);
+    fireEvent.click(screen.getByRole('tab',{name:'By Section'}));
+    expect(screen.getByText('Select a section to view its schedule')).toBeInTheDocument();
+    await within(screen.getByLabelText('Select section schedule')).findByRole('option',{name:SECTION.label});
+    fireEvent.change(screen.getByLabelText('Select section schedule'),{target:{value:'section-1'}});
+    expect(await screen.findByText('IE 322 — LEC')).toBeInTheDocument();
+    expect(screen.getByRole('link',{name:'Print section program'})).toHaveAttribute('href','/print/sections/section-1?termId=term-1');
+    expect(listScheduleSlots).toHaveBeenLastCalledWith({termId:'term-1',sectionId:'section-1'});
+  });
+});
+
 describe('SchedulePage — card color picker (Part 3)', () => {
     it('opens the preset palette, PATCHes the pick, and recolors placed blocks live', async () => {
     vi.mocked(listScheduleSlots).mockResolvedValue({
