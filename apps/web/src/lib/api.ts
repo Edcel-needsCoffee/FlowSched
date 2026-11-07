@@ -54,6 +54,7 @@ function toApiError(status: number, message: string, code?: string, details?: un
 }
 
 export interface ApiOptions extends RequestInit {
+  responseType?: 'json' | 'blob';
   /** Set false to skip the Authorization header / refresh retry (e.g. login itself). */
   auth?: boolean;
 }
@@ -63,7 +64,7 @@ export interface ApiOptions extends RequestInit {
  * and attempts one silent refresh on a 401 before failing.
  */
 export async function apiFetch<T>(path: string, options: ApiOptions = {}): Promise<T> {
-  const { auth = true, headers, ...init } = options;
+  const { auth = true, responseType = 'json', headers, ...init } = options;
 
   const doFetch = async (token: string | null): Promise<Response> => {
     // FormData (multipart uploads) must set its own Content-Type boundary —
@@ -121,6 +122,7 @@ export async function apiFetch<T>(path: string, options: ApiOptions = {}): Promi
     throw toApiError(res.status, message, code, details);
   }
 
+  if(responseType==='blob')return await res.blob() as T;
   // 204 No Content (e.g. DELETE) has no body — don't try to parse it.
   const text = await res.text();
   if (!text) {

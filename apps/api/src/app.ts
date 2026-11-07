@@ -19,6 +19,7 @@ import { teachingLoadRouter } from './routes/teaching-load.routes.js';
 import { facultyProgramRouter } from './routes/faculty-program.routes.js';
 import { formRouter } from './routes/form.routes.js';
 import { programFormRouter } from './routes/program-form.routes.js';
+import { exportRouter } from './routes/export.routes.js';
 import { formLogoDir } from './services/form.service.js';
 import { designationRouter } from './routes/designation.routes.js';
 import { facultyDesignationRouter } from './routes/faculty-designation.routes.js';
@@ -59,6 +60,7 @@ export function createApp(): express.Express {
   app.use('/api', facultyProgramRouter);
   app.use('/api', formRouter);
   app.use('/api', programFormRouter);
+  app.use('/api', exportRouter);
   app.get('/school-logo.jpg',(_req,res,next)=>{const file=[path.resolve(process.cwd(),'../web/public/school-logo.jpg'),path.resolve(process.cwd(),'apps/web/public/school-logo.jpg')].find(p=>fs.existsSync(p));if(file)res.sendFile(file);else next();});
   app.use('/uploads/form-logos',express.static(formLogoDir(),{fallthrough:false,maxAge:'1h'}));
   app.use('/api', designationRouter);

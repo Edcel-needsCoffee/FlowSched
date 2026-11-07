@@ -3,6 +3,7 @@ import request from 'supertest';
 import { prisma } from '../config/prisma.js';
 import { createApp } from '../app.js';
 import { signAccessToken } from '../services/auth.service.js';
+import ExcelJS from 'exceljs';
 const prefix=`FSP-${process.pid}-${Date.now()}-`;
 let faculty='',other='',term='',assignment='',section='',designation='',chair='',own='',outsider='',admin='';
 const app=createApp();
@@ -131,5 +132,23 @@ describe('faculty program APIs',()=>{
     expect((await request(app).get(`/api/forms/faculty/${faculty}?termId=${term}`).set('Authorization',`Bearer ${outsider}`)).status).toBe(403);
     expect((await request(app).get(`/api/forms/sections/${section}?termId=${term}`).set('Authorization',`Bearer ${own}`)).status).toBe(403);
     const student=await request(app).get(`/api/forms/sections/${section}?termId=${term}`).set('Authorization',`Bearer ${chair}`);expect(student.status).toBe(200);expect(student.body.template.type).toBe('STUDENT_CLASS_PROGRAM');
+  });
+  it('exports a faculty workbook with shared header, embedded logo, selected signatures and live load formulas',async()=>{
+    const response=await request(app).get(`/api/exports/faculty/${faculty}?termId=${term}&sig_prepared=Fixture%20Prepared`).set('Authorization',`Bearer ${own}`).buffer(true).parse((res,done)=>{const chunks:Buffer[]=[];res.on('data',(chunk:Buffer)=>chunks.push(chunk));res.on('end',()=>done(null,Buffer.concat(chunks)));});
+    expect(response.status).toBe(200);expect(response.headers['content-type']).toContain('spreadsheetml');
+    const wb=new ExcelJS.Workbook();await wb.xlsx.load(response.body);expect(wb.worksheets.map(s=>s.name)).toEqual(['Schedule','Teaching Load']);
+    const schedule=wb.getWorksheet('Schedule')!,load=wb.getWorksheet('Teaching Load')!;
+    expect(schedule.getCell('B4').value).toBe('FACULTY CLASS PROGRAM');expect(schedule.getCell('F4').value).toContain('PIT-COTE-FOR-3-2-01B');expect(schedule.getImages().length).toBeGreaterThanOrEqual(1);
+    expect(schedule.getCell('A9').value).toContain('2026-11-01 to 2027-03-31');expect(schedule.getCell('G10').value).toBe('SAT');
+    const values:unknown[]=[];schedule.eachRow(row=>values.push(row.values));expect(JSON.stringify(values)).toContain('Fixture Prepared');
+    expect(load.getCell('B7').result).toBe(15);expect(load.getCell('B8').result).toBe(15);expect(load.getCell('B9').result).toBe(10.5);expect(load.getCell('B10').result).toBe(25.5);
+    expect(load.getCell('B11').result).toBe(2);expect(load.getCell('B12').result).toBe(21);expect(load.getCell('B14').result).toBe(4.5);expect(load.getCell('B15').result).toBe(4);expect(load.getCell('B16').result).toBe(.5);
+    expect(load.getCell('B9').formula).toBe('ROUND(B8*$B$2,2)');expect(load.getCell('B23').formula).toContain('B20+SUM(');
+  });
+  it('exports section forms without faculty sheets and enforces ownership on all export kinds',async()=>{
+    expect((await request(app).get(`/api/exports/faculty/${faculty}?termId=${term}`).set('Authorization',`Bearer ${outsider}`)).status).toBe(403);
+    expect((await request(app).get(`/api/exports/sections/${section}?termId=${term}`).set('Authorization',`Bearer ${own}`)).status).toBe(403);
+    const response=await request(app).get(`/api/exports/sections/${section}?termId=${term}`).set('Authorization',`Bearer ${chair}`).buffer(true).parse((res,done)=>{const chunks:Buffer[]=[];res.on('data',(chunk:Buffer)=>chunks.push(chunk));res.on('end',()=>done(null,Buffer.concat(chunks)));});
+    expect(response.status).toBe(200);const wb=new ExcelJS.Workbook();await wb.xlsx.load(response.body);expect(wb.worksheets).toHaveLength(1);expect(wb.worksheets[0].getCell('B4').value).toBe('STUDENT CLASS PROGRAM');
   });
 });

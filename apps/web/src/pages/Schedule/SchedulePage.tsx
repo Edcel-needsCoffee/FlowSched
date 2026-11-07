@@ -25,6 +25,7 @@ import {
 } from '@dnd-kit/core';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Modal } from '../../components/Modal';
+import { downloadProgramWorkbook } from '../../lib/program-download';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { useToast } from '../../components/Toast';
 import { useAuthStore } from '../../store/auth.store';
@@ -41,12 +42,7 @@ import {
   stepChunkHours,
 } from './schedule-duration';
 import { listRooms, type Room } from '../../lib/rooms';
-import {
-  buildScheduleWorkbook,
-  downloadWorkbook,
-  exportFileName,
-  loadSchoolLogo,
-} from '../../lib/schedule-export';
+import { exportFileName } from '../../lib/schedule-export';
 import { listFaculty, type FacultyMember } from '../../lib/faculty';
 import { listSections, type Section } from '../../lib/sections';
 import {
@@ -734,22 +730,6 @@ export function SchedulePage(): JSX.Element {
     }
   }
 
-  /** Live assignment color per assignment id — the same source the grid uses. */
-  const colorByAssignmentId = useMemo(
-    () => new Map(assignments.map((a) => [a.id, a.color])),
-    [assignments],
-  );
-
-  /** Distinct section programs on the grid, for the form's "Program:" field. */
-  const programLabel = useMemo(() => {
-    const programs = new Set(
-      visibleSlots
-        .map((slot) => slot.section_label.match(/^([A-Z]+)/)?.[1])
-        .filter((code): code is string => Boolean(code)),
-    );
-    return [...programs].sort().join(', ') || 'BSIE';
-  }, [visibleSlots]);
-
   function clearFlash(id: string): void {
     setFlashIds((ids) => ids.filter((flashId) => flashId !== id));
   }
@@ -768,35 +748,9 @@ export function SchedulePage(): JSX.Element {
     }
     setExporting(true);
     try {
-      // The seal lives in apps/web/public; several filenames are tried, and if
-      // none are present the sheet is simply exported without it.
-      const logo = await loadSchoolLogo();
-      const buffer = await buildScheduleWorkbook({
-        header: {
-          title: 'CLASSROOM UTILIZATION',
-          subtitle: term?.label ?? 'Active term',
-          institution: [
-            'Republic of the Philippines',
-            'Palompon Institute of Technology',
-            'Palompon, Leyte',
-          ],
-          college: 'College of Technology and Engineering',
-          room: selectedRoom?.name ?? '—',
-          program: programLabel,
-          major: '',
-          yearSection: '',
-        },
-        slots: visibleSlots,
-        days: DAYS,
-        startHour: DAY_START_HOUR,
-        endHour: DAY_END_HOUR,
-        colorFor: (slot) => colorByAssignmentId.get(slot.workload_assignment_id) ?? slot.color,
-        logo,
-      });
-      downloadWorkbook(
-        buffer,
-        `${exportFileName('Classroom Utilization', selectedRoom?.name, term?.label)}.xlsx`,
-      );
+      if(!selectedTermId||!selectedEntityId)return;
+      const entity=scope==='room'?selectedRoom?.name:scope==='faculty'?faculty.find(f=>f.id===scopeFacultyId)?.last_name:sections.find(s=>s.id===scopeSectionId)?.label;
+      await downloadProgramWorkbook(scope==='room'?'rooms':scope==='faculty'?'faculty':'sections',selectedEntityId,selectedTermId,exportFileName(scope==='room'?'Classroom Utilization':scope==='faculty'?'Faculty Class Program':'Student Class Program',entity,term?.label));
       pushToast('success', 'Excel file downloaded.');
     } catch {
       pushToast('error', 'Could not build the Excel file.');

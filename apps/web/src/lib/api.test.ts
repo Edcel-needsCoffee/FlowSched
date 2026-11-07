@@ -36,6 +36,12 @@ afterEach(() => {
 });
 
 describe('apiFetch request headers', () => {
+  it('returns binary downloads without parsing them as JSON or forwarding responseType to fetch',async()=>{
+    const blob=new Blob(['workbook'],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const fetcher=vi.fn().mockResolvedValue({ok:true,status:200,blob:async()=>blob});vi.stubGlobal('fetch',fetcher);
+    expect(await apiFetch<Blob>('/api/exports/faculty/id?termId=term',{auth:false,responseType:'blob'})).toBe(blob);
+    expect(fetcher.mock.calls[0][1]).not.toHaveProperty('responseType');
+  });
   it('labels a JSON string body as application/json', async () => {
     const calls = stubFetch();
 

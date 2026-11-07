@@ -1,17 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  buildScheduleWorkbook,
-  downloadWorkbook,
-  exportFileName,
-  loadSchoolLogo,
-} from '../lib/schedule-export';
-import { DAY_END_HOUR, DAY_START_HOUR, DAYS } from './Schedule/schedule-time';
+import { exportFileName } from '../lib/schedule-export';
+import { downloadProgramWorkbook } from '../lib/program-download';
 import { listFaculty, type FacultyMember } from '../lib/faculty';
 import { listSections, type Section } from '../lib/sections';
 import { listWorkloadAssignments, type WorkloadAssignment } from '../lib/workload-assignments';
-import { getFacultySchedule, getSectionSchedule } from '../lib/schedule-views';
 import { getDashboardSummary, type DepartmentSummary } from '../lib/dashboard';
-import { aggregateWorkload, viewSlotToExportSlot, workloadToCsv } from '../lib/reports';
+import { aggregateWorkload, workloadToCsv } from '../lib/reports';
 import { selectSelectedTerm, useTermStore } from '../store/term.store';
 import { useToast } from '../components/Toast';
 import { NoScheduleEmptyState, TermPicker, ViewErrorState, ViewLoadingState } from './Views/views-common';
@@ -136,33 +130,9 @@ export function ReportsPage(): JSX.Element {
     if (!exportFacultyId || exporting) return;
     setExporting('faculty');
     try {
-      const view = await getFacultySchedule(exportFacultyId, selectedTermId ?? undefined);
-      if (view.data.length === 0) {
-        pushToast('info', 'No classes scheduled for this faculty member yet.');
-        return;
-      }
-      const logo = await loadSchoolLogo();
-      const buffer = await buildScheduleWorkbook({
-        header: {
-          title: 'FACULTY CLASS PROGRAM',
-          subtitle: term?.label ?? 'Active term',
-          institution: ['Republic of the Philippines', 'Palompon Institute of Technology', 'Palompon, Leyte'],
-          college: 'College of Technology and Engineering',
-          room: '—',
-          program: view.faculty.name,
-          major: view.faculty.employee_no,
-          yearSection: '',
-        },
-        slots: view.data.map((row, index) =>
-          viewSlotToExportSlot(row, index, { facultyId: view.faculty.id, sectionId: '', termId: selectedTermId ?? '' }),
-        ),
-        days: DAYS,
-        startHour: DAY_START_HOUR,
-        endHour: DAY_END_HOUR,
-        colorFor: (slot) => slot.color,
-        logo,
-      });
-      downloadWorkbook(buffer, `${exportFileName('Faculty Class Program', view.faculty.name, term?.label)}.xlsx`);
+      if(!selectedTermId)return;
+      const member=faculties.find(f=>f.id===exportFacultyId);
+      await downloadProgramWorkbook('faculty',exportFacultyId,selectedTermId,exportFileName('Faculty Class Program',member?`${member.first_name} ${member.last_name}`:'',term?.label));
       pushToast('success', 'Faculty class program downloaded.');
     } catch {
       pushToast('error', 'Could not build the Excel file.');
@@ -175,33 +145,8 @@ export function ReportsPage(): JSX.Element {
     if (!exportSectionId || exporting) return;
     setExporting('section');
     try {
-      const view = await getSectionSchedule(exportSectionId, selectedTermId ?? undefined);
-      if (view.data.length === 0) {
-        pushToast('info', 'No classes scheduled for this section yet.');
-        return;
-      }
-      const logo = await loadSchoolLogo();
-      const buffer = await buildScheduleWorkbook({
-        header: {
-          title: 'STUDENT CLASS PROGRAM',
-          subtitle: term?.label ?? 'Active term',
-          institution: ['Republic of the Philippines', 'Palompon Institute of Technology', 'Palompon, Leyte'],
-          college: 'College of Technology and Engineering',
-          room: '—',
-          program: view.section.label,
-          major: '',
-          yearSection: view.section.label,
-        },
-        slots: view.data.map((row, index) =>
-          viewSlotToExportSlot(row, index, { facultyId: '', sectionId: view.section.id, termId: selectedTermId ?? '' }),
-        ),
-        days: DAYS,
-        startHour: DAY_START_HOUR,
-        endHour: DAY_END_HOUR,
-        colorFor: (slot) => slot.color,
-        logo,
-      });
-      downloadWorkbook(buffer, `${exportFileName('Student Class Program', view.section.label, term?.label)}.xlsx`);
+      if(!selectedTermId)return;
+      await downloadProgramWorkbook('sections',exportSectionId,selectedTermId,exportFileName('Student Class Program',sections.find(s=>s.id===exportSectionId)?.label,term?.label));
       pushToast('success', 'Section class program downloaded.');
     } catch {
       pushToast('error', 'Could not build the Excel file.');
