@@ -48,8 +48,8 @@ All outputs are `snake_case` and every numeric output is rounded with one
 8. **overload_remaining_to_plot** = `max(0, claimable − plotted)`;
    **claim_session_hours** = `min(plotted, claimable)`; warn if plotted > claimable.
 9. **regular_teaching_hours** = `min(teaching_hours, prep_ceiling)`.
-10. **designation_hours** = Σ designation hours.
-11. **total_faculty_time** = `regular_teaching_hours + research + extension + imp + consultation + designation_hours`
+10. **designation_hours** = Σ accepted designation counted hours, each capped at the smaller of assigned and valid plotted hours.
+11. **total_faculty_time** = regular teaching plus counted research, extension, IMP, consultation and designations. Each function counts `min(declared, plotted)` only when it has a valid session of at least the configured minimum.
 12. **remaining_to_target** = `facultyWeeklyHours − total_faculty_time`; warn if total exceeds target.
 13. **service_credits** = Σ `service_credit` for designations where
     `grants_service_credit === true`. **Not counted in the 40.**
@@ -74,7 +74,20 @@ All outputs are `snake_case` and every numeric output is rounded with one
 ## Open questions for the Chairman
 
 1. Should `imp` (immersion) carry a minimum other than 0?
-2. Is `overload_plotted_hours` entered per-session or as a running total?
+2. Confirm whole-hour overload sessions; plotted overload is calculated from sessions, never entered as a stored running total.
 3. Should service credits reduce the 40-hour target, or stay strictly outside
    it (current behavior: strictly outside)?
 4. Confirm the prep tier ceilings (21 / 18 / 15) are final and CHED-approved.
+
+## Assumptions awaiting Chairman confirmation
+
+- The coefficient applies only to laboratory hours.
+- The weekly target counts regular teaching capped at the prep ceiling and excludes overload and all service credits.
+- `functionCountingRule = MIN_DECLARED_PLOTTED`: counted functions and designations are capped by declared/assigned and valid plotted hours.
+- Every other function follows the same session validity rule as a designation. A short session does not qualify.
+- Overload is claimed in whole-hour sessions only. The fractional remainder is Teaching Service Credit, distinct from designation Service Credits.
+- Student counts belong to faculty + section + term; multiple subjects in one section count that section once.
+- Seven or more preparations use the last configured tier and are explicitly marked EXTRAPOLATED because the true ceiling is unknown.
+- Chair and Dean designations never grant Service Credits; other designations grant credits only when flagged and accepted.
+
+Settings are persisted in the singleton `load_settings` table and are read for every API calculation. `GET /api/load-settings` is authenticated; only Chair can `PUT /api/load-settings`. The existing engine is extended, not duplicated.

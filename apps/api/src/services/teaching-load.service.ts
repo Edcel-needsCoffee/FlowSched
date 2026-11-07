@@ -1,5 +1,6 @@
 import { prisma } from '../config/prisma.js';
 import { DEFAULT_LOAD_CONFIG, type TeachingLoadConfig } from './teaching-load.config.js';
+import { getLoadConfig } from './load-settings.service.js';
 
 export { DEFAULT_LOAD_CONFIG };
 
@@ -21,10 +22,13 @@ export interface TeachingLoadOtherFunctions {
 }
 
 export interface TeachingLoadDesignationInput {
+  id?: string;
   name: string;
   hours: number;
   service_credit: number;
   grants_service_credit: boolean;
+  plotted_hours?: number;
+  valid_session?: boolean;
 }
 
 export interface TeachingLoadInput {
@@ -32,6 +36,9 @@ export interface TeachingLoadInput {
   otherFunctions?: TeachingLoadOtherFunctions;
   designations?: TeachingLoadDesignationInput[];
   overload_plotted_hours?: number;
+  functionPlottedHours?: TeachingLoadOtherFunctions;
+  functionValidSessions?: Partial<Record<keyof TeachingLoadOtherFunctions, boolean>>;
+  students?: { section_id: string; section_name: string; student_count: number | null }[];
 }
 
 export interface TeachingLoadOutput {
@@ -40,11 +47,13 @@ export interface TeachingLoadOutput {
   weighted_lab_hours: number;
   teaching_hours: number;
   preps: number;
+  prep_breakdown: { subject_id: string; component: 'LEC' | 'LAB' }[];
   prep_ceiling: number;
   prep_ceiling_source: 'NONE' | 'TIER' | 'EXTRAPOLATED';
   teaching_overload: number;
   claimable_overload_hours: number;
   teaching_service_credit: number;
+  overload_plotted_hours: number;
   overload_remaining_to_plot: number;
   claim_session_hours: number;
   regular_teaching_hours: number;
@@ -52,6 +61,11 @@ export interface TeachingLoadOutput {
   total_faculty_time: number;
   remaining_to_target: number;
   service_credits: number;
+  functions: Record<keyof TeachingLoadOtherFunctions, { declared: number; plotted: number; counted: number }>;
+  designations: (TeachingLoadDesignationInput & { accepted: boolean; counted_hours: number })[];
+  students_by_section: { section_id: string; section_name: string; student_count: number | null }[];
+  total_students: number;
+  weekly_hours: number;
   warnings: string[];
 }
 
@@ -60,8 +74,8 @@ export interface TeachingLoadOutput {
 /* -------------------------------------------------------------------------- */
 
 /** Round to 2 decimals — applied to every numeric output. */
-function round2(value: number): number {
-  return Math.round(value * 100) / 100;
+export function round2(value: number): number {
+  return Math.round((value + Number.EPSILON) * 100) / 100;
 }
 
 function clamp0(value: number): number {
@@ -102,6 +116,20 @@ export function calculateTeachingLoad(
   const consultation = otherFunctions.consultation ?? 0;
 
   const warnings: string[] = [];
+  const functions = {} as TeachingLoadOutput['functions'];
+  for (const key of ['research', 'extension', 'imp', 'consultation'] as const) {
+    const declared = round2(otherFunctions[key] ?? 0);
+    const plotted = round2(input.functionPlottedHours?.[key] ?? 0);
+    const valid = input.functionValidSessions?.[key] ?? plotted >= config.minDesignationSessionHours;
+    functions[key] = { declared, plotted, counted: valid ? round2(Math.min(declared, plotted)) : 0 };
+    if (declared > 0 && (!valid || plotted < declared)) warnings.push(`${key}: ${declared} declared, ${plotted} plotted; ${functions[key].counted} counted. Valid sessions are required.`);
+  }
+  const acceptedDesignations = designations.map((d) => {
+    const plotted = round2(d.plotted_hours ?? 0);
+    const accepted = d.valid_session ?? plotted >= config.minDesignationSessionHours;
+    if (!accepted) warnings.push(`${d.name}: designation not accepted; a session of at least ${config.minDesignationSessionHours} hour(s) is required.`);
+    return { ...d, hours: round2(d.hours), service_credit: round2(d.service_credit), plotted_hours: plotted, accepted, counted_hours: accepted ? round2(Math.min(d.hours, plotted)) : 0 };
+  });
 
   // 1. lecture_hours / lab_hours — every section counts separately.
   const lecture_hours = round2(
@@ -123,6 +151,10 @@ export function calculateTeachingLoad(
     assignments.filter((a) => (a.lab_hours ?? 0) > 0).map((a) => a.subject_id),
   );
   const preps = lecSubjects.size + labSubjects.size;
+  const prep_breakdown: TeachingLoadOutput['prep_breakdown'] = [
+    ...[...lecSubjects].sort().map((subject_id) => ({ subject_id, component: 'LEC' as const })),
+    ...[...labSubjects].sort().map((subject_id) => ({ subject_id, component: 'LAB' as const })),
+  ];
 
   // 4. prep ceiling from the tier table.
   let prep_ceiling: number;
@@ -177,14 +209,14 @@ export function calculateTeachingLoad(
 
   // 9. Designation hours + total faculty time vs the weekly target.
   const designation_hours = round2(
-    designations.reduce((sum, d) => sum + (d.hours ?? 0), 0),
+    acceptedDesignations.reduce((sum, d) => sum + d.counted_hours, 0),
   );
   const total_faculty_time = round2(
     regular_teaching_hours +
-      research +
-      extension +
-      imp +
-      consultation +
+      functions.research.counted +
+      functions.extension.counted +
+      functions.imp.counted +
+      functions.consultation.counted +
       designation_hours,
   );
   const remaining_to_target = round2(config.facultyWeeklyHours - total_faculty_time);
@@ -198,8 +230,8 @@ export function calculateTeachingLoad(
 
   // 10. Service credits (grants only) — NOT counted in the 40.
   const service_credits = round2(
-    designations
-      .filter((d) => d.grants_service_credit === true)
+    acceptedDesignations
+      .filter((d) => d.accepted && d.grants_service_credit === true && !/\b(chair|chairman|dean)\b/i.test(d.name))
       .reduce((sum, d) => sum + (d.service_credit ?? 0), 0),
   );
 
@@ -226,11 +258,13 @@ export function calculateTeachingLoad(
     weighted_lab_hours,
     teaching_hours,
     preps,
+    prep_breakdown,
     prep_ceiling,
     prep_ceiling_source,
     teaching_overload,
     claimable_overload_hours,
     teaching_service_credit,
+    overload_plotted_hours: round2(overloadPlotted),
     overload_remaining_to_plot,
     claim_session_hours,
     regular_teaching_hours,
@@ -238,6 +272,11 @@ export function calculateTeachingLoad(
     total_faculty_time,
     remaining_to_target,
     service_credits,
+    functions,
+    designations: acceptedDesignations,
+    students_by_section: [...new Map((input.students ?? []).map((s) => [s.section_id, s])).values()],
+    total_students: round2([...new Map((input.students ?? []).map((s) => [s.section_id, s])).values()].reduce((sum, s) => sum + (s.student_count ?? 0), 0)),
+    weekly_hours: round2(config.facultyWeeklyHours),
     warnings,
   };
 }
@@ -304,5 +343,5 @@ export async function getFacultyTeachingLoad(
     overload_plotted_hours: 0,
   };
 
-  return calculateTeachingLoad(input);
+  return calculateTeachingLoad(input, await getLoadConfig());
 }

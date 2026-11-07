@@ -9,6 +9,7 @@ import {
   softDelete,
   update as updateFacultyDesignationRow,
   type FacultyDesignationCreateData,
+  type FacultyDesignationWithDetails,
 } from '../repositories/faculty-designation.repository.js';
 import { findActiveById as findFacultyById } from '../repositories/faculty.repository.js';
 import { findById as findTermById } from '../repositories/term.repository.js';
@@ -35,7 +36,7 @@ export interface FacultyDesignationDto {
 }
 
 function toFacultyDesignationDto(
-  row: FacultyDesignation,
+  row: FacultyDesignationWithDetails,
 ): FacultyDesignationDto {
   return {
     id: row.id,

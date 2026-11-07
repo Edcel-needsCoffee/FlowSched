@@ -1,6 +1,8 @@
 import { Prisma, type FacultyDesignation } from '@prisma/client';
 import { prisma } from '../config/prisma.js';
 
+export type FacultyDesignationWithDetails = Prisma.FacultyDesignationGetPayload<{ include: { designation: true } }>;
+
 export interface FacultyDesignationCreateData {
   faculty_id: string;
   designation_id: string;
@@ -34,7 +36,7 @@ function listWhere(
 export async function list(
   facultyId: string | null,
   termId: string | null,
-): Promise<FacultyDesignation[]> {
+): Promise<FacultyDesignationWithDetails[]> {
   return prisma.facultyDesignation.findMany({
     where: listWhere(facultyId, termId),
     include: { designation: true },
@@ -42,7 +44,7 @@ export async function list(
   });
 }
 
-export async function findActiveById(id: string): Promise<FacultyDesignation | null> {
+export async function findActiveById(id: string): Promise<FacultyDesignationWithDetails | null> {
   return prisma.facultyDesignation.findFirst({
     where: { id, deleted_at: null },
     include: { designation: true },
@@ -69,14 +71,14 @@ export async function findActiveDuplicate(
 
 export async function create(
   data: FacultyDesignationCreateData,
-): Promise<FacultyDesignation> {
+): Promise<FacultyDesignationWithDetails> {
   return prisma.facultyDesignation.create({ data, include: { designation: true } });
 }
 
 export async function update(
   id: string,
   data: FacultyDesignationUpdateData,
-): Promise<FacultyDesignation> {
+): Promise<FacultyDesignationWithDetails> {
   return prisma.facultyDesignation.update({ where: { id }, data, include: { designation: true } });
 }
 

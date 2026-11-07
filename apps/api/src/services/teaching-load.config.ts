@@ -24,6 +24,8 @@ export interface TeachingLoadConfig {
   minFunctionHours: { research: number; extension: number; imp: number };
   /** Minimum session hours for a designation (used in Bite 2). */
   minDesignationSessionHours: number;
+  /** Other functions and designations must have a valid plotted session to count. */
+  functionCountingRule: 'MIN_DECLARED_PLOTTED';
 }
 
 export const DEFAULT_LOAD_CONFIG: TeachingLoadConfig = {
@@ -37,4 +39,5 @@ export const DEFAULT_LOAD_CONFIG: TeachingLoadConfig = {
   consultationHours: 4,
   minFunctionHours: { research: 1, extension: 1, imp: 0 },
   minDesignationSessionHours: 1,
+  functionCountingRule: 'MIN_DECLARED_PLOTTED',
 };

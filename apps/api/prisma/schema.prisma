@@ -49,6 +49,19 @@ model PasswordReset {
   @@map("password_resets")
 }
 
+model LoadSettings {
+  id String @id @default("singleton")
+  lab_coefficient Float @default(0.7)
+  weekly_hours Float @default(40)
+  consultation_hours Float @default(4)
+  min_research Float @default(1)
+  min_extension Float @default(1)
+  min_imp Float @default(0)
+  min_session_hours Float @default(1)
+  prep_tiers_json String @default("[{\"minPreps\":1,\"maxPreps\":2,\"ceiling\":21},{\"minPreps\":3,\"maxPreps\":4,\"ceiling\":18},{\"minPreps\":5,\"maxPreps\":6,\"ceiling\":15}]")
+  @@map("load_settings")
+}
+
 model Faculty {
   id                String           @id @default(uuid())
   employee_no       String           @unique

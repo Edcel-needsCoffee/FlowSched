@@ -1,13 +1,17 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { ApiError } from '../errors/apiError.js';
-import { requireAuth } from '../middleware/auth.middleware.js';
+import { requireAuth, requireRole } from '../middleware/auth.middleware.js';
+import { getLoadSettings, putLoadSettings } from '../services/load-settings.service.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { uuidIdSchema } from '../validation/subject.validation.js';
 import { getFacultyTeachingLoad } from '../services/teaching-load.service.js';
 import * as facultyRepository from '../repositories/faculty.repository.js';
 
 export const teachingLoadRouter = Router();
+
+teachingLoadRouter.get('/load-settings',requireAuth,asyncHandler(async (_req,res)=>{res.json({settings:await getLoadSettings()});}));
+teachingLoadRouter.put('/load-settings',requireAuth,requireRole('CHAIR'),asyncHandler(async (req,res)=>{res.json({settings:await putLoadSettings(req.body)});}));
 
 function parseId(value: string | undefined, label: string): string {
   const parsed = uuidIdSchema.safeParse(value);

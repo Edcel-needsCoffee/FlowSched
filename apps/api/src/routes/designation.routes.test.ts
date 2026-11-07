@@ -241,7 +241,7 @@ describe('Designations API', () => {
     expect(otherRes.status).toBe(403);
   });
 
-  it('engine integration: designation hours flow into total_faculty_time; service_credits only for grants=true', async () => {
+  it('engine integration: assigned designations without plotted sessions do not count', async () => {
     const f = await seedFixtures();
 
     const subject = await prisma.subject.create({
@@ -264,9 +264,10 @@ describe('Designations API', () => {
       .set('Authorization', `Bearer ${chairToken}`);
     expect(loadRes.status).toBe(200);
     const load = loadRes.body.load;
-    expect(load.designation_hours).toBe(3);
-    expect(load.service_credits).toBe(2);
-    expect(load.total_faculty_time).toBe(8.1);
+    expect(load.designation_hours).toBe(0);
+    expect(load.service_credits).toBe(0);
+    expect(load.total_faculty_time).toBe(5.1);
+    expect(load.designations[0].accepted).toBe(false);
 
     await request(createApp())
       .post(`/api/faculty/${f.facultyAId}/designations`)
@@ -278,8 +279,8 @@ describe('Designations API', () => {
       .set('Authorization', `Bearer ${chairToken}`);
     expect(loadRes2.status).toBe(200);
     const load2 = loadRes2.body.load;
-    expect(load2.designation_hours).toBe(5);
-    expect(load2.service_credits).toBe(2);
-    expect(load2.total_faculty_time).toBe(10.1);
+    expect(load2.designation_hours).toBe(0);
+    expect(load2.service_credits).toBe(0);
+    expect(load2.total_faculty_time).toBe(5.1);
   });
 });

@@ -85,6 +85,7 @@ const ROOM: Room = {
 } as Room;
 
 const FACULTY: FacultyMember = {
+  avatar_url: null,
   id: 'faculty-1',
   employee_no: 'EMP-001',
   first_name: 'Ada',

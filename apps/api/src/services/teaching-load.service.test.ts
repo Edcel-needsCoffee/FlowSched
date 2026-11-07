@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { calculateTeachingLoad, DEFAULT_LOAD_CONFIG } from './teaching-load.service.js';
+import { calculateTeachingLoad as compute, DEFAULT_LOAD_CONFIG, type TeachingLoadInput } from './teaching-load.service.js';
+
+// Existing fixtures model fully plotted functions/designations. Explicitly supply those sessions.
+const calculateTeachingLoad = (input: TeachingLoadInput) => compute({ ...input,
+  functionPlottedHours: input.otherFunctions,
+  designations: input.designations?.map((d) => ({ ...d, plotted_hours: d.hours })),
+});
 
 const BASE_OTHER_FUNCTIONS = {
   research: 1,

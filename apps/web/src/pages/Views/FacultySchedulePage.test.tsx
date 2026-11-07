@@ -34,6 +34,7 @@ const TERM: Term = {
 };
 
 const FACULTY_A: FacultyMember = {
+  avatar_url: null,
   id: 'fac-a',
   employee_no: 'TST-001',
   first_name: 'Ada',

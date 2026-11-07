@@ -38,6 +38,7 @@ const updateFacultyMock = vi.mocked(updateFaculty);
 const deleteFacultyMock = vi.mocked(deleteFaculty);
 
 const FACULTY_A: FacultyMember = {
+  avatar_url: null,
   id: 'fac-a',
   employee_no: 'TST-001',
   first_name: 'Maria',
@@ -51,6 +52,7 @@ const FACULTY_A: FacultyMember = {
 };
 
 const FACULTY_B: FacultyMember = {
+  avatar_url: null,
   id: 'fac-b',
   employee_no: 'TST-002',
   first_name: 'Juan',
