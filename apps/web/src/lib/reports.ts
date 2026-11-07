@@ -7,12 +7,14 @@ export interface FacultyWorkloadRow {
   faculty_name: string;
   employee_no: string;
   max_units: number;
+  total_faculty_time?:number;
+  weekly_target?:number;
   subjects: number;
   weekly_hours: number;
   scheduled_hours: number;
   remaining_hours: number;
   load_ratio: number;
-  status: 'ok' | 'near' | 'over';
+  status: 'ok' | 'near' | 'over' | 'unavailable';
 }
 
 export function round2(value: number): number {
@@ -31,6 +33,7 @@ export function statusOf(scheduled: number, maxUnits: number): 'ok' | 'near' | '
 export function aggregateWorkload(
   assignments: WorkloadAssignment[],
   facultyById: Map<string, { employee_no: string; max_units: number }>,
+  computed:Map<string,{total_faculty_time?:number;weekly_hours?:number}>=new Map(),
 ): FacultyWorkloadRow[] {
   const byFaculty = new Map<string, FacultyWorkloadRow>();
   for (const assignment of assignments) {
@@ -56,9 +59,10 @@ export function aggregateWorkload(
     byFaculty.set(assignment.faculty_id, existing);
   }
   for (const row of byFaculty.values()) {
-    row.load_ratio =
-      row.max_units > 0 ? round2(row.scheduled_hours / row.max_units) : 0;
-    row.status = statusOf(row.scheduled_hours, row.max_units);
+    const load=computed.get(row.faculty_id);
+    row.total_faculty_time=load?.total_faculty_time;row.weekly_target=load?.weekly_hours;
+    row.load_ratio = load?.weekly_hours && load.total_faculty_time!==undefined ? round2(load.total_faculty_time/load.weekly_hours):0;
+    row.status = load?.weekly_hours && load.total_faculty_time!==undefined ? statusOf(load.total_faculty_time,load.weekly_hours):'unavailable';
   }
   return [...byFaculty.values()].sort((a, b) =>
     a.faculty_name.localeCompare(b.faculty_name),
@@ -108,7 +112,8 @@ export function workloadToCsv(rows: FacultyWorkloadRow[]): string {
     'Weekly Hours',
     'Scheduled Hours',
     'Remaining Hours',
-    'Max Units',
+    'Faculty Time',
+    'Weekly Target',
     'Status',
   ];
   const escape = (value: string | number): string => {
@@ -123,7 +128,8 @@ export function workloadToCsv(rows: FacultyWorkloadRow[]): string {
       row.weekly_hours,
       row.scheduled_hours,
       row.remaining_hours,
-      row.max_units,
+      row.total_faculty_time??'',
+      row.weekly_target??'',
       row.status,
     ]
       .map(escape)

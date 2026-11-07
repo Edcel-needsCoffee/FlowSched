@@ -25,7 +25,7 @@ export function FacultyLoadPanel({
     <div className="glass-card p-4">
       <div className="flex items-baseline justify-between gap-2">
         <h2 className="text-sm font-semibold text-slate-900">Faculty load</h2>
-        <span className="text-xs text-slate-500">Scheduled vs. max units</span>
+        <span className="text-xs text-slate-500">Faculty time / weekly target</span>
       </div>
       {entries.length === 0 ? (
         <p className="mt-4 rounded-lg border border-dashed border-slate-200 px-3 py-6 text-center text-xs text-slate-500">
@@ -48,8 +48,9 @@ export function FacultyLoadPanel({
                   </span>
                 </span>
                 <span className="shrink-0 text-right font-mono text-xs text-slate-700">
-                  {entry.scheduled_hours}/{entry.max_units}
-                  <span className="ml-1 text-slate-500">units</span>
+                  {entry.total_faculty_time??0}/{entry.weekly_hours??40}
+                  <span className="ml-1 text-slate-500">hours</span>
+                  {(entry.teaching_overload??0)>0&&<span className="block text-amber-700">{entry.teaching_overload}h teaching overload</span>}
                 </span>
                 <span
                   className={`inline-flex shrink-0 items-center gap-1.5 rounded-full bg-brand-500/10 px-2 py-0.5 text-[10px] font-semibold ${style.text}`}

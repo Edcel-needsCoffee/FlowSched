@@ -7,5 +7,7 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test-setup.ts'],
     include: ['src/**/*.test.{ts,tsx}'],
+    // The drag-and-drop suites are CPU-heavy in jsdom on local Windows machines.
+    fileParallelism: false,
   },
 });

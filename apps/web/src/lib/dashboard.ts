@@ -28,6 +28,9 @@ export interface RoomUtilizationSummary {
 }
 
 export interface FacultyLoadEntry {
+  total_faculty_time?:number;
+  weekly_hours?:number;
+  teaching_overload?:number;
   faculty_id: string;
   employee_no: string;
   name: string;
@@ -95,6 +98,9 @@ export interface PersonalClassEntry {
 }
 
 export interface PersonalSummary {
+  total_faculty_time?:number;
+  weekly_hours?:number;
+  teaching_overload?:number;
   scope: 'personal';
   term_id: string | null;
   avatar_url: string | null;

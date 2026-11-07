@@ -4,6 +4,8 @@ import type { AuthTokenPayload } from '../services/auth.service.js';
 import { prisma } from '../config/prisma.js';
 import { formatTimeOfDay, timeOfDayToMinutes } from '../utils/time.js';
 import { dashboardSummaryQuerySchema } from '../validation/dashboard.validation.js';
+import { getFacultyTeachingLoad,round2 } from './teaching-load.service.js';
+import { getLoadConfig } from './load-settings.service.js';
 
 /** Faculty load band thresholds (FR-06): >=90% = near, >=100% = over. */
 const NEAR_LOAD_RATIO = 0.9;
@@ -48,6 +50,9 @@ export interface RoomUtilizationSummary {
 
 /** Per-faculty load line for the dark load panel — every faculty, not only near/over. */
 export interface FacultyLoadEntry {
+  total_faculty_time:number;
+  weekly_hours:number;
+  teaching_overload:number;
   faculty_id: string;
   employee_no: string;
   name: string;
@@ -124,6 +129,9 @@ export interface PersonalClassEntry {
 }
 
 export interface PersonalSummary {
+  total_faculty_time:number;
+  weekly_hours:number;
+  teaching_overload:number;
   scope: 'personal';
   term_id: string | null;
   avatar_url: string | null;
@@ -151,9 +159,6 @@ function parseQuery(rawQuery: unknown): { termId?: string } {
   return parsed.data;
 }
 
-function round2(value: number): number {
-  return Math.round(value * 100) / 100;
-}
 
 function slotHours(start: string, end: string): number {
   const startMin = timeOfDayToMinutes(start);
@@ -310,10 +315,13 @@ async function getDepartmentSummary(
 
   // Full load board: every faculty member with their band, plus the legacy
   // near/over subset (same rows, filtered) for the original panel.
-  const faculty_load: FacultyLoadEntry[] = facultyRows.map((member) => {
+  const config=await getLoadConfig();
+  const faculty_load: FacultyLoadEntry[] = await Promise.all(facultyRows.map(async (member) => {
     const scheduled = round2(scheduledByFaculty.get(member.id) ?? 0);
-    const ratio = member.max_units > 0 ? round2(scheduled / member.max_units) : 0;
+    const load=termId?await getFacultyTeachingLoad(member.id,termId):null;
+    const ratio=round2((load?.total_faculty_time??0)/config.facultyWeeklyHours);
     return {
+      total_faculty_time:load?.total_faculty_time??0,weekly_hours:config.facultyWeeklyHours,teaching_overload:load?.teaching_overload??0,
       faculty_id: member.id,
       employee_no: member.employee_no,
       name: `${member.first_name} ${member.last_name}`,
@@ -321,9 +329,9 @@ async function getDepartmentSummary(
       scheduled_hours: scheduled,
       max_units: member.max_units,
       load_ratio: ratio,
-      status: ratio >= OVER_LOAD_RATIO ? 'over' : ratio >= NEAR_LOAD_RATIO ? 'near' : 'ok',
+      status: ratio >= OVER_LOAD_RATIO ? 'over' as const : ratio >= NEAR_LOAD_RATIO ? 'near' as const : 'ok' as const,
     };
-  });
+  }));
   faculty_load.sort((a, b) => b.load_ratio - a.load_ratio || a.name.localeCompare(b.name));
   const faculty_near_or_over_load: DepartmentLoadEntry[] = faculty_load
     .filter((entry) => entry.status !== 'ok')
@@ -492,8 +500,10 @@ async function getPersonalSummary(
   termFilter: { term_id?: string },
   avatarUrl: string | null = null,
 ): Promise<PersonalSummary> {
+  const config=await getLoadConfig();
   if (!actor.facultyId) {
     return {
+      total_faculty_time:0,weekly_hours:config.facultyWeeklyHours,teaching_overload:0,
       scope: 'personal',
       term_id: termId,
       avatar_url: avatarUrl,
@@ -538,7 +548,8 @@ async function getPersonalSummary(
   }
   scheduled = round2(scheduled);
   const remaining = Math.max(0, round2(weeklyTotal - scheduled));
-  const ratio = faculty.max_units > 0 ? round2(scheduled / faculty.max_units) : 0;
+  const load=termId?await getFacultyTeachingLoad(faculty.id,termId):null;
+  const ratio=round2((load?.total_faculty_time??0)/config.facultyWeeklyHours);
   const load_status = ratio >= OVER_LOAD_RATIO ? 'over' : ratio >= NEAR_LOAD_RATIO ? 'near' : 'ok';
   const rows = await prisma.scheduleSlot.findMany({
     where: { workload_assignment: { deleted_at: null, faculty_id: faculty.id, ...termFilter } },
@@ -567,6 +578,7 @@ async function getPersonalSummary(
   );
   return {
     scope: 'personal',
+    total_faculty_time:load?.total_faculty_time??0,weekly_hours:config.facultyWeeklyHours,teaching_overload:load?.teaching_overload??0,
     term_id: termId,
     avatar_url: avatarUrl,
     faculty_id: faculty.id,

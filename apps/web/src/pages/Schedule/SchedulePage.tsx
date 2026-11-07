@@ -1824,13 +1824,14 @@ function ColorSwatchPicker({
  * entry clamps with an inline note; 0/negative leaves the card undraggable
  * until fixed.
  */
-function DurationPicker({
+export function DurationPicker({
   value,
   remaining,
   cap,
   note,
   onStep,
   onCommit,
+  minimum = MIN_CHUNK_HOURS,
 }: {
   value: number;
   remaining: number;
@@ -1839,13 +1840,14 @@ function DurationPicker({
   note: string | null;
   onStep: (delta: number) => void;
   onCommit: (raw: string) => void;
+  minimum?: number;
 }): JSX.Element {
   const [draft, setDraft] = useState<string | null>(null);
   const shown = draft ?? formatHours(value);
   // The + button stops at whichever is tighter: what's left this week, or one
   // meeting's worth.
   const limit = Math.min(remaining, cap);
-  const atMin = value <= Math.min(MIN_CHUNK_HOURS, remaining) + 1e-9;
+  const atMin = value <= Math.min(minimum, remaining) + 1e-9;
   const atMax = value >= limit - 1e-9;
   const commit = (): void => {
     if (draft === null) {

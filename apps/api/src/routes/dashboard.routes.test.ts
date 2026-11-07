@@ -126,12 +126,9 @@ describe('Dashboard summary API', () => {
     expect(s.scope).toBe('department');
     expect(s.term_id).toBe(g.t);
     expect(s.total_faculty).toBeGreaterThanOrEqual(2);
-    expect(s.faculty_near_or_over_load).toMatchObject([
-      {
-        faculty_id: g.a, employee_no: `${PREFIX}A`, name: 'Ada Lovelace',
-        scheduled_hours: 5, max_units: 5, load_ratio: 1, status: 'over',
-      },
-    ]);
+    expect(s.faculty_load.find((entry:{faculty_id:string})=>entry.faculty_id===g.a)).toMatchObject({
+      total_faculty_time:9,weekly_hours:40,teaching_overload:0,status:'ok',
+    });
     const ids = s.faculty_near_or_over_load.map((x: { faculty_id: string }) => x.faculty_id);
     expect(ids).not.toContain(g.b);
     expect(s.rooms_under_maintenance).toContainEqual({ id: g.m, name: `${PREFIX}Room Maint` });
@@ -163,7 +160,9 @@ describe('Dashboard summary API', () => {
     expect(s.my_subjects_count).toBe(2);
     expect(s.my_scheduled_hours).toBe(5);
     expect(s.my_total_hours).toBe(9);
-    expect(s.load_status).toBe('over');
+    expect(s.load_status).toBe('ok');
+    expect(s.total_faculty_time).toBe(9);
+    expect(s.weekly_hours).toBe(40);
     expect(s.my_next_class).toMatchObject({
       day_of_week: 'MON', start_time: '07:00', subject_code: `${PREFIX}101`,
     });

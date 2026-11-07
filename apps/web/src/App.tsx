@@ -10,7 +10,7 @@ import { SchedulePage } from './pages/Schedule/SchedulePage';
 import { SectionSchedulePage } from './pages/Views/SectionSchedulePage';
 import { FacultySchedulePage } from './pages/Views/FacultySchedulePage';
 import { RoomSchedulePage } from './pages/Views/RoomSchedulePage';
-import { WorkloadPage } from './pages/WorkloadPage';
+import { TeachingLoadPage } from './pages/TeachingLoadPage';
 import { WorkloadAssignmentPage } from './pages/WorkloadAssignment/WorkloadAssignmentPage';
 import { RoomsPage } from './pages/RoomsPage';
 import { ReportsPage } from './pages/ReportsPage';
@@ -22,7 +22,7 @@ import { ALL_ROLES, MANAGEMENT_ROLES } from './config/navigation';
 import type { AuthRole } from './store/auth.store';
 
 /** Reports: Chair only (ui-ux.md §4). */
-const REPORTS_ROLES: AuthRole[] = ['CHAIR'];
+const REPORTS_ROLES: AuthRole[] = ['CHAIR','ACADEMIC_ADMIN'];
 
 /** My Workload: Chair + Faculty. */
 const MY_WORKLOAD_ROLES: AuthRole[] = ['CHAIR', 'FACULTY'];
@@ -89,8 +89,8 @@ export function App(): JSX.Element {
             <Route
               path="/workload"
               element={
-                <RequireAuth allowedRoles={['CHAIR', 'FACULTY']}>
-                  <WorkloadPage />
+                <RequireAuth allowedRoles={ALL_ROLES}>
+                  <TeachingLoadPage />
                 </RequireAuth>
               }
             />

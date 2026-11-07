@@ -26,7 +26,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: 'Subjects', path: '/subjects', icon: 'subjects', allowedRoles: MANAGEMENT_ROLES },
   { label: 'Rooms', path: '/rooms', icon: 'rooms', allowedRoles: MANAGEMENT_ROLES },
   { label: 'Reports', path: '/reports', icon: 'reports', allowedRoles: MANAGEMENT_ROLES },
-  { label: 'My Workload', path: '/workload', icon: 'workload', allowedRoles: ['CHAIR', 'FACULTY'] },
+  { label: 'Teaching Load', path: '/workload', icon: 'workload', allowedRoles: ALL_ROLES },
   { label: 'Account Settings', path: '/account', icon: 'account', allowedRoles: ALL_ROLES },
 ];
 

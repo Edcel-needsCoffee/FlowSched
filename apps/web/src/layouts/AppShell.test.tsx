@@ -41,7 +41,7 @@ describe('AppShell sidebar (role-scoped)', () => {
     renderAppAt('/dashboard', 'CHAIR');
     const items = [
       'Dashboard', 'Schedule', 'Workload Assignment', 'Faculty', 'Subjects',
-      'Rooms', 'Reports', 'My Workload', 'Account Settings',
+      'Rooms', 'Reports', 'Teaching Load', 'Account Settings',
     ];
     for (const item of items) {
       expect(screen.getByRole('link', { name: item })).toBeInTheDocument();
@@ -52,7 +52,7 @@ describe('AppShell sidebar (role-scoped)', () => {
 
   it('renders Faculty nav items only', () => {
     renderAppAt('/dashboard', 'FACULTY');
-    for (const item of ['Dashboard', 'Schedule', 'My Workload', 'Account Settings']) {
+    for (const item of ['Dashboard', 'Schedule', 'Teaching Load', 'Account Settings']) {
       expect(screen.getByRole('link', { name: item })).toBeInTheDocument();
     }
     for (const item of ['Workload Assignment', 'Faculty', 'Subjects', 'Rooms', 'Reports']) {

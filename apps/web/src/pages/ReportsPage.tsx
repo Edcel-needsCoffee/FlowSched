@@ -93,8 +93,8 @@ export function ReportsPage(): JSX.Element {
   );
 
   const workloadRows = useMemo(
-    () => aggregateWorkload(assignments, facultyById),
-    [assignments, facultyById],
+    () => aggregateWorkload(assignments, facultyById,new Map(summary?.faculty_load.map(row=>[row.faculty_id,row])??[])),
+    [assignments, facultyById,summary],
   );
 
   const filteredRows = useMemo(() => {

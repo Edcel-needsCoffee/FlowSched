@@ -39,6 +39,7 @@ describe('reports helpers', () => {
         assignment({ id: 'a-2', weekly_hours: 3, scheduled_hours: 0, remaining_hours: 3 }),
       ],
       new Map([['fac-1', { employee_no: 'TST-001', max_units: 6 }]]),
+      new Map([['fac-1',{total_faculty_time:6,weekly_hours:40}]]),
     );
     expect(rows).toHaveLength(1);
     expect(rows[0]).toMatchObject({

@@ -20,7 +20,7 @@ export function WorkloadTable({ rows }: { rows: FacultyWorkloadRow[] }): JSX.Ele
             <th scope="col" className="px-4 py-3 font-semibold">Weekly</th>
             <th scope="col" className="px-4 py-3 font-semibold">Scheduled</th>
             <th scope="col" className="px-4 py-3 font-semibold">Remaining</th>
-            <th scope="col" className="px-4 py-3 font-semibold">Max units</th>
+            <th scope="col" className="px-4 py-3 font-semibold">Faculty time / target</th>
             <th scope="col" className="px-4 py-3 font-semibold">Status</th>
           </tr>
         </thead>
@@ -37,7 +37,7 @@ export function WorkloadTable({ rows }: { rows: FacultyWorkloadRow[] }): JSX.Ele
               <td className="px-4 py-2.5 font-mono tabular-nums text-ink">{row.weekly_hours}h</td>
               <td className="px-4 py-2.5 font-mono tabular-nums text-ink">{row.scheduled_hours}h</td>
               <td className="px-4 py-2.5 font-mono tabular-nums text-ink">{row.remaining_hours}h</td>
-              <td className="px-4 py-2.5 font-mono tabular-nums text-ink">{row.max_units}</td>
+              <td className="px-4 py-2.5 font-mono tabular-nums text-ink">{row.total_faculty_time===undefined?'Unavailable':`${row.total_faculty_time}/${row.weekly_target}h`}</td>
               <td className="px-4 py-2.5">
                 <StatusBadge status={row.status} />
               </td>
@@ -49,14 +49,14 @@ export function WorkloadTable({ rows }: { rows: FacultyWorkloadRow[] }): JSX.Ele
   );
 }
 
-function StatusBadge({ status }: { status: 'ok' | 'near' | 'over' }): JSX.Element {
+function StatusBadge({ status }: { status: 'ok' | 'near' | 'over' | 'unavailable' }): JSX.Element {
   const cls =
     status === 'over'
       ? 'bg-red-100 text-red-700'
       : status === 'near'
         ? 'bg-amber-100 text-amber-800'
         : 'bg-leaf-100 text-leaf-700';
-  const label = status === 'over' ? 'Over load' : status === 'near' ? 'Near load' : 'Within capacity';
+  const label = status === 'over' ? 'Over load' : status === 'near' ? 'Near load' : status==='unavailable'?'Unavailable':'Within capacity';
   return (
     <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${cls}`}>{label}</span>
   );

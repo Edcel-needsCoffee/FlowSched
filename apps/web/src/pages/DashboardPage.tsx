@@ -172,7 +172,7 @@ export function PersonalView({
   summary: Extract<DashboardSummary, { scope: 'personal' }>;
 }): JSX.Element {
   const pct =
-    summary.max_units > 0 ? Math.min(100, Math.round((summary.my_scheduled_hours / summary.max_units) * 100)) : 0;
+    Math.min(100, Math.round(((summary.total_faculty_time??0) / (summary.weekly_hours??40)) * 100));
   const barCls =
     summary.load_status === 'over' ? 'bg-red-500' : summary.load_status === 'near' ? 'bg-amber-500' : 'bg-leaf-500';
   const badgeCls =
@@ -195,7 +195,7 @@ export function PersonalView({
         <div className={cardCls}>
           <p className={statLabelCls}>My load</p>
           <p className={statValueCls}>
-            {summary.my_scheduled_hours}h <span className="text-base font-medium text-ink/50">/ {summary.max_units}</span>
+            {summary.total_faculty_time??0}h <span className="text-base font-medium text-ink/50">/ {summary.weekly_hours??40}</span>
           </p>
           <div
             className="mt-2 h-2 overflow-hidden rounded-full bg-leaf-100"
@@ -203,7 +203,7 @@ export function PersonalView({
             aria-valuenow={pct}
             aria-valuemin={0}
             aria-valuemax={100}
-            aria-label="Workload vs max load"
+            aria-label="Faculty time vs weekly target"
           >
             <div className={`h-full rounded-full ${barCls}`} style={{ width: `${pct}%` }} />
           </div>
@@ -212,6 +212,7 @@ export function PersonalView({
               {summary.load_status === 'over' ? 'Over load' : summary.load_status === 'near' ? 'Near load' : 'Within capacity'}
             </span>
           </p>
+          {(summary.teaching_overload??0)>0&&<p className="mt-2 text-sm text-amber-700">Teaching overload: {summary.teaching_overload}h</p>}
         </div>
         <StatCard label="My subjects" value={summary.my_subjects_count} />
         <StatCard label="Hours remaining" value={summary.my_remaining_hours} suffix="h" />

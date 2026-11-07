@@ -48,7 +48,7 @@ export interface TeachingLoadOutput {
   weighted_lab_hours: number;
   teaching_hours: number;
   preps: number;
-  prep_breakdown: { subject_id: string; component: 'LEC' | 'LAB' }[];
+  prep_breakdown: { subject_id: string; subject_code?:string; component: 'LEC' | 'LAB' }[];
   prep_ceiling: number;
   prep_ceiling_source: 'NONE' | 'TIER' | 'EXTRAPOLATED';
   teaching_overload: number;
@@ -312,6 +312,7 @@ export async function getFacultyTeachingLoad(
         subject_id: true,
         subject: {
           select: {
+            code: true,
             lecture_hours: true,
             lab_hours: true,
           },
@@ -360,6 +361,7 @@ export async function getFacultyTeachingLoad(
   };
 
   const result=calculateTeachingLoad(input,config);
+  result.prep_breakdown=result.prep_breakdown.map(p=>({...p,subject_code:rows.find(r=>r.subject_id===p.subject_id)?.subject.code}));
   result.effectivity={start:functions?.effectivity_start??term.effectivity_start,end:functions?.effectivity_end??term.effectivity_end,source:functions?.effectivity_start?'FACULTY':'TERM'};
   result.sessions=sessions;
   if(result.students_by_section.some(s=>s.student_count===null)) result.warnings.push('Student counts are missing for one or more handled sections.');
