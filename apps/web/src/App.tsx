@@ -11,6 +11,8 @@ import { SectionSchedulePage } from './pages/Views/SectionSchedulePage';
 import { FacultySchedulePage } from './pages/Views/FacultySchedulePage';
 import { RoomSchedulePage } from './pages/Views/RoomSchedulePage';
 import { TeachingLoadPage } from './pages/TeachingLoadPage';
+import { FormSettingsPage } from './pages/FormSettingsPage';
+import { ProgramPrintPage } from './pages/ProgramPrintPage';
 import { WorkloadAssignmentPage } from './pages/WorkloadAssignment/WorkloadAssignmentPage';
 import { RoomsPage } from './pages/RoomsPage';
 import { ReportsPage } from './pages/ReportsPage';
@@ -43,6 +45,8 @@ export function App(): JSX.Element {
           {/* Authenticated-app shell (nav + constrained content width). */}
           <Route element={<AppShell />}>
             <Route path="/not-authorized" element={<NotAuthorizedPage />} />
+            <Route path="/print/:kind/:id" element={<RequireAuth allowedRoles={ALL_ROLES}><ProgramPrintPage/></RequireAuth>}/>
+            <Route path="/form-settings" element={<RequireAuth allowedRoles={['CHAIR']}><FormSettingsPage/></RequireAuth>}/>
             <Route
               path="/dashboard"
               element={

@@ -26,6 +26,8 @@ beforeAll(async()=>{
   admin=signAccessToken({userId:'test-admin',role:'ACADEMIC_ADMIN',facultyId:null});
 });
 beforeEach(async()=>{
+  await prisma.workloadAssignment.deleteMany({where:{term_id:term,subject:{code:prefix+'SECOND'}}});
+  await prisma.subject.deleteMany({where:{code:prefix+'SECOND'}});
   await prisma.facultySession.deleteMany({where:{term_id:term}});
   await prisma.scheduleSlot.deleteMany({where:{workload_assignment:{term_id:term}}});
   await prisma.facultyLoad.deleteMany({where:{term_id:term}});
@@ -119,5 +121,15 @@ describe('faculty program APIs',()=>{
     const option=await request(app).post('/api/signatory-options').set('Authorization',`Bearer ${chair}`).send({slot:'PREPARED',name:prefix+'Signatory',title:'Fixture'});expect(option.status).toBe(201);
     expect((await request(app).delete(`/api/signatory-options/${option.body.option.id}`).set('Authorization',`Bearer ${chair}`)).status).toBe(204);
     expect((await prisma.signatoryOption.findUnique({where:{id:option.body.option.id}}))?.active).toBe(false);
+  });
+  it('shares form settings and signatory options, accepts print-only custom signatures, and scopes forms',async()=>{
+    const res=await request(app).get(`/api/forms/faculty/${faculty}?termId=${term}&sig_prepared=Fixture%20Custom`).set('Authorization',`Bearer ${own}`);
+    expect(res.status).toBe(200);expect(res.body.template.type).toBe('FACULTY_CLASS_PROGRAM');expect(res.body.signatures[0].name).toBe('Fixture Custom');
+    expect(res.body.effectivity).toEqual({start:'2026-11-01',end:'2027-03-31',source:'TERM'});
+    expect(res.body.load.teaching_hours).toBe(25.5);
+    expect((await prisma.signatoryOption.count({where:{name:'Fixture Custom'}}))).toBe(0);
+    expect((await request(app).get(`/api/forms/faculty/${faculty}?termId=${term}`).set('Authorization',`Bearer ${outsider}`)).status).toBe(403);
+    expect((await request(app).get(`/api/forms/sections/${section}?termId=${term}`).set('Authorization',`Bearer ${own}`)).status).toBe(403);
+    const student=await request(app).get(`/api/forms/sections/${section}?termId=${term}`).set('Authorization',`Bearer ${chair}`);expect(student.status).toBe(200);expect(student.body.template.type).toBe('STUDENT_CLASS_PROGRAM');
   });
 });
