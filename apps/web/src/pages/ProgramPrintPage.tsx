@@ -9,15 +9,31 @@ import './program-print.css';
 const days=['MON','TUE','WED','THU','FRI','SAT'];
 const minutes=(v:string)=>Number(v.slice(0,2))*60+Number(v.slice(3,5));
 const clock=(n:number)=>`${String(Math.floor(n/60)).padStart(2,'0')}:${String(n%60).padStart(2,'0')}`;
+/** Keep explicitly overridden clashes visible in separate lanes on the form. */
+export function layoutProgramBlocks<T extends {day:string;start:string;end:string}>(input:T[]){
+  const output:(T&{lane:number;lanes:number})[]=[];
+  for(const day of days){
+    let group:(T&{lane:number})[]=[],ends:number[]=[],groupEnd=0;
+    const flush=()=>{output.push(...group.map(block=>({...block,lanes:ends.length})));group=[];ends=[];groupEnd=0;};
+    for(const block of input.filter(b=>b.day===day).sort((a,b)=>a.start.localeCompare(b.start)||a.end.localeCompare(b.end))){
+      const start=minutes(block.start),end=minutes(block.end);
+      if(group.length&&start>=groupEnd)flush();
+      let lane=ends.findIndex(value=>value<=start);if(lane<0)lane=ends.length;
+      ends[lane]=end;groupEnd=Math.max(groupEnd,end);group.push({...block,lane});
+    }
+    flush();
+  }
+  return output;
+}
 export function ProgramTimetable({form}:{form:ProgramForm}){
-  const blocks=[...form.slots.map(s=>({id:s.id,day:s.day_of_week,start:s.start_time,end:s.end_time,label:`${s.subject_code}${s.session_type==='LAB'?' L':''}\n${s.section_label}\n${s.room_name??'TBA'}`,color:s.color??'#D1FAE5'})),...(form.load?.sessions??[]).map(s=>({id:s.id,day:s.day_of_week,start:s.start_time,end:s.end_time,label:s.type,color:FUNCTION_COLORS[s.type]}))];
+  const blocks=layoutProgramBlocks([...form.slots.map(s=>({id:s.id,day:s.day_of_week,start:s.start_time,end:s.end_time,label:`${s.subject_code}${s.session_type==='LAB'?' L':''}\n${s.section_label}\n${s.room_name??'TBA'}`,color:s.color??'#D1FAE5'})),...(form.load?.sessions??[]).map(s=>({id:s.id,day:s.day_of_week,start:s.start_time,end:s.end_time,label:s.type,color:FUNCTION_COLORS[s.type]}))]);
   const start=Math.floor(Math.min(420,...blocks.map(b=>minutes(b.start)))/30)*30,end=Math.ceil(Math.max(1200,...blocks.map(b=>minutes(b.end)))/30)*30;
   const rows=Array.from({length:(end-start)/30},(_,i)=>start+i*30);
   const heights=rows.map(()=>18);
-  for(const block of blocks){const first=Math.max(0,Math.floor((minutes(block.start)-start)/30)),last=Math.ceil((minutes(block.end)-start)/30);const required=(block.label.split('\n').length*11+6)/(last-first);for(let i=first;i<last;i++)heights[i]=Math.max(heights[i],required);}
+  for(const block of blocks){const first=Math.max(0,Math.floor((minutes(block.start)-start)/30)),last=Math.ceil((minutes(block.end)-start)/30);const lines=block.label.split('\n').reduce((sum,line)=>sum+Math.max(1,Math.ceil(line.length/Math.max(8,32/block.lanes))),0);const required=(lines*11+6)/(last-first);for(let i=first;i<last;i++)heights[i]=Math.max(heights[i],required);}
   const offsets=[0];for(const height of heights)offsets.push(offsets[offsets.length-1]+height);
   return <div className="program-timetable" style={{gridTemplateColumns:'70px repeat(6,minmax(0,1fr))'}}><strong>TIME</strong>{days.map(day=><strong key={day}>{day}</strong>)}<div>{rows.map((v,i)=><div className="program-period" style={{height:heights[i]}} key={v}>{clock(v)}–{clock(v+30)}</div>)}</div>
-    {days.map(day=><div key={day} className="program-day" style={{height:offsets[offsets.length-1]}}>{rows.map((v,i)=><div key={v} style={{height:heights[i]}} className="program-period"/>)}{blocks.filter(b=>b.day===day).map(b=><div key={b.id} className="program-block" style={{top:offsets[Math.floor((minutes(b.start)-start)/30)],height:offsets[Math.ceil((minutes(b.end)-start)/30)]-offsets[Math.floor((minutes(b.start)-start)/30)],background:b.color,color:`#${textArgbFor(b.color).slice(2)}`}}>{b.label}</div>)}</div>)}
+    {days.map(day=><div key={day} className="program-day" style={{height:offsets[offsets.length-1]}}>{rows.map((v,i)=><div key={v} style={{height:heights[i]}} className="program-period"/>)}{blocks.filter(b=>b.day===day).map(b=><div key={b.id} className="program-block" style={{left:`calc(${b.lane*100/b.lanes}% + 1px)`,right:'auto',width:`calc(${100/b.lanes}% - 2px)`,top:offsets[Math.floor((minutes(b.start)-start)/30)],height:offsets[Math.ceil((minutes(b.end)-start)/30)]-offsets[Math.floor((minutes(b.start)-start)/30)],background:b.color,color:`#${textArgbFor(b.color).slice(2)}`}}>{b.label}</div>)}</div>)}
   </div>;
 }
 export function ProgramLoadSummary({form}:{form:ProgramForm}){

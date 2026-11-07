@@ -11,6 +11,7 @@
     "migrate:dev": "prisma migrate dev --name init",
     "migrate:deploy": "prisma migrate deploy",
     "seed": "tsx prisma/seed.ts",
+    "seed:program": "tsx prisma/seed-program.ts",
     "checks": "tsx prisma/apply-checks.ts",
     "verify:seed": "tsx prisma/verify-seed.ts",
     "studio": "prisma studio"

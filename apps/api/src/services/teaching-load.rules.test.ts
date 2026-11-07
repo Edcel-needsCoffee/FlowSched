@@ -21,6 +21,7 @@ describe('Chairman teaching-load rules',()=>{
     expect([r.designation_hours,r.service_credits]).toEqual([0,0]);
     expect(r.designations[0].accepted).toBe(false);
     expect(r.warnings.some(w=>w.includes('not accepted'))).toBe(true);
+    expect(calculate({designations:[{name:'Coordinator',hours:6,plotted_hours:.5,valid_session:true,service_credit:3,grants_service_credit:true}]}).designation_hours).toBe(0);
   });
   it('counts minimum declared/plotted; missing or short sessions count zero',()=>{
     const r=calculate({otherFunctions:{research:6,extension:4,imp:2,consultation:4},functionPlottedHours:{research:2,extension:5,imp:.5,consultation:4}});

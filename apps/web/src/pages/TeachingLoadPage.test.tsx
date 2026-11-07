@@ -27,6 +27,10 @@ beforeEach(()=>{
 const mount=()=>render(<ToastProvider><TeachingLoadPage/></ToastProvider>);
 afterEach(cleanup);
 describe('Teaching Load page',()=>{
+  it('rounds a configurable fractional session minimum up to the half-hour grid',async()=>{
+    vi.mocked(getLoadSettings).mockResolvedValue({settings:{lab_coefficient:.7,weekly_hours:40,consultation_hours:4,min_research:1,min_extension:1,min_imp:0,min_session_hours:1.25,prep_tiers:[]}});
+    mount();await screen.findByText('19.2h');expect(screen.getByLabelText('Hours to place')).toHaveValue('1.5');
+  });
   it('reads the own faculty load and separates Teaching Service Credit from Service Credits',async()=>{
     mount();expect(await screen.findByText('19.2h')).toBeInTheDocument();expect(getTeachingLoad).toHaveBeenCalledWith('f1','t1');
     expect(screen.getByText('Teaching Service Credit: 0.2h')).toBeInTheDocument();expect(screen.getByRole('heading',{name:'Service Credits'})).toBeInTheDocument();

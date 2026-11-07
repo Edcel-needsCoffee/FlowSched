@@ -129,6 +129,7 @@ export interface PersonalClassEntry {
 }
 
 export interface PersonalSummary {
+  remaining_to_target:number;
   total_faculty_time:number;
   weekly_hours:number;
   teaching_overload:number;
@@ -503,7 +504,7 @@ async function getPersonalSummary(
   const config=await getLoadConfig();
   if (!actor.facultyId) {
     return {
-      total_faculty_time:0,weekly_hours:config.facultyWeeklyHours,teaching_overload:0,
+      total_faculty_time:0,weekly_hours:config.facultyWeeklyHours,teaching_overload:0,remaining_to_target:config.facultyWeeklyHours,
       scope: 'personal',
       term_id: termId,
       avatar_url: avatarUrl,
@@ -578,7 +579,7 @@ async function getPersonalSummary(
   );
   return {
     scope: 'personal',
-    total_faculty_time:load?.total_faculty_time??0,weekly_hours:config.facultyWeeklyHours,teaching_overload:load?.teaching_overload??0,
+    total_faculty_time:load?.total_faculty_time??0,weekly_hours:config.facultyWeeklyHours,teaching_overload:load?.teaching_overload??0,remaining_to_target:load?.remaining_to_target??config.facultyWeeklyHours,
     term_id: termId,
     avatar_url: avatarUrl,
     faculty_id: faculty.id,

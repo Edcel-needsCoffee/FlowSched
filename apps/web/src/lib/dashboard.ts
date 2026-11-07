@@ -98,6 +98,7 @@ export interface PersonalClassEntry {
 }
 
 export interface PersonalSummary {
+  remaining_to_target?:number;
   total_faculty_time?:number;
   weekly_hours?:number;
   teaching_overload?:number;

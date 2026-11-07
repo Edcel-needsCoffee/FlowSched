@@ -31,6 +31,7 @@ describe('calculateTeachingLoad (pure engine)', () => {
     expect(out.lab_hours).toBe(3);
     expect(out.weighted_lab_hours).toBe(2.1);
     expect(out.teaching_hours).toBe(5.1);
+    expect(out.regular_teaching_hours).toBe(5.1);
     expect(out.preps).toBe(2);
     expect(out.prep_ceiling).toBe(21);
     expect(out.prep_ceiling_source).toBe('TIER');

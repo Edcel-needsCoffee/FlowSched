@@ -248,3 +248,62 @@ Every data-driven page has a meaningful error state with a retry action where th
 ## 15. Responsive Behavior
 
 The application remains usable on desktop, tablet, and mobile. The Schedule page is the one exception with defined mobile-specific behavior (single-day view with day tabs, per Section 2) rather than a literal shrink of the six-day desktop grid.
+
+## 16. Implemented teaching-load and form workflow
+
+This section supersedes the earlier My Workload placeholder and max-units load
+indicators. `/workload` is Teaching Load for all three roles. Faculty are locked
+to their linked record; Chair and Academic Administrator select any faculty.
+
+- Summary cards show Lecture, Lab with the configurable multiplier, Teaching
+  hours, distinct subject/component preparations with a breakdown, and the
+  regular ceiling/source. The ring displays computed faculty time vs the current
+  weekly target, with remaining hours.
+- Teaching Overload, whole claimable hours, fractional **Teaching Service Credit**,
+  and the Claim for Teaching Overload progress/session list are separate from
+  designation **Service Credits**, labelled outside the weekly target.
+- Other Functions show declared, valid plotted and counted hours. Minimum errors
+  appear inline; Consultation is read-only unless Chair. Designations show
+  assigned/plotted/counted hours and acceptance. Management get Assign, Remove,
+  and a master-list manager using the shared Modal component.
+- Student inputs are per handled section with a live grand total. Chair can set
+  faculty effectivity overrides or restore term inheritance. Warnings, loading
+  skeletons, empty states, error/retry and reduced-motion behavior are included.
+- The weekly planner shows dimmed read-only teaching, colored function/type
+  chips, existing sessions, a color legend, reusable duration controls, move and
+  delete. It uses the same half-hour grid and dnd-kit pointer/keyboard sensors.
+  The Add Session modal is an accessible alternative to dragging. Sessions have
+  day/time and an optional designation, never room/section pickers. A rejected
+  overlap shows the server message and a shake when motion is enabled.
+
+The dashboard and Reports load status now use computed faculty time / weekly
+target. Teaching overload is indicated separately. Missing computed report data
+is shown as unavailable, rather than falling back to deprecated max units.
+
+Schedule retains its existing drag/drop, duration, color, conflict and override
+pipeline with By Room / By Faculty / By Section tabs. An entity choice gates the
+grid. Faculty and section scopes include all rooms, with a room selector for new
+teaching blocks. Each selected scope links to its corresponding print form.
+
+`/form-settings` is Chair-only: institution lines, college/department/program,
+school and TUV NORD PNG/JPG uploads/previews (≤2MB), separate form reference codes
+and revisions, term effectivity, signatory options and configurable load rules.
+
+`/print/:faculty-or-sections-or-rooms/:id?termId=` renders the shared department
+form with school logo left, title centered, TUV/reference/revision on the right,
+semester/year, effectivity and entity details. The Mon–Sat grid includes assignment
+colors; faculty functions display only their type labels. The faculty form adds
+computed load, designation, overload and student tables. Three signatory selectors
+and print-only custom names appear before printing. A4 landscape print CSS hides
+app chrome; the faculty timetable and summary may occupy separate pages so text
+is not shrunk to force one page.
+
+Excel buttons call authenticated server export routes. The print view exports
+with its selected signatures; Reports/Schedule/Teaching Load use saved defaults.
+Faculty exports contain Schedule and formula-driven Teaching Load sheets.
+FACULTY users may print/export only their own faculty program; the server enforces
+this even if a client sends another ID.
+
+The TUV NORD logo, approved student/room reference codes, actual term dates and
+final designation list require Chair configuration. Missing assets/codes are
+shown as setup needs rather than replaced with invented institutional details.

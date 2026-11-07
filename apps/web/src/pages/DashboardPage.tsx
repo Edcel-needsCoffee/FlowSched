@@ -215,7 +215,7 @@ export function PersonalView({
           {(summary.teaching_overload??0)>0&&<p className="mt-2 text-sm text-amber-700">Teaching overload: {summary.teaching_overload}h</p>}
         </div>
         <StatCard label="My subjects" value={summary.my_subjects_count} />
-        <StatCard label="Hours remaining" value={summary.my_remaining_hours} suffix="h" />
+        <StatCard label="Hours to weekly target" value={summary.remaining_to_target??0} suffix="h" />
       </div>
       <div className={cardCls}>
         <h2 className={sectionTitleCls}>Upcoming classes</h2>

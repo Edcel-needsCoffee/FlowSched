@@ -5,7 +5,7 @@ import { createApp } from '../app.js';
 import { signAccessToken } from '../services/auth.service.js';
 import ExcelJS from 'exceljs';
 const prefix=`FSP-${process.pid}-${Date.now()}-`;
-let faculty='',other='',term='',assignment='',section='',designation='',chair='',own='',outsider='',admin='';
+let faculty='',other='',term='',assignment='',section='',room='',designation='',chair='',own='',outsider='',admin='';
 const app=createApp();
 const session=(extra:Record<string,unknown>={})=>({type:'RESEARCH',day_of_week:'MON',start_time:'08:00',end_time:'09:00',...extra});
 const endpoint=(part:string,id=faculty)=>`/api/faculty/${id}/${part}?termId=${term}`;
@@ -14,6 +14,7 @@ beforeAll(async()=>{
   const a=await prisma.faculty.create({data:{employee_no:prefix+'A',first_name:'Fixture',last_name:'A'}});faculty=a.id;
   other=(await prisma.faculty.create({data:{employee_no:prefix+'B',first_name:'Fixture',last_name:'B'}})).id;
   term=(await prisma.academicTerm.create({data:{school_year:prefix+'2026',semester:'SECOND',effectivity_start:'2026-11-01',effectivity_end:'2027-03-31'}})).id;
+  room=(await prisma.room.create({data:{name:prefix+'Room'}})).id;
   const subject=await prisma.subject.create({data:{code:prefix+'IE',title:'Fixture subject',units:3,lecture_hours:3,lab_hours:3}});
   for(let i=0;i<5;i++){
     const s=await prisma.section.create({data:{name:prefix+i,year_level:1}});
@@ -42,18 +43,20 @@ afterAll(async()=>{
   await prisma.faculty.deleteMany({where:{employee_no:{startsWith:prefix}}});
   await prisma.subject.deleteMany({where:{code:{startsWith:prefix}}});
   await prisma.section.deleteMany({where:{name:{startsWith:prefix}}});
+  await prisma.room.deleteMany({where:{name:{startsWith:prefix}}});
   await prisma.academicTerm.deleteMany({where:{id:term}});
   await prisma.designation.deleteMany({where:{name:{startsWith:prefix}}});
   await prisma.signatoryOption.deleteMany({where:{name:{startsWith:prefix}}});
 });
 describe('faculty program APIs',()=>{
   it('schedule slots accept faculty, section and room scopes with validated UUIDs',async()=>{
-    await prisma.scheduleSlot.create({data:{workload_assignment_id:assignment,session_type:'LECTURE',day_of_week:'MON',start_time:'14:00',end_time:'15:00'}});
+    await prisma.scheduleSlot.create({data:{workload_assignment_id:assignment,room_id:room,session_type:'LECTURE',day_of_week:'MON',start_time:'14:00',end_time:'15:00'}});
     for(const query of [`facultyId=${faculty}`,`sectionId=${section}`]){
       const res=await request(app).get(`/api/schedule-slots?termId=${term}&${query}`).set('Authorization',`Bearer ${chair}`);expect(res.status).toBe(200);expect(res.body.data).toHaveLength(1);
     }
     expect((await request(app).get(`/api/schedule-slots?termId=${term}&facultyId=${other}`).set('Authorization',`Bearer ${chair}`)).body.data).toHaveLength(0);
     const roomScope=await request(app).get(`/api/schedule-slots?termId=${term}&roomId=${section}`).set('Authorization',`Bearer ${chair}`);expect(roomScope.status).toBe(200);expect(roomScope.body.data).toHaveLength(0);
+    expect((await request(app).get(`/api/schedule-slots?termId=${term}&roomId=${room}`).set('Authorization',`Bearer ${chair}`)).body.data).toHaveLength(1);
     expect((await request(app).get('/api/schedule-slots?roomId=invalid').set('Authorization',`Bearer ${chair}`)).status).toBe(400);
   });
   it('F10: faculty cannot read or edit someone else’s load, sessions, functions, or students',async()=>{
@@ -132,6 +135,7 @@ describe('faculty program APIs',()=>{
     expect((await request(app).get(`/api/forms/faculty/${faculty}?termId=${term}`).set('Authorization',`Bearer ${outsider}`)).status).toBe(403);
     expect((await request(app).get(`/api/forms/sections/${section}?termId=${term}`).set('Authorization',`Bearer ${own}`)).status).toBe(403);
     const student=await request(app).get(`/api/forms/sections/${section}?termId=${term}`).set('Authorization',`Bearer ${chair}`);expect(student.status).toBe(200);expect(student.body.template.type).toBe('STUDENT_CLASS_PROGRAM');
+    const invalidSig=await request(app).get(`/api/forms/faculty/${faculty}?termId=${term}&sig_prepared=${room}`).set('Authorization',`Bearer ${chair}`);expect(invalidSig.status).toBe(400);
   });
   it('exports a faculty workbook with shared header, embedded logo, selected signatures and live load formulas',async()=>{
     const response=await request(app).get(`/api/exports/faculty/${faculty}?termId=${term}&sig_prepared=Fixture%20Prepared`).set('Authorization',`Bearer ${own}`).buffer(true).parse((res,done)=>{const chunks:Buffer[]=[];res.on('data',(chunk:Buffer)=>chunks.push(chunk));res.on('end',()=>done(null,Buffer.concat(chunks)));});
@@ -150,5 +154,7 @@ describe('faculty program APIs',()=>{
     expect((await request(app).get(`/api/exports/sections/${section}?termId=${term}`).set('Authorization',`Bearer ${own}`)).status).toBe(403);
     const response=await request(app).get(`/api/exports/sections/${section}?termId=${term}`).set('Authorization',`Bearer ${chair}`).buffer(true).parse((res,done)=>{const chunks:Buffer[]=[];res.on('data',(chunk:Buffer)=>chunks.push(chunk));res.on('end',()=>done(null,Buffer.concat(chunks)));});
     expect(response.status).toBe(200);const wb=new ExcelJS.Workbook();await wb.xlsx.load(response.body);expect(wb.worksheets).toHaveLength(1);expect(wb.worksheets[0].getCell('B4').value).toBe('STUDENT CLASS PROGRAM');
+    const roomResponse=await request(app).get(`/api/exports/rooms/${room}?termId=${term}`).set('Authorization',`Bearer ${chair}`).buffer(true).parse((res,done)=>{const chunks:Buffer[]=[];res.on('data',(chunk:Buffer)=>chunks.push(chunk));res.on('end',()=>done(null,Buffer.concat(chunks)));});
+    expect(roomResponse.status).toBe(200);const roomBook=new ExcelJS.Workbook();await roomBook.xlsx.load(roomResponse.body);expect(roomBook.worksheets[0].getCell('B4').value).toBe('CLASSROOM UTILIZATION');
   });
 });

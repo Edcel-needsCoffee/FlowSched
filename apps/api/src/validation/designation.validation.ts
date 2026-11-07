@@ -48,6 +48,7 @@ export const createDesignationSchema = z
     default_hours: hoursSchema('Default hours'),
     service_credit_hours: z.coerce
       .number({ invalid_type_error: 'Service credit hours must be a number' })
+      .finite()
       .min(0, 'Service credit hours must be 0 or more')
       .default(0),
     grants_service_credit: z
@@ -75,6 +76,7 @@ export const assignDesignationSchema = z
     hours: hoursSchema('Hours'),
     service_credit: z.coerce
       .number({ invalid_type_error: 'Service credit must be a number' })
+      .finite()
       .min(0, 'Service credit must be 0 or more')
       .optional(),
   })
@@ -87,6 +89,7 @@ export const updateFacultyDesignationSchema = z
     hours: hoursSchema('Hours').optional(),
     service_credit: z.coerce
       .number({ invalid_type_error: 'Service credit must be a number' })
+      .finite()
       .min(0, 'Service credit must be 0 or more')
       .optional(),
   })

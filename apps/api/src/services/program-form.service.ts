@@ -30,6 +30,7 @@ export async function getProgramForm(user:AuthTokenPayload,kindValue:unknown,idV
     const chosen=query[`sig_${slot.toLowerCase()}` as 'sig_prepared'|'sig_reviewed'|'sig_approved'];
     const options=config.signatories.filter(s=>s.active&&s.slot===slot);
     const match=chosen?options.find(s=>s.id===chosen):options[0];
+    if(chosen&&z.string().uuid().safeParse(chosen).success&&!match)throw ApiError.badRequest('Signatory option is inactive, unknown, or belongs to another slot');
     return {slot,name:match?.name??chosen??'',title:match?.title??'',option_id:match?.id??null};
   });
   return {kind,entity,term:toTermDto(term),settings:config.settings,template,signatory_options:config.signatories.filter(s=>s.active),signatures,

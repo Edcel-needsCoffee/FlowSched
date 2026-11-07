@@ -123,13 +123,13 @@ export function calculateTeachingLoad(
   for (const key of ['research', 'extension', 'imp', 'consultation'] as const) {
     const declared = round2(otherFunctions[key] ?? 0);
     const plotted = round2(input.functionPlottedHours?.[key] ?? 0);
-    const valid = input.functionValidSessions?.[key] ?? plotted >= config.minDesignationSessionHours;
+    const valid = plotted >= config.minDesignationSessionHours && (input.functionValidSessions?.[key] ?? true);
     functions[key] = { declared, plotted, counted: valid ? round2(Math.min(declared, plotted)) : 0 };
     if (declared > 0 && (!valid || plotted < declared)) warnings.push(`${key}: ${declared} declared, ${plotted} plotted; ${functions[key].counted} counted. Valid sessions are required.`);
   }
   const acceptedDesignations = designations.map((d) => {
     const plotted = round2(d.plotted_hours ?? 0);
-    const accepted = d.valid_session ?? plotted >= config.minDesignationSessionHours;
+    const accepted = plotted >= config.minDesignationSessionHours && (d.valid_session ?? true);
     if (!accepted) warnings.push(`${d.name}: designation not accepted; a session of at least ${config.minDesignationSessionHours} hour(s) is required.`);
     return { ...d, hours: round2(d.hours), service_credit: round2(d.service_credit), plotted_hours: plotted, accepted, counted_hours: accepted ? round2(Math.min(d.hours, plotted)) : 0 };
   });
@@ -249,6 +249,7 @@ export function calculateTeachingLoad(
       `Extension ${extension} is below the minimum ${config.minFunctionHours.extension} hour(s).`,
     );
   }
+  if(imp<config.minFunctionHours.imp)warnings.push(`IMP ${imp} is below the minimum ${config.minFunctionHours.imp} hour(s).`);
   if (consultation !== config.consultationHours) {
     warnings.push(
       `Consultation ${consultation} differs from the configured ${config.consultationHours} hour(s).`,
@@ -287,15 +288,15 @@ export function calculateTeachingLoad(
 }
 
 /* -------------------------------------------------------------------------- */
-/* Thin DB loader (Bite 1) — delegates to the pure engine                     */
+/* Read loader — delegates all derived values to the existing pure engine     */
 /* -------------------------------------------------------------------------- */
 
 /**
  * Load a faculty's non-deleted WorkloadAssignments for a term, map each to its
  * Subject's lecture/lab hours, and hand the result to the pure engine.
  *
- * Other functions, designations and plotted overload are zeros/empty for now
- * — DB columns for those do not exist yet (Bite 2).
+ * Function declarations, valid sessions, active designations and distinct
+ * section counts are fetched on read. Derived values are never persisted.
  */
 export async function getFacultyTeachingLoad(
   facultyId: string,
@@ -338,7 +339,7 @@ export async function getFacultyTeachingLoad(
   ]);
   if(!term) throw new Error('Term not found');
   const hours=(s:{start_time:string;end_time:string})=>round2((Number(s.end_time.slice(0,2))*60+Number(s.end_time.slice(3,5))-Number(s.start_time.slice(0,2))*60-Number(s.start_time.slice(3,5)))/60);
-  const sumHours=(type:string,id?:string)=>round2(sessions.filter(s=>s.type===type && (!id || s.faculty_designation_id===id) && hours(s)>=config.minDesignationSessionHours).reduce((sum,s)=>sum+hours(s),0));
+  const sumHours=(type:string,id?:string)=>round2(sessions.filter(s=>s.type===type && (!id || s.faculty_designation_id===id) && hours(s)>=config.minDesignationSessionHours && (type!=='OVERLOAD'||Number.isInteger(hours(s)))).reduce((sum,s)=>sum+hours(s),0));
   const countMap=new Map(students.map(s=>[s.section_id,s.student_count]));
   const input: TeachingLoadInput = {
     assignments: rows.map((row) => ({
@@ -360,7 +361,7 @@ export async function getFacultyTeachingLoad(
     overload_plotted_hours: sumHours('OVERLOAD'),
   };
 
-  const result=calculateTeachingLoad(input,config);
+  const result=calculateTeachingLoad(input,{...config,consultationHours:functions?.consultation_hours??config.consultationHours});
   result.prep_breakdown=result.prep_breakdown.map(p=>({...p,subject_code:rows.find(r=>r.subject_id===p.subject_id)?.subject.code}));
   result.effectivity={start:functions?.effectivity_start??term.effectivity_start,end:functions?.effectivity_end??term.effectivity_end,source:functions?.effectivity_start?'FACULTY':'TERM'};
   result.sessions=sessions;

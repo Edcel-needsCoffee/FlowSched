@@ -275,3 +275,52 @@ The current Prisma schema also includes these fields/features:
 - `PATCH /api/rooms/:id` also toggles `is_under_maintenance`.
 - `POST /api/schedule-slots/:id/confirm-override` is the Chair-only explicit override path after a conflict response.
 - `GET /api/schedule-views/*` provides section, faculty, room, and rooms-overview read views; Faculty callers are restricted to their own faculty schedule where applicable.
+
+## 12. Teaching load and department forms (current SQLite implementation)
+
+The current source of truth is `apps/api/prisma/schema.prisma`. Local development
+uses SQLite, String/Zod role and session values, and Float hour columns. The new
+tables extend the existing designation and teaching-load models; no derived load
+totals are stored. Migrations `20261107160000_load_settings` and
+`20261107170000_faculty_program` build on the existing `sqlite_init` migration.
+
+| Model / table | Stored inputs and constraints |
+|---|---|
+| `LoadSettings` / `load_settings` | Singleton; lab coefficient, weekly target, consultation hours, function/session minimums, JSON prep tiers |
+| `FacultyLoad` / `faculty_loads` | Unique faculty + term; declared Research/Extension/IMP, nullable Chair consultation override, optional paired effectivity override |
+| `FacultySession` / `faculty_sessions` | Faculty + term, type, optional faculty-designation link, day/start/end, soft deletion; no room or section |
+| `FacultySectionStudents` / `faculty_section_students` | Unique faculty + section + term; integer 0–200; totals deduplicate handled sections |
+| Existing `Designation` | Name, default hours, `service_credit_hours`, grants flag, soft deletion; four seeded placeholders remain editable |
+| Existing `FacultyDesignation` | Faculty + designation + term, assigned hours/credit, assigning user, soft deletion; active triple is unique |
+| `AcademicTerm` | Nullable `effectivity_start` / `effectivity_end` ISO dates; paired, real dates and end ≥ start enforced on API writes |
+| `FormSettings` / `form_settings` | Singleton institution/college lines, department, program, school and TUV logo paths |
+| `FormTemplate` / `form_templates` | One row per FACULTY_CLASS_PROGRAM / STUDENT_CLASS_PROGRAM / CLASSROOM_UTILIZATION; independent title/reference/revision |
+| `SignatoryOption` / `signatory_options` | Slot, name, title, active flag; deletion deactivates the option |
+
+`User.role` now recognizes CHAIR, FACULTY and ACADEMIC_ADMIN end to end. The seed
+includes a local academic-administrator account using the same development-only
+password policy as the existing Chair seed. Existing role columns remain Strings.
+`Faculty.max_units` is retained and explicitly deprecated for load calculations.
+
+Soft-delete-aware raw partial indexes protect active designation names, active
+faculty-designation triples, and active faculty session intervals. They are
+reapplied idempotently by `prisma/apply-checks.ts`; Prisma's ordinary `@@unique`
+annotation cannot express an active-only index. API services also validate
+duplicates, ownership, handled sections, whole-hour overload caps, minimum
+sessions and conflicts. Function-session overlap/cap validation and persistence
+run in one SQLite transaction.
+
+Session and student inputs cascade when their faculty/term is physically removed.
+Soft-deleted designations and assignments are excluded from calculated loads and
+their sessions no longer count or block future placement. Teaching placement
+checks include faculty sessions in the same term and retain the explicit Chair
+override route. A later load/settings change is handled by read-time warnings
+and capping, not a stored/reconciled derived balance.
+
+Logo uploads reuse memory-upload, 2MB and magic-byte validation conventions from
+avatars, restricted to PNG/JPG. Files live under the configured uploads root's
+`form-logos` directory; settings paths accept only those files or the default
+school image. Arbitrary filesystem paths and external URLs are not accepted.
+
+See `docs/teaching-load-rules.md` for formulas, ownership, API routes and assumptions
+awaiting Chairman confirmation.

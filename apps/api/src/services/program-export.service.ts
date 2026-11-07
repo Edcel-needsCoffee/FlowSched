@@ -32,7 +32,8 @@ async function addHeader(wb:ExcelJS.Workbook,s:ExcelJS.Worksheet,form:Program){
   for(let r=1;r<=9;r++)s.getRow(r).height=18;
   s.mergeCells('A1:A5');s.mergeCells('F1:G3');
   const lines=form.settings.school_lines.split('\n');
-  for(let r=1;r<=3;r++){s.mergeCells(r,2,r,5);s.getCell(r,2).value=lines[r-1]??'';}
+  s.mergeCells('B1:E3');s.getCell('B1').value=form.settings.school_lines;
+  for(let r=1;r<=3;r++)s.getRow(r).height=Math.max(18,Math.ceil(lines.length*12/3));
   s.mergeCells('B4:E4');s.getCell('B4').value=form.template.title;s.getCell('B4').font={name:'Arial',size:15,bold:true};
   s.mergeCells('B5:E5');s.getCell('B5').value=form.term.label;
   s.mergeCells('F4:G4');s.getCell('F4').value=`Ref. Code: ${form.template.ref_code}`;
@@ -43,7 +44,9 @@ async function addHeader(wb:ExcelJS.Workbook,s:ExcelJS.Worksheet,form:Program){
   s.mergeCells('E8:G8');s.getCell('E8').value=`${form.kind==='faculty'?'Faculty':form.kind==='sections'?'Section':'Room'}: ${form.entity.name}`;
   s.mergeCells('A9:G9');s.getCell('A9').value=`Effectivity: ${form.effectivity.start??'Not set'} to ${form.effectivity.end??'Not set'}${form.entity.rank?`     Academic rank: ${form.entity.rank}`:''}`;
   for(let r=1;r<=9;r++)for(let c=1;c<=7;c++){const cell=s.getCell(r,c);cell.font={name:'Arial',size:r===4&&c>=2&&c<=5?15:10,bold:r===2||r===4};cell.alignment={horizontal:r<=5?'center':'left',vertical:'middle',wrapText:true};}
-  s.getRow(7).height=30;s.getRow(8).height=30;s.getRow(4).height=24;
+  s.getRow(7).height=Math.max(30,Math.ceil(form.settings.college_lines.length/70)*12,Math.ceil(form.settings.department.length/55)*12);
+  s.getRow(8).height=Math.max(30,Math.ceil(form.settings.program.length/70)*12,Math.ceil(form.entity.name.length/55)*12);
+  s.getRow(4).height=Math.max(24,Math.ceil(form.template.title.length/45)*18);
   await addLogo(wb,s,form.settings.school_logo_path,0,86,86);
   await addLogo(wb,s,form.settings.tuv_logo_path,5,120,48);
 }
@@ -99,6 +102,7 @@ async function addTeachingLoad(wb:ExcelJS.Workbook,form:Program){
   s.getCell('A3').value='Weekly faculty time target';s.getCell('B3').value=config.facultyWeeklyHours;
   s.getCell('A4').value='Minimum valid session hours';s.getCell('B4').value=config.minDesignationSessionHours;
   s.getCell('A5').value=form.term.label;
+  s.mergeCells('D5:G5');s.getCell('D5').value=`Effectivity: ${form.effectivity.start??'Not set'} to ${form.effectivity.end??'Not set'}`;
   s.getCell('H2').value='Minimum preps';s.getCell('I2').value='Maximum preps';s.getCell('J2').value='Ceiling';s.getColumn(10).width=15;
   config.prepTiers.forEach((tier,i)=>{s.getCell(i+3,8).value=tier.minPreps;s.getCell(i+3,9).value=tier.maxPreps;s.getCell(i+3,10).value=tier.ceiling;});
   const assignmentStart=31,assignmentEnd=assignmentStart+Math.max(1,assignments.length)-1;

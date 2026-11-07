@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
+import { seedProgramDefaults } from './seed-program-defaults.js';
 
 const prisma = new PrismaClient();
 
@@ -57,11 +58,7 @@ async function main(): Promise<void> {
     },
   });
 
-  // Sections + faculty, so every filter dropdown and the Workload Assignment
-  // Local-only academic administrator; replace credentials outside development.
-  await prisma.user.upsert({where:{email:'admin.dev@flowsched.local'},update:{},create:{email:'admin.dev@flowsched.local',password_hash:devPasswordHash,role:'ACADEMIC_ADMIN'}});
-  await prisma.loadSettings.upsert({where:{id:'singleton'},create:{id:'singleton'},update:{}});
-  await prisma.formSettings.upsert({where:{id:'singleton'},create:{id:'singleton'},update:{}});
+  const designationCount=await seedProgramDefaults(prisma,devPasswordHash);
 
   // Sections + faculty, so every filter dropdown and the Workload Assignment
   // page's form (faculty × subject × section) have real options on a fresh
@@ -97,30 +94,9 @@ async function main(): Promise<void> {
     }
   }
 
-  // PLACEHOLDER — replace with the Chairman's real list
-  // One named "Department Chair" with grants_service_credit false;
-  // three generic ones with grants_service_credit true and small default hours.
-  const placeholderDesignations = [
-    { name: 'Department Chair', default_hours: 0, service_credit_hours: 0, grants_service_credit: false },
-    { name: 'Designation 1', default_hours: 2, service_credit_hours: 1, grants_service_credit: true },
-    { name: 'Designation 2', default_hours: 1, service_credit_hours: 1, grants_service_credit: true },
-    { name: 'Designation 3', default_hours: 1, service_credit_hours: 1, grants_service_credit: true },
-  ];
-  for (const d of placeholderDesignations) {
-    const existing = await prisma.designation.findUnique({ where: { name: d.name } });
-    if (existing) {
-      await prisma.designation.update({
-        where: { id: existing.id },
-        data: { default_hours: d.default_hours, service_credit_hours: d.service_credit_hours, grants_service_credit: d.grants_service_credit },
-      });
-    } else {
-      await prisma.designation.create({ data: d });
-    }
-  }
-
   // eslint-disable-next-line no-console
   console.log(
-    `[seed] term=${term.school_year} ${term.semester} rooms=4 subjects=3 sections=4 faculty=3 users=1 designations=${placeholderDesignations.length}`,
+    `[seed] term=${term.school_year} ${term.semester} rooms=4 subjects=3 sections=4 faculty=3 users=2 designations=${designationCount}`,
   );
 }
 

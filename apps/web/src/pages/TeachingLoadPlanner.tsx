@@ -27,7 +27,9 @@ function SessionBlock({session,start,onDelete}:{session:FacultySession;start:num
 }
 export function TeachingLoadPlanner({slots,sessions,designations,minimum,onSave,onDelete}:{slots:ScheduleSlot[];sessions:FacultySession[];designations:LoadDesignation[];minimum:number;onSave:(data:SessionInput,id?:string)=>Promise<void>;onDelete:(id:string)=>void}){
   const reduce=useReducedMotion();
-  const [duration,setDuration]=useState(Math.max(1,minimum));
+  const gridMinimum=Math.ceil(minimum*2)/2;
+  const maximum=23.5;
+  const [duration,setDuration]=useState(Math.max(1,gridMinimum));
   const [message,setMessage]=useState('');const [shake,setShake]=useState(0);const [open,setOpen]=useState(false);
   const [type,setType]=useState<FunctionType>('RESEARCH');const [designation,setDesignation]=useState('');const [day,setDay]=useState('MON');const [startTime,setStartTime]=useState('08:00');const [busy,setBusy]=useState(false);
   const sensors=useSensors(useSensor(PointerSensor,{activationConstraint:{distance:6}}),useSensor(KeyboardSensor));
@@ -45,7 +47,7 @@ export function TeachingLoadPlanner({slots,sessions,designations,minimum,onSave,
   return <section className="rounded-2xl border border-leaf-100 bg-white p-5">
     <div className="flex items-center justify-between"><h2 className="font-semibold">Weekly function planner</h2><button className="rounded-lg bg-leaf-500 px-3 py-2 text-sm" onClick={()=>setOpen(true)}>Add session</button></div>
     <p className="my-2 text-xs text-ink/60">Drag a type onto the half-hour grid. Teaching is read-only. Drag existing sessions to move them.</p>
-    <DurationPicker value={duration} remaining={12} cap={12} minimum={minimum} note={`Minimum ${minimum}h; overload requires whole hours.`} onStep={delta=>setDuration(v=>Math.max(minimum,Math.min(12,v+delta*.5)))} onCommit={raw=>{const v=Number(raw);if(Number.isFinite(v)&&v>=minimum&&v<=12&&Number.isInteger(v*2))setDuration(v);}} />
+    <DurationPicker value={duration} remaining={maximum} cap={maximum} minimum={gridMinimum} note={`Minimum ${minimum}h; overload requires whole hours.`} onStep={delta=>setDuration(v=>Math.max(gridMinimum,Math.min(maximum,v+delta*.5)))} onCommit={raw=>{const v=Number(raw);if(Number.isFinite(v)&&v>=gridMinimum&&v<=maximum&&Number.isInteger(v*2))setDuration(v);}} />
     <motion.div key={shake} animate={reduce?{}:{x:message?[0,-5,5,-3,0]:0}}>{message&&<p role="alert" className="my-2 text-sm text-red-700">{message}</p>}</motion.div>
     <DndContext sensors={sensors} onDragEnd={onDrop}>
       <div className="my-3 flex flex-wrap gap-2" aria-label="Session types and color legend">{(['RESEARCH','EXTENSION','IMP','CONSULTATION','OVERLOAD'] as FunctionType[]).map(t=><Chip key={t} type={t} label={t} />)}{designations.map(d=><Chip key={d.id} type="DESIGNATION" id={d.id} label={d.name}/>)}</div>
