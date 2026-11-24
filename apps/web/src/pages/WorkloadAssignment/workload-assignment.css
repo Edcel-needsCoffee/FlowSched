@@ -1,0 +1,24 @@
+.workload-assignment-page { font-family:'Plus Jakarta Sans','Segoe UI',sans-serif; padding-right:5px; padding-bottom:6px; }
+.app-bg .workload-assignment-page button.management-edit-button { background:linear-gradient(135deg,#a8f06a,#22c55e 55%,#0f9d58)!important; color:#06210f!important; border-color:#0b0b0b!important; }
+.app-bg .workload-assignment-page>div:first-child,.app-bg .workload-assignment-page>div.grid,.app-bg .workload-assignment-page div.overflow-x-auto {
+  border:2px solid var(--ui-ink)!important; border-radius:14px!important; background:var(--ui-surface)!important; box-shadow:4px 4px 0 #0b0b0b!important;
+}
+.workload-assignment-page>div:first-child { padding:16px; }
+.workload-assignment-page>div:first-child h2 { font-family:'Plus Jakarta Sans','Segoe UI',sans-serif; letter-spacing:-.6px; }
+.app-bg .workload-assignment-page input,.app-bg .workload-assignment-page select { border:2px solid var(--ui-ink)!important; border-radius:8px!important; }
+.workload-assignment-page button { border:2px solid var(--ui-ink); border-radius:9px; box-shadow:2px 2px 0 #0b0b0b; transition:transform .15s ease,box-shadow .15s ease; }
+.workload-assignment-page button:hover:not(:disabled) { transform:translate(-1px,-1px); box-shadow:3px 3px 0 #0b0b0b; }
+.workload-assignment-page button:active:not(:disabled) { transform:translate(2px,2px); box-shadow:none; }
+.app-bg .workload-assignment-page button[class*='bg-leaf-'],.app-bg .workload-assignment-page button[type=submit] { background:linear-gradient(135deg,#a8f06a,#22c55e 55%,#0f9d58)!important; color:#06210f!important; border-color:#0b0b0b!important; }
+.app-bg .workload-assignment-page th { background:#fde047!important; color:#0b0b0b!important; text-transform:none; letter-spacing:0; border-bottom:2px solid #0b0b0b; }
+.workload-assignment-page td { padding-top:14px; padding-bottom:14px; }
+.app-bg .workload-assignment-page tbody tr:hover { background:var(--ui-soft); }
+.app-bg .workload-assignment-page [role=dialog] { border:2px solid var(--ui-ink)!important; background:var(--ui-surface)!important; box-shadow:6px 6px 0 #0b0b0b!important; }
+.workload-assignment-page [role=dialog] h2 { font-family:'Plus Jakarta Sans','Segoe UI',sans-serif; }
+.app-bg .workload-assignment-page [role=dialog] button[aria-label='Close dialog'] { background:#dc2626!important; color:#fff!important; border-color:#991b1b!important; }
+.app-bg .workload-assignment-page [role=dialog] button[aria-label='Close dialog']:hover { background:#b91c1c!important; }
+.workload-assignment-page [role=dialog]>div:first-child { background:#fde047!important; border-bottom:2px solid #0b0b0b; }
+.app-bg .workload-assignment-page button[class*='bg-red-'] { background:#dc2626!important; color:#fff!important; border-color:#991b1b!important; }
+@media(prefers-reduced-motion:reduce) { .workload-assignment-page button { transition:none; } }
+.app-bg .workload-assignment-page button[class*='text-red-'] { background:#dc2626!important; color:#fff!important; border-color:#991b1b!important; }
+.app-bg .workload-assignment-page button[class*='text-red-']:hover { background:#b91c1c!important; }

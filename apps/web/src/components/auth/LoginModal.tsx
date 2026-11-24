@@ -1,209 +1,51 @@
-import { useCallback, useEffect, useState, type FormEvent } from 'react';
+import { useEffect,useRef,useState,type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { z } from 'zod';
 import { loginRequest } from '../../lib/api';
 import { ForgotPasswordFlow } from './ForgotPasswordFlow';
-import { PasswordEyeButtonDark } from '../PasswordField';
+import { PasswordEyeButton } from '../PasswordField';
 import { useAuthStore } from '../../store/auth.store';
 import { useUiStore } from '../../store/ui.store';
+import '../../pages/Landing/landing.css';
 
-const loginFormSchema = z.object({
-  email: z.string().email('Enter a valid email address'),
-  password: z.string().min(1, 'Password is required'),
-});
-
-export function LoginModal(): JSX.Element | null {
-  const isOpen = useUiStore((s) => s.isLoginModalOpen);
-  const closeLoginModal = useUiStore((s) => s.closeLoginModal);
-  const navigate = useNavigate();
-  const login = useAuthStore((s) => s.login);
-  const reduce = useReducedMotion();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [mode, setMode] = useState<'login' | 'forgot'>('login');
-  const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
-  const [serverError, setServerError] = useState<string | null>(null);
-  const [pending, setPending] = useState(false);
-
-  const handleClose = useCallback(() => {
-    setMode('login');
-    setServerError(null);
-    closeLoginModal();
-  }, [closeLoginModal]);
-
-  useEffect(() => {
-    if (!isOpen) return undefined;
-    function onKey(e: KeyboardEvent): void {
-      if (e.key === 'Escape') handleClose();
-    }
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
-  }, [isOpen, handleClose]);
-
-  useEffect(() => {
-    if (!isOpen) return undefined;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = prev; };
-  }, [isOpen]);
-
-  async function handleSubmit(event: FormEvent): Promise<void> {
-    event.preventDefault();
-    const parsed = loginFormSchema.safeParse({ email, password });
-    if (!parsed.success) {
-      const flat = parsed.error.flatten().fieldErrors;
-      setFieldErrors({ email: flat.email?.[0], password: flat.password?.[0] });
-      return;
-    }
-    setFieldErrors({});
-    setServerError(null);
+export function LoginModal(): JSX.Element {
+  const {isLoginModalOpen:isOpen,closeLoginModal,theme,loginRole,setLoginRole}=useUiStore();
+  const login=useAuthStore(s=>s.login),navigate=useNavigate();
+  const [email,setEmail]=useState(''),[password,setPassword]=useState(''),[showPassword,setShowPassword]=useState(false);
+  const [mode,setMode]=useState<'login'|'forgot'>('login'),[error,setError]=useState(''),[pending,setPending]=useState(false);
+  const panel=useRef<HTMLDivElement>(null),emailRef=useRef<HTMLInputElement>(null);
+  useEffect(()=>{
+    panel.current?.toggleAttribute('inert',!isOpen);
+    if(!isOpen)return;
+    const opener=document.activeElement instanceof HTMLElement?document.activeElement:null;
+    const timer=window.setTimeout(()=>emailRef.current?.focus(),window.matchMedia?.('(prefers-reduced-motion: reduce)').matches?0:420);
+    const onKey=(event:KeyboardEvent)=>{if(event.key==='Escape'){closeLoginModal();opener?.focus();}};
+    document.addEventListener('keydown',onKey);
+    return()=>{window.clearTimeout(timer);document.removeEventListener('keydown',onKey);};
+  },[isOpen,closeLoginModal]);
+  useEffect(()=>{if(!isOpen){setMode('login');setError('');setPassword('');}},[isOpen]);
+  async function submit(event:FormEvent){
+    event.preventDefault();setError('');
+    if(!z.string().email().safeParse(email.trim()).success){setError('Enter a valid email address');return;}
+    if(!password){setError('Password is required');return;}
     setPending(true);
-    try {
-      const result = await loginRequest(parsed.data.email, parsed.data.password);
-      login({ user: result.user, accessToken: result.accessToken, refreshToken: result.refreshToken });
-      handleClose();
-      // Faculty land directly on their own workload (FR-10); management keeps
-      // the department dashboard as the entry point.
-      navigate(result.user.role === 'FACULTY' ? '/workload' : '/dashboard', { replace: true });
-    } catch (err) {
-      setPassword('');
-      setServerError(err instanceof Error ? err.message : 'Invalid email or password');
-    } finally {
-      setPending(false);
-    }
+    try{const result=await loginRequest(email.trim(),password);login({user:result.user,accessToken:result.accessToken,refreshToken:result.refreshToken});closeLoginModal();navigate('/dashboard',{replace:true});}
+    catch(err){setError(err instanceof Error?err.message:'Could not sign in. Please try again.');setPassword('');}
+    finally{setPending(false);}
   }
-
-  return (
-    <AnimatePresence>
-      {isOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <motion.div
-            aria-hidden="true"
-            data-testid="login-modal-backdrop"
-            onClick={handleClose}
-            className="absolute inset-0 bg-navy-950/60 backdrop-blur-sm"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={reduce ? { duration: 0 } : { duration: 0.2 }}
-          />
-          <motion.div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="login-title"
-            onClick={(e) => e.stopPropagation()}
-            className="glass-card-dark relative z-10 w-full max-w-sm overflow-hidden p-0"
-            initial={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: 10 }}
-            animate={reduce ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }}
-            exit={reduce ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: 10 }}
-            transition={reduce ? { duration: 0 } : { duration: 0.25 }}
-          >
-            <div aria-hidden="true" className="h-1.5 w-full bg-gradient-to-r from-brand-500 via-signal-300 to-brand-500" />
-            <div className="p-8">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span aria-hidden="true" className="inline-block h-2.5 w-2.5 rounded-full bg-signal-300 shadow-[0_0_0_4px_rgba(127,227,255,0.18)]" />
-                <span className="text-sm font-bold text-ink-100">FlowSched</span>
-              </div>
-              <button
-                type="button"
-                onClick={handleClose}
-                aria-label="Close login dialog"
-                className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/[0.06] text-xl leading-none text-ink-300 hover:bg-white/[0.10] hover:text-ink-100"
-              >
-                ×
-              </button>
-            </div>
-            <h1 id="login-title" className="mt-6 text-2xl font-bold text-ink-100">
-              {mode === 'forgot' ? 'Reset password' : 'Welcome back'}
-            </h1>
-            <p className="mt-1 text-sm text-ink-300">
-              {mode === 'forgot' ? 'We’ll email you a 6-digit PIN to set a new password.' : 'Sign in to your FlowSched account.'}
-            </p>
-            {mode === 'forgot' ? (
-              <ForgotPasswordFlow initialEmail={email} onBackToLogin={() => setMode('login')} onDone={() => setMode('login')} />
-            ) : (
-            <form onSubmit={handleSubmit} noValidate className="mt-6 space-y-4">
-              {serverError ? (
-                <div role="alert" className="flex items-center gap-2 rounded-lg border border-red-500/40 bg-red-500/15 px-3 py-2.5 text-sm text-red-300">
-                  <span aria-hidden="true" className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
-                    !
-                  </span>
-                  <span>{serverError}</span>
-                </div>
-              ) : null}
-              <div>
-                <label htmlFor="login-email" className="glass-label-dark">
-                  Email
-                </label>
-                <div className="relative">
-                  <span aria-hidden="true" className="glass-icon-dark">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></svg>
-                  </span>
-                  <input
-                    id="login-email"
-                    type="email"
-                    autoComplete="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="glass-input-dark py-3 pl-10 pr-3.5"
-                  />
-                </div>
-                {fieldErrors.email ? <p className="mt-1 text-sm text-red-400">{fieldErrors.email}</p> : null}
-              </div>
-              <div>
-                <label htmlFor="login-password" className="glass-label-dark">
-                  Password
-                </label>
-                <div className="relative">
-                  <span aria-hidden="true" className="glass-icon-dark">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
-                  </span>
-                  <input
-                    id="login-password"
-                    type={showPassword ? 'text' : 'password'}
-                    autoComplete="current-password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="glass-input-dark py-3 pl-10 pr-10"
-                  />
-                  <PasswordEyeButtonDark visible={showPassword} onToggle={() => setShowPassword((v) => !v)} label="password" />
-                </div>
-                {fieldErrors.password ? <p className="mt-1 text-sm text-red-400">{fieldErrors.password}</p> : null}
-              </div>
-              {/* TODO: wire remember-me once backend supports it. */}
-              <div className="flex items-center justify-between text-xs">
-                <label className="flex cursor-pointer items-center gap-2 text-ink-300">
-                  <input type="checkbox" className="h-3.5 w-3.5 accent-brand-500" />
-                  Remember me
-                </label>
-                <button type="button" onClick={() => { setServerError(null); setMode('forgot'); }} className="glass-link-dark">Forgot password?</button>
-              </div>
-              <motion.button
-                type="submit"
-                disabled={pending}
-                whileHover={reduce ? undefined : { scale: 1.03 }}
-                whileTap={reduce ? undefined : { scale: 0.98 }}
-                className="glass-btn-primary-dark"
-              >
-                {pending ? 'Signing in…' : 'Sign in'}
-              </motion.button>
-            </form>
-            )}
-            <div className="mt-6 flex items-center gap-2.5">
-              <span aria-hidden="true" className="h-px flex-1 bg-glass-border" />
-              <span className="text-[11px] text-ink-500">FlowSched · Industrial Engineering Dept.</span>
-              <span aria-hidden="true" className="h-px flex-1 bg-glass-border" />
-            </div>
-            <p className="mt-3 text-center text-xs text-ink-300">
-              Having trouble? Contact your <span className="glass-link-dark">department administrator</span>.
-            </p>
-            </div>
-          </motion.div>
-        </div>
-      ) : null}
-    </AnimatePresence>
-  );
+  return <div ref={panel} id="fs-login-panel" data-theme={theme} className={`fs-public fs-login-panel${isOpen?' fs-login-open':''}`} role={isOpen?'dialog':undefined} aria-modal="false" aria-hidden={!isOpen} aria-labelledby="login-title">
+    <div className="fs-panel-brand"><span className="fs-mark">F</span><div><b>FlowSched</b><small>Engineering Department</small></div><button type="button" className="fs-close" onClick={closeLoginModal} aria-label="Close login dialog"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"/></svg></button></div>
+    <hr/>
+    <h2 id="login-title">{mode==='forgot'?'Reset password':'Welcome back'}</h2><p className="fs-login-subtitle">{mode==='forgot'?'Let’s get you back on track.':'Your next well-planned week starts here.'}</p>
+    {mode==='forgot'?<div className="fs-forgot"><ForgotPasswordFlow initialEmail={email} onBackToLogin={()=>setMode('login')} onDone={()=>setMode('login')}/></div>:<>
+      <div className="fs-segments" role="group" aria-label="Sign in role">{(['Chair','Faculty'] as const).map(role=><button key={role} type="button" aria-pressed={loginRole===role} className={loginRole===role?'fs-segment-active':''} onClick={()=>setLoginRole(role)}>{role}</button>)}</div>
+      <form onSubmit={submit} noValidate>
+        {error&&<p className="fs-login-error" role="alert">{error}</p>}
+        <label htmlFor="login-email">Email</label><input ref={emailRef} id="login-email" type="email" required autoComplete="email" placeholder="you@department.edu" value={email} onChange={e=>setEmail(e.target.value)}/>
+        <label htmlFor="login-password">Password</label><div className="fs-password"><input id="login-password" type={showPassword?'text':'password'} required autoComplete="current-password" placeholder="Enter your password" value={password} onChange={e=>setPassword(e.target.value)}/><PasswordEyeButton visible={showPassword} onToggle={()=>setShowPassword(v=>!v)} label="password"/></div>
+        <button className="fs-button fs-primary fs-submit" disabled={pending}>{pending?'Signing in...':'Sign in'}<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button>
+        <button type="button" className="fs-forgot-link" onClick={()=>{setError('');setMode('forgot');}}>Forgot password?</button>
+      </form></>}
+    <hr/><p className="fs-help">Having trouble? Contact your department administrator.</p>
+  </div>;
 }

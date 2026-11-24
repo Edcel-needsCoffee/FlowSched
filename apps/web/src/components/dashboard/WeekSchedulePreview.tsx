@@ -6,14 +6,14 @@ import type { WeekPreviewRoom } from '../../lib/dashboard';
  * editing happens on the Schedule page.
  */
 
-const DAY_ORDER = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'] as const;
+const DAY_ORDER = ['MON', 'TUE', 'WED', 'THU', 'FRI'] as const;
 const DAY_LABELS: Record<(typeof DAY_ORDER)[number], string> = {
   MON: 'Mon',
   TUE: 'Tue',
   WED: 'Wed',
   THU: 'Thu',
   FRI: 'Fri',
-  SAT: 'Sat',
+
 };
 
 export function WeekSchedulePreview({
@@ -34,7 +34,7 @@ export function WeekSchedulePreview({
           Nothing plotted yet this week.
         </p>
       ) : (
-        <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-6">
+        <div className="mt-3 grid grid-cols-3 gap-2 sm:grid-cols-5">
           {DAY_ORDER.map((day) => {
             const daySlots = preview.slots.filter((slot) => slot.day_of_week === day);
             return (

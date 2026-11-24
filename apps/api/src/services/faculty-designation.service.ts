@@ -1,6 +1,13 @@
 import type { FacultyDesignation } from '@prisma/client';
 import { z } from 'zod';
 import { ApiError } from '../errors/apiError.js';
+import type { AuthTokenPayload } from './auth.service.js';
+
+function assertOwnDesignation(actor: AuthTokenPayload, facultyId: string): void {
+  if (actor.role === 'FACULTY' && actor.facultyId !== facultyId) {
+    throw new ApiError(403, 'FORBIDDEN', 'Faculty accounts can only set their own designations');
+  }
+}
 import {
   create as createFacultyDesignationRow,
   findActiveById,
@@ -29,6 +36,7 @@ export interface FacultyDesignationDto {
   term_id: string;
   hours: number;
   service_credit: number;
+  details: string | null;
   assigned_by_user_id: string | null;
   created_at: string;
   updated_at: string;
@@ -47,6 +55,7 @@ function toFacultyDesignationDto(
     term_id: row.term_id,
     hours: row.hours,
     service_credit: row.service_credit,
+    details: row.details,
     assigned_by_user_id: row.assigned_by_user_id ?? null,
     created_at: row.created_at.toISOString(),
     updated_at: row.updated_at.toISOString(),
@@ -81,9 +90,10 @@ export async function listFacultyDesignations(
 
 export async function assignDesignation(
   facultyId: string,
-  userId: string | null,
+  actor: AuthTokenPayload,
   rawBody: unknown,
 ): Promise<FacultyDesignationDto> {
+  assertOwnDesignation(actor, facultyId);
   const faculty = await findFacultyById(facultyId);
   if (!faculty) {
     throw ApiError.notFound('Faculty member not found');
@@ -113,7 +123,7 @@ export async function assignDesignation(
 
   // If designation does not grant service credit, force service_credit to 0
   const serviceCredit = designation.grants_service_credit && !/\b(chair|chairman|dean)\b/i.test(designation.name) ? data.service_credit??designation.service_credit_hours : 0;
-  const actor=userId?await import('../config/prisma.js').then(({prisma})=>prisma.user.findUnique({where:{id:userId}})):null;
+  const assigningUser=await import('../config/prisma.js').then(({prisma})=>prisma.user.findUnique({where:{id:actor.userId}}));
 
   const row = await createFacultyDesignationRow({
     faculty_id: facultyId,
@@ -121,9 +131,8 @@ export async function assignDesignation(
     term_id: data.term_id,
     hours: data.hours,
     service_credit: serviceCredit,
-    assigned_by_user_id: actor?.id,
-    // assigned_by_user_id omitted: column is optional (String?) and token userId
-    // is a string not matching DB UUIDs — proper FK resolution handled in Bite 2b.
+    details: data.details ?? null,
+    assigned_by_user_id: assigningUser?.id,
   });
   return toFacultyDesignationDto(row);
 }
@@ -131,25 +140,29 @@ export async function assignDesignation(
 export async function updateFacultyDesignation(
   id: string,
   rawBody: unknown,
+  actor: AuthTokenPayload,
 ): Promise<FacultyDesignationDto> {
   const existing = await findActiveById(id);
   if (!existing) {
     throw ApiError.notFound('Faculty designation not found');
   }
+  assertOwnDesignation(actor, existing.faculty_id);
 
   const data = parseOrBadRequest(updateFacultyDesignationSchema, rawBody);
 
   const row = await updateFacultyDesignationRow(id, {
+    ...(data.details !== undefined ? { details: data.details } : {}),
     ...(data.hours !== undefined ? { hours: data.hours } : {}),
     ...(data.service_credit !== undefined ? { service_credit: existing.designation.grants_service_credit && !/\b(chair|chairman|dean)\b/i.test(existing.designation.name) ? data.service_credit : 0 } : {}),
   });
   return toFacultyDesignationDto(row);
 }
 
-export async function deleteFacultyDesignation(id: string): Promise<void> {
+export async function deleteFacultyDesignation(id: string, actor: AuthTokenPayload): Promise<void> {
   const existing = await findActiveById(id);
   if (!existing) {
     throw ApiError.notFound('Faculty designation not found');
   }
+  assertOwnDesignation(actor, existing.faculty_id);
   await softDelete(id);
 }

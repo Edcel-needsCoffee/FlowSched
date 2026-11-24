@@ -13,9 +13,9 @@ export default {
         // FlowSched app tokens — glassmorphic blue system-wide.
         // Primary/blue actions; success/error/warning keep semantic hues.
         primary: {
-          DEFAULT: '#4f8cff', // brand-500 — primary actions, active states
-          dark: '#2f5fd6', // deeper blue — hover/active, header accents
-          light: '#dbe7ff', // blue-100 tint — tinted backgrounds, highlights
+          DEFAULT: '#171717', // neutral primary action
+          dark: '#0a0a0a', // neutral active state
+          light: '#e5e5e5', // neutral highlight
         },
         surface: {
           DEFAULT: '#ffffff', // main workspace background (light)
@@ -40,8 +40,8 @@ export default {
           800: '#101d42',
         },
         brand: {
-          500: '#4f8cff',
-          400: '#7ab0ff',
+          500: '#171717',
+          400: '#404040',
         },
         signal: {
           300: '#7fe3ff',
@@ -49,17 +49,17 @@ export default {
         // Blue-tinted slate — the app font renders blue in light mode.
         // Full 50–950 scale so the extend merge fully replaces the default gray.
         slate: {
-          50: '#f3f7ff',
-          100: '#e7eeff',
-          200: '#d4e0ff',
-          300: '#b6c9f9',
-          400: '#8fa6ef',
-          500: '#5069cd',
-          600: '#4560c4',
-          700: '#37509f',
-          800: '#2c407f',
-          900: '#223566',
-          950: '#131f47',
+          50: '#fafafa',
+          100: '#f5f5f5',
+          200: '#e5e5e5',
+          300: '#d4d4d4',
+          400: '#a3a3a3',
+          500: '#737373',
+          600: '#525252',
+          700: '#404040',
+          800: '#262626',
+          900: '#171717',
+          950: '#0a0a0a',
         },
         glass: {
           fill: 'rgba(255,255,255,0.055)',
@@ -71,25 +71,25 @@ export default {
         // `text-leaf-*` classes across pages render glassmorphic blue without
         // per-file rewrites (leaf-* now === blue scale, not green).
         leaf: {
-          50: '#eef4ff',
-          100: '#dbe7ff',
-          200: '#bfd4ff',
-          300: '#9dbdff',
-          400: '#7ab0ff',
-          500: '#4f8cff',
-          600: '#3b6fe0',
-          700: '#2f5fd6',
-          800: '#284ea8',
-          900: '#1d3a7a',
-          950: '#101d42',
+          50: '#fafafa',
+          100: '#f5f5f5',
+          200: '#e5e5e5',
+          300: '#d4d4d4',
+          400: '#a3a3a3',
+          500: '#737373',
+          600: '#525252',
+          700: '#404040',
+          800: '#262626',
+          900: '#171717',
+          950: '#0a0a0a',
         },
       },
       fontFamily: {
-        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        sans: ['Poppins', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         // Display face for landing headlines (loaded via Google Fonts in
         // index.html; falls back to Inter/system sans if offline).
-        display: ['"Space Grotesk"', 'Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-        body: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        display: ['Poppins', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        body: ['Poppins', 'ui-sans-serif', 'system-ui', 'sans-serif'],
         mono: ['"JetBrains Mono"', '"IBM Plex Mono"', 'ui-monospace', 'SFMono-Regular', 'monospace'],
       },
       // Landing motion keyframes (used sparingly alongside framer-motion;

@@ -71,6 +71,7 @@ export type UpdateDesignationInput = z.infer<typeof updateDesignationSchema>;
 
 export const assignDesignationSchema = z
   .object({
+    details: optionalText('Designation details', 500),
     designation_id: uuidIdSchema,
     term_id: uuidIdSchema,
     hours: hoursSchema('Hours'),
@@ -86,6 +87,7 @@ export type AssignDesignationInput = z.infer<typeof assignDesignationSchema>;
 
 export const updateFacultyDesignationSchema = z
   .object({
+    details: optionalText('Designation details', 500),
     hours: hoursSchema('Hours').optional(),
     service_credit: z.coerce
       .number({ invalid_type_error: 'Service credit must be a number' })

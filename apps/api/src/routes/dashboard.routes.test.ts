@@ -1,4 +1,4 @@
-import { afterAll, beforeEach, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../app.js';
 import { prisma } from '../config/prisma.js';
@@ -32,6 +32,7 @@ async function cleanAll(): Promise<void> {
 }
 
 beforeEach(cleanAll);
+afterEach(() => vi.useRealTimers());
 
 afterAll(async () => {
   await cleanAll();
@@ -148,6 +149,8 @@ describe('Dashboard summary API', () => {
   });
 
   it('faculty gets only their own summary, never another faculty data', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-11-23T00:00:00Z')); // Monday, 08:00 Philippine time.
     await ensureUsers();
     const g = await seedGraph();
     const res = await request(createApp())
@@ -157,15 +160,21 @@ describe('Dashboard summary API', () => {
     const s = res.body.summary;
     expect(s.scope).toBe('personal');
     expect(s.faculty_id).toBe(g.a);
+    const faculty = await prisma.faculty.findUniqueOrThrow({ where: { id: g.a } });
+    const settings = await prisma.formSettings.findUnique({ where: { id: 'singleton' } });
+    const assignedSections = await prisma.workloadAssignment.findMany({ where: { faculty_id: g.a, term_id: g.t, deleted_at: null }, select: { section: { select: { name: true } } } });
+    expect(s.profile).toMatchObject({ employee_no: faculty.employee_no, employment_status: faculty.employment_status, department: settings?.department ?? null, program: settings?.program ?? null });
+    expect(s.profile.sections).toEqual([...new Set(assignedSections.map(assignment => assignment.section.name))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true })));
     expect(s.my_subjects_count).toBe(2);
     expect(s.my_scheduled_hours).toBe(5);
     expect(s.my_total_hours).toBe(9);
     expect(s.load_status).toBe('ok');
     expect(s.total_faculty_time).toBe(9);
     expect(s.weekly_hours).toBe(40);
-    expect(s.my_next_class).toMatchObject({
+    expect(s.todays_classes).toMatchObject([{
       day_of_week: 'MON', start_time: '07:00', subject_code: `${PREFIX}101`,
-    });
+    }]);
+    expect(s.my_next_class).toBeNull(); // Today's class has already started; never use Tuesday.
     expect(s).not.toHaveProperty('total_faculty');
     expect(s).not.toHaveProperty('most_booked_rooms');
     expect(JSON.stringify(s)).not.toContain(g.b);

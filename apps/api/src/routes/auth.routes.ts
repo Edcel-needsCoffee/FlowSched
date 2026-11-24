@@ -12,17 +12,21 @@ import { asyncHandler } from '../utils/asyncHandler.js';
 import { loginSchema, refreshSchema } from '../validation/auth.validation.js';
 import { prisma } from '../config/prisma.js';
 
+import { isRole } from '../types/domain.js';
+
 export const authRouter = Router();
 
 function toPublicUser(user: {
   id: string;
   email: string;
-  role: string;
+  username?: string | null;
+  role: AuthTokenPayload['role'];
   faculty_id: string | null;
   avatar_url?: string | null;
 }): {
   id: string;
   email: string;
+  username: string | null;
   role: AuthTokenPayload['role'];
   facultyId: string | null;
   avatar_url: string | null;
@@ -30,7 +34,8 @@ function toPublicUser(user: {
   return {
     id: user.id,
     email: user.email,
-    role: user.role as AuthTokenPayload['role'],
+    username: user.username ?? null,
+    role: user.role,
     facultyId: user.faculty_id,
     avatar_url: user.avatar_url ?? null,
   };
@@ -54,7 +59,7 @@ authRouter.post('/auth/login', asyncHandler(async (req: Request, res: Response) 
 
   // Generic message: never reveal whether the email or password was wrong.
   const invalidCredentials = { error: { code: 'INVALID_CREDENTIALS', message: 'Invalid email or password' } };
-  if (!user) {
+  if (!user || !isRole(user.role)) {
     res.status(401).json(invalidCredentials);
     return;
   }
@@ -70,13 +75,13 @@ authRouter.post('/auth/login', asyncHandler(async (req: Request, res: Response) 
 
   const payload: AuthTokenPayload = {
     userId: user.id,
-    role: user.role as AuthTokenPayload['role'],
+    role: user.role,
     facultyId: user.faculty_id,
   };
   res.status(200).json({
     accessToken: signAccessToken(payload),
     refreshToken: signRefreshToken(payload),
-    user: toPublicUser(user),
+    user: toPublicUser({ ...user, role: user.role }),
   });
 }));
 
@@ -106,20 +111,20 @@ authRouter.post('/auth/refresh', asyncHandler(async (req: Request, res: Response
   // Fresh payload from the database so role changes / deactivation take
   // effect on the next refresh instead of lingering for 7 days.
   const user = await prisma.user.findUnique({ where: { id: payload.userId } });
-  if (!user || !user.is_active) {
+  if (!user || !user.is_active || !isRole(user.role)) {
     res.status(401).json({ error: { code: 'INVALID_REFRESH_TOKEN', message: 'Invalid or expired refresh token' } });
     return;
   }
 
   const freshPayload: AuthTokenPayload = {
     userId: user.id,
-    role: user.role as AuthTokenPayload['role'],
+    role: user.role,
     facultyId: user.faculty_id,
   };
   // `user` is included so the web app can fully restore an in-memory session
   // from the persisted refresh token on page reload (SessionBootstrap) —
   // same public shape as the login response.
-  res.status(200).json({ accessToken: signAccessToken(freshPayload), user: toPublicUser(user) });
+  res.status(200).json({ accessToken: signAccessToken(freshPayload), user: toPublicUser({ ...user, role: user.role }) });
 }));
 
 authRouter.post('/auth/logout', (req: Request, res: Response) => {

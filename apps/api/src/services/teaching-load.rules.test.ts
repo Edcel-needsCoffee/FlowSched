@@ -23,9 +23,9 @@ describe('Chairman teaching-load rules',()=>{
     expect(r.warnings.some(w=>w.includes('not accepted'))).toBe(true);
     expect(calculate({designations:[{name:'Coordinator',hours:6,plotted_hours:.5,valid_session:true,service_credit:3,grants_service_credit:true}]}).designation_hours).toBe(0);
   });
-  it('counts minimum declared/plotted; missing or short sessions count zero',()=>{
+  it('counts half-hour functions and caps hours at the declared amount',()=>{
     const r=calculate({otherFunctions:{research:6,extension:4,imp:2,consultation:4},functionPlottedHours:{research:2,extension:5,imp:.5,consultation:4}});
-    expect(r.functions.research.counted).toBe(2); expect(r.functions.extension.counted).toBe(4); expect(r.functions.imp.counted).toBe(0);
+    expect(r.functions.research.counted).toBe(2); expect(r.functions.extension.counted).toBe(4); expect(r.functions.imp.counted).toBe(0.5);
     expect(calculate({otherFunctions:{research:6}}).functions.research.counted).toBe(0);
   });
   it('F9: counts distinct sections once; floating point lab 6 × 0.7 is 4.2',()=>{

@@ -48,3 +48,7 @@ export function updateTerm(
     body: JSON.stringify(input),
   });
 }
+
+export function deleteTerm(id: string): Promise<void> {
+  return apiFetch<void>(`/api/terms/${id}`, { method: 'DELETE' });
+}

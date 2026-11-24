@@ -1,0 +1,127 @@
+- generic [ref=f3e2]:
+  - generic [ref=f3e3]:
+    - banner [ref=f3e4]:
+      - navigation "Landing" [ref=f3e5]:
+        - link "FlowSched home" [ref=f3e6] [cursor=pointer]:
+          - /url: /
+          - generic [ref=f3e7]: F
+          - generic [ref=f3e8]: FLOWSCHED
+        - generic [ref=f3e9]:
+          - img "PIT logo" [ref=f3e10]
+          - strong [ref=f3e11]: Palompon Institute of Technology
+        - generic [ref=f3e12]:
+          - button "Switch to dark mode" [ref=f3e13] [cursor=pointer]:
+            - generic [aria-hidden] [ref=f3e14]: ☾
+            - generic [ref=f3e15]: Dark
+          - button "Log in" [ref=f3e16] [cursor=pointer]:
+            - text: Log in
+            - generic [aria-hidden] [ref=f3e17]: ↗
+    - main [ref=f3e18]:
+      - region "WORKLOAD CHAOS, PLOTTED STRAIGHT." [ref=f3e19]:
+        - generic [ref=f3e20]:
+          - generic [aria-hidden] [ref=f3e21]: ✳
+          - text: Engineering Department · Class scheduling
+        - heading "WORKLOAD CHAOS, PLOTTED STRAIGHT." [level=1] [ref=f3e22]:
+          - text: WORKLOADCHAOS,
+          - generic [ref=f3e23]: PLOTTED
+          - text: STRAIGHT.
+        - paragraph [ref=f3e24]: A little structure. A lot less chaos. Plot classes, catch conflicts, and keep every faculty workload in line—all in one place.
+        - generic [ref=f3e25]:
+          - button "Log in" [ref=f3e26] [cursor=pointer]:
+            - text: Log in
+            - generic [aria-hidden] [ref=f3e27]: ↗
+          - link "See what it does" [ref=f3e28] [cursor=pointer]:
+            - /url: "#what-it-does"
+            - text: See what it does
+            - generic [aria-hidden] [ref=f3e29]: ↓
+        - generic [ref=f3e30]:
+          - generic [ref=f3e31]: SIGN IN AS
+          - button "Chair" [ref=f3e32] [cursor=pointer]:
+            - text: Chair
+            - generic [aria-hidden] [ref=f3e33]: ↗
+          - button "Faculty" [ref=f3e34] [cursor=pointer]:
+            - text: Faculty
+            - generic [aria-hidden] [ref=f3e35]: ↗
+      - generic "Illustrative weekly schedule with classes placed without conflicts" [ref=f3e37]:
+        - generic [ref=f3e38]:
+          - generic [aria-hidden] [ref=f3e39]: ↙
+          - text: YOUR WEEK, UNDER CONTROL.
+        - generic [ref=f3e41]:
+          - generic [ref=f3e42]:
+            - generic [ref=f3e43]: WEEKLY CLASS PROGRAM
+            - generic [ref=f3e45]: PREVIEW
+          - generic [ref=f3e46]:
+            - strong [ref=f3e47]: A place for everything.
+            - generic [ref=f3e48]: 1ST SEMESTER / 2026–2027
+          - generic [ref=f3e49]:
+            - generic [ref=f3e50]:
+              - generic [ref=f3e51]: TIME
+              - generic [ref=f3e52]: MON
+              - generic [ref=f3e53]: TUE
+              - generic [ref=f3e54]: WED
+              - generic [ref=f3e55]: THU
+              - generic [ref=f3e56]: FRI
+            - generic [ref=f3e57]:
+              - generic [ref=f3e58]:
+                - generic [ref=f3e59]: 8 AM
+                - generic [ref=f3e60]: 8:30
+                - generic [ref=f3e61]: 9 AM
+                - generic [ref=f3e62]: 9:30
+                - generic [ref=f3e63]: 10 AM
+                - generic [ref=f3e64]: 10:30
+                - generic [ref=f3e65]: 11 AM
+              - generic [ref=f3e66]:
+                - generic [ref=f3e102]:
+                  - generic [ref=f3e103]: IE 322
+                  - generic [ref=f3e104]: Engineering Lab
+                  - generic [ref=f3e105]: IE Lab 1
+                - generic [ref=f3e106]: IE 105
+                - generic [ref=f3e108]:
+                  - generic [ref=f3e109]: IE 312
+                  - generic [ref=f3e110]: Operations
+                  - generic [ref=f3e111]: Room 203
+                - generic [ref=f3e112]:
+                  - generic [ref=f3e113]: IE 214
+                  - generic [ref=f3e114]: Systems Design
+                  - generic [ref=f3e115]: Room 201
+                - generic [ref=f3e116]:
+                  - generic [ref=f3e117]: IE 322
+                  - generic [ref=f3e118]: Engineering Lab
+                  - generic [ref=f3e119]: IE Lab 1
+                - generic [ref=f3e120]:
+                  - generic [ref=f3e121]: IE 105
+                  - generic [ref=f3e122]: Lecture
+                  - generic [ref=f3e123]: Room 204
+                - generic [ref=f3e124]: IE 214
+          - generic [ref=f3e126]:
+            - generic [ref=f3e127]: Classes, aligned.
+            - generic [ref=f3e129]: MON — FRI ↗
+        - generic [ref=f3e130]:
+          - generic [ref=f3e131]: "!"
+          - generic [ref=f3e132]:
+            - text: Conflict caught
+            - generic [ref=f3e133]: Before it becomes a problem.
+        - generic [ref=f3e134]:
+          - generic [aria-hidden] [ref=f3e135]: ▥
+          - generic [ref=f3e136]: "Load: 18 units"
+        - generic [ref=f3e137]:
+          - generic [ref=f3e138]: ✓
+          - generic [ref=f3e139]: Placed ✓
+        - generic [ref=f3e140]:
+          - generic [ref=f3e141]: ✓
+          - generic [ref=f3e142]: LESS CHAOS.MORE FLOW.
+        - generic [aria-hidden] [ref=f3e144]: ✳
+      - region "What FlowSched does" [ref=f3e145]:
+        - generic [ref=f3e146]:
+          - generic [ref=f3e147]: 01 / PLOT IT
+          - generic [ref=f3e148]: Drag classes into place.
+        - generic [ref=f3e149]:
+          - generic [ref=f3e150]: 02 / CATCH IT
+          - generic [ref=f3e151]: Spot conflicts before they happen.
+        - generic [ref=f3e152]:
+          - generic [ref=f3e153]: 03 / BALANCE IT
+          - generic [ref=f3e154]: Keep faculty loads in view.
+    - contentinfo [ref=f3e155]:
+      - generic [ref=f3e156]: © 2026 FlowSched · Engineering Department. All rights reserved.
+      - generic [ref=f3e157]: BUILT FOR A BETTER WEEK. ↗
+  - generic "Notifications"

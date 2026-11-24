@@ -1,0 +1,141 @@
+/* One visual system for the workspace and its portal dialogs.
+   Printed forms keep their own document styles. */
+html body:not(.printing-program) .app-bg.workspace-ui {
+  --ui-bg:#f5f9f6; --ui-surface:#fff; --ui-ink:#173b2d;
+  --ui-muted:#6d8177; --ui-border:#dce9e1; --ui-soft:#eef6f1;
+  --ui-radius:18px; --ui-shadow:0 5px 24px #174b3010;
+  --workspace-primary:linear-gradient(110deg,#8ce7b8,#28bf88 65%,#14976b);
+  --workspace-font:'Plus Jakarta Sans','Segoe UI',sans-serif;
+  font-family:var(--workspace-font);
+}
+html body:not(.printing-program) .app-bg.workspace-ui:not(.planner-review-overlay):not(.schedule-reset-dialog):not(.planner-notification-dialog) {
+  background:radial-gradient(ellipse at 100% 0,#d6f2e35c,transparent 55%),var(--ui-bg)!important;
+}
+html.dark body:not(.printing-program) .app-bg.workspace-ui {
+  --ui-bg:#0c2118; --ui-surface:#153328; --ui-ink:#e5f6ed;
+  --ui-muted:#9cbcac; --ui-border:#2b5140; --ui-soft:#1d4031;
+}
+html body:not(.printing-program) .workspace-ui :is(.management-neo,.workload-assignment-page,.teaching-load-page,.account-settings-page,.form-settings-page,.schedule-page),
+html body:not(.printing-program) .workspace-ui :is(h1,h2,h3,input,select,textarea,button) {
+  font-family:var(--workspace-font)!important;
+}
+html body:not(.printing-program) .workspace-ui :is(h1,h2,h3) {letter-spacing:-.5px;}
+html body:not(.printing-program) .workspace-ui h1 {font-weight:700;}
+html body:not(.printing-program) .workspace-ui>div>header {
+  background:color-mix(in srgb,var(--ui-surface) 94%,transparent)!important;
+  border-color:var(--ui-border)!important;backdrop-filter:none;
+}
+html body:not(.printing-program) .workspace-ui>div>header button {
+  border:1px solid var(--ui-border)!important;border-radius:12px!important;
+  background:var(--ui-soft)!important;color:var(--ui-ink)!important;
+  box-shadow:0 2px 8px #174b3008!important;transform:none!important;
+}
+html body:not(.printing-program) .workspace-ui>div>header button.header-notifications.planner-awaiting-button {
+  background:#cf4c51!important;color:#fff!important;border-color:#bc4146!important;
+}
+html body:not(.printing-program) .workspace-ui>div>header button:is(.header-notifications,.theme-toggle) svg {
+  color:inherit!important;stroke:currentColor!important;
+}
+html body:not(.printing-program) .workspace-ui>div>header button.theme-toggle {
+  background:var(--ui-soft)!important;color:var(--ui-ink)!important;border-color:var(--ui-border)!important;
+}
+
+/* Page containers retain their original dimensions and flow. */
+html body:not(.printing-program) .workspace-ui :is(.management-neo,.workload-assignment-page)>div:first-child,
+html body:not(.printing-program) .workspace-ui :is(.management-neo,.workload-assignment-page)>div[class*='border'],
+html body:not(.printing-program) .workspace-ui .workload-assignment-page>div.grid,
+html body:not(.printing-program) .workspace-ui :is(.management-neo,.workload-assignment-page) div.overflow-x-auto,
+html body:not(.printing-program) .workspace-ui :is(.management-table,.faculty-table-wrap,.load-panel,.load-toolbar,.schedule-toolbar,.settings-launcher),
+html body:not(.printing-program) .workspace-ui .account-settings-page .glass-card,
+html body:not(.printing-program) .workspace-ui .teaching-load-planner {
+  background:linear-gradient(145deg,var(--ui-surface) 70%,color-mix(in srgb,var(--ui-surface) 94%,#8ee4b9))!important;
+  border:1px solid var(--ui-border)!important;border-radius:20px!important;
+  box-shadow:var(--ui-shadow),inset 0 1px 0 #ffffff30!important;
+}
+html body:not(.printing-program) .workspace-ui .settings-launcher:hover {transform:translateY(-2px);box-shadow:0 8px 28px #174b3018!important;}
+html body:not(.printing-program) .workspace-ui .settings-launcher>span:last-child {background:var(--ui-soft);border:1px solid var(--ui-border);border-radius:9px;color:var(--ui-ink);}
+
+/* Light table headers and rows replace the yellow, heavy outlines. */
+html body:not(.printing-program) .workspace-ui :is(.management-neo,.workload-assignment-page) table th {
+  background:var(--ui-soft)!important;color:var(--ui-ink)!important;
+  border-bottom:1px solid var(--ui-border)!important;font-size:12px;font-weight:600;
+}
+html body:not(.printing-program) .workspace-ui :is(.management-neo,.workload-assignment-page) table td,
+html body:not(.printing-program) .workspace-ui :is(.management-neo,.workload-assignment-page) table tbody,
+html body:not(.printing-program) .workspace-ui :is(.management-neo,.workload-assignment-page) table tbody tr {
+  background:var(--ui-surface)!important;border-color:var(--ui-border)!important;
+}
+html body:not(.printing-program) .workspace-ui :is(.management-neo,.workload-assignment-page) table tbody tr:hover td {background:var(--ui-soft)!important;}
+
+/* Controls use the same quiet borders and emerald focus treatment. */
+html body:not(.printing-program) .workspace-ui :is(input:not([type=checkbox]):not([type=radio]):not([type=file]),select,textarea) {
+  border:1px solid var(--ui-border)!important;border-radius:11px!important;
+  background:var(--ui-surface)!important;color:var(--ui-ink)!important;
+  box-shadow:inset 0 1px 2px #0b352005;transition:border-color 180ms,box-shadow 180ms;
+}
+html body:not(.printing-program) .workspace-ui :is(input,select,textarea):focus {
+  border-color:#30b783!important;outline:none;box-shadow:0 0 0 3px #3acc9220!important;
+}
+html body:not(.printing-program) .workspace-ui :is(.management-neo,.workload-assignment-page,.account-settings-page) button:not(th button):not([aria-label='View profile photo']):not([aria-label^='Show ']):not([aria-label^='Hide ']):not([role=switch]),
+html body:not(.printing-program) .workspace-ui :is(.load-button,.load-field,.planner-program-print,.planner-term-badge,.planner-cancel-submission,.planner-submission-preview,.faculty-planner-notice__action),
+html body:not(.printing-program) .workspace-ui .schedule-toolbar button,
+html body:not(.printing-program) .workspace-ui [role=dialog] button:not([role=checkbox]):not([aria-label^='Show ']):not([aria-label^='Hide ']) {
+  border:1px solid var(--ui-border)!important;border-radius:11px!important;
+  box-shadow:0 2px 7px #174b3008!important;transform:none!important;
+  font-weight:600;transition:background 160ms,border-color 160ms,box-shadow 160ms;
+}
+html body:not(.printing-program) .workspace-ui :is(.management-neo,.workload-assignment-page,.account-settings-page) button:not(th button):hover:not(:disabled),
+html body:not(.printing-program) .workspace-ui [role=dialog] button:hover:not(:disabled) {box-shadow:0 4px 14px #174b3014!important;}
+html body:not(.printing-program) .workspace-ui :is(.management-neo,.workload-assignment-page,.account-settings-page,[role=dialog]) :is(button[type=submit],button[class*='bg-brand-'],button[class*='bg-leaf-'],button[class*='bg-primary'],button.management-edit-button),
+html body:not(.printing-program) .workspace-ui :is(.load-button,.planner-program-print,.planner-submission-preview,.faculty-planner-notice__action),
+html body:not(.printing-program) .workspace-ui .schedule-toolbar button:not(.schedule-reset-danger) {
+  background:var(--workspace-primary)!important;color:#073a25!important;border-color:#8cd6af!important;
+}
+html body:not(.printing-program) .workspace-ui :is(.management-neo,.workload-assignment-page) table button.management-edit-button {background:var(--workspace-primary)!important;color:#073a25!important;border:1px solid #8cd6af!important;}
+html body:not(.printing-program) .workspace-ui .management-neo.faculty-management-page button.faculty-view-workload {
+  background:var(--ui-soft)!important;color:var(--ui-ink)!important;border:1px solid var(--ui-border)!important;
+}
+html body:not(.printing-program) .workspace-ui :is(.planner-term-badge,.account-profile-block .glass-chip) {
+  background:var(--ui-soft)!important;color:var(--ui-ink)!important;box-shadow:none!important;border:1px solid var(--ui-border)!important;
+}
+html body:not(.printing-program) .workspace-ui .account-detail-rows {border-top:1px solid var(--ui-border);}
+
+/* Destructive actions stay visibly red throughout every form. */
+html body:not(.printing-program) .workspace-ui :is(.management-neo,.workload-assignment-page,.account-settings-page,[role=dialog]) :is(button.management-delete-button,button[class*='bg-red-'],button[class*='text-red-']),
+html body:not(.printing-program) .workspace-ui :is(button.schedule-reset-danger,button.planner-cancel-submission,button.confirm-dialog-danger__confirm) {
+  background:#cf4c51!important;color:#fff!important;border:1px solid #bc4146!important;
+}
+html body:not(.printing-program) .workspace-ui :is(button.management-delete-button,button.schedule-reset-danger,button.planner-cancel-submission,button.confirm-dialog-danger__confirm):hover {background:#b83d43!important;}
+html body:not(.printing-program) .workspace-ui [role=dialog] button:is([aria-label='Close dialog'],[aria-label='Close review']) {
+  background:#d9575e16!important;color:#d14d56!important;border:1px solid #d9575e30!important;box-shadow:none!important;
+}
+html body:not(.printing-program) .workspace-ui .management-neo.rooms-management-page button.room-maintenance-switch {border:1px solid #9db7a8!important;background:#b5c9be!important;box-shadow:inset 0 1px 3px #0002!important;}
+html body:not(.printing-program) .workspace-ui .management-neo.rooms-management-page button.room-maintenance-switch[aria-checked=true] {background:#e5a741!important;border-color:#ca8e2d!important;}
+
+/* Dialogs and approval previews share white glass, including portal content. */
+html body:not(.printing-program) .workspace-ui [role=dialog] {
+  font-family:var(--workspace-font)!important;
+  border:1px solid var(--ui-border)!important;border-radius:22px!important;
+  background:linear-gradient(145deg,var(--ui-surface),color-mix(in srgb,var(--ui-surface) 96%,#8ee4b9))!important;
+  box-shadow:0 25px 80px #08271f30,inset 0 1px 0 #ffffff60!important;
+}
+html body:not(.printing-program) .workspace-ui [role=dialog]>div:first-child[aria-hidden=true] {
+  background:var(--workspace-primary)!important;border:0!important;height:3px;
+}
+html body:not(.printing-program) .workspace-ui [role=dialog] h2 {font:700 20px/1.4 var(--workspace-font)!important;letter-spacing:-.6px;}
+html body:not(.printing-program) .workspace-ui :is(.planner-submission-item,.faculty-planner-notice,.planner-pending-panel) {border:1px solid var(--ui-border)!important;border-radius:16px!important;box-shadow:none!important;background:var(--ui-surface)!important;}
+html body:not(.printing-program) .workspace-ui :is(.planner-submission-avatar,.faculty-planner-notice__icon) {border:1px solid var(--ui-border)!important;box-shadow:none!important;}
+html body:not(.printing-program) .workspace-ui .confirm-dialog-danger__message {border:1px solid #d9575e30!important;border-radius:14px!important;background:#d9575e0a!important;box-shadow:none!important;}
+html body:not(.printing-program) .workspace-ui .confirm-dialog-danger__icon {border:1px solid #d9575e40!important;border-radius:12px!important;box-shadow:none!important;}
+html body:not(.printing-program) .workspace-ui .confirm-dialog-danger__cancel {background:var(--ui-soft)!important;color:var(--ui-ink)!important;}
+
+/* Planner geometry and assignment colors remain driven by their existing data. */
+html body:not(.printing-program) .workspace-ui .teaching-load-page .load-panel progress {height:10px;border:0;border-radius:20px;box-shadow:none;}
+html body:not(.printing-program) .workspace-ui .teaching-load-page .load-panel progress::-webkit-progress-value {background:var(--workspace-primary);border:0;}
+html body:not(.printing-program) .workspace-ui :is(.schedule-grid-surface,.teaching-load-planner .tlp-viewport) {box-shadow:0 6px 24px #174b3012!important;border-radius:12px;}
+html body:not(.printing-program) .workspace-ui .teaching-load-planner .tlp-heading {background:#174b37!important;color:#effff5!important;}
+html body:not(.printing-program) .workspace-ui .teaching-load-planner .tlp-time {font-family:var(--workspace-font);font-variant-numeric:tabular-nums;}
+html body:not(.printing-program) .workspace-ui .schedule-room-picker {background:linear-gradient(var(--ui-surface),var(--ui-surface)) padding-box,conic-gradient(from var(--room-angle),#bddacd 0deg 250deg,#94e7bf 285deg,#1caf7a 325deg,#bddacd 360deg) border-box;}
+html body:not(.printing-program) .workspace-ui .teaching-load-page .load-panel>p.text-lg,
+html body:not(.printing-program) .workspace-ui .teaching-load-page .load-panel>p.text-2xl {font-family:var(--workspace-font);font-weight:700;}
+@media(prefers-reduced-motion:reduce) { .workspace-ui * {transition:none!important;} }

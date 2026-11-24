@@ -21,7 +21,6 @@ function parseId(req: Request): string {
 }
 
 // Designations — reads open to any authenticated role; writes CHAIR-only.
-// TODO: admin role — ACADEMIC_ADMIN does not exist yet; authorize CHAIR only.
 
 designationRouter.get(
   '/designations',
@@ -34,7 +33,7 @@ designationRouter.get(
 designationRouter.post(
   '/designations',
   requireAuth,
-  requireRole('CHAIR','ACADEMIC_ADMIN'),
+  requireRole('CHAIR'),
   asyncHandler(async (req, res) => {
     res.status(201).json({ designation: await createDesignation(req.body) });
   }),
@@ -43,7 +42,7 @@ designationRouter.post(
 designationRouter.patch(
   '/designations/:id',
   requireAuth,
-  requireRole('CHAIR','ACADEMIC_ADMIN'),
+  requireRole('CHAIR'),
   asyncHandler(async (req, res) => {
     res.status(200).json({ designation: await updateDesignation(parseId(req), req.body) });
   }),
@@ -52,7 +51,7 @@ designationRouter.patch(
 designationRouter.delete(
   '/designations/:id',
   requireAuth,
-  requireRole('CHAIR','ACADEMIC_ADMIN'),
+  requireRole('CHAIR'),
   asyncHandler(async (req, res) => {
     await deleteDesignation(parseId(req));
     res.status(204).send();

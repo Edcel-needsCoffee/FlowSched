@@ -22,9 +22,8 @@ function parseId(req: Request): string {
 
 /**
  * Faculty designations.
- * - FACULTY-role accounts may only read their own facultyId (403 otherwise).
- * - Writes CHAIR-only.
- * TODO: admin role — ACADEMIC_ADMIN does not exist yet; authorize CHAIR only.
+ * Faculty may read and manage their own assignments. Ownership is also checked
+ * in the service for assignment IDs supplied to PATCH and DELETE.
  */
 
 facultyDesignationRouter.get(
@@ -43,12 +42,12 @@ facultyDesignationRouter.get(
 facultyDesignationRouter.post(
   '/faculty/:id/designations',
   requireAuth,
-  requireRole('CHAIR','ACADEMIC_ADMIN'),
+  requireRole('CHAIR','FACULTY'),
   asyncHandler(async (req: Request, res: Response) => {
     const facultyId = parseId(req);
     const user = req.user;
     res.status(201).json({
-      designation: await assignDesignation(facultyId, user?.userId ?? null, req.body),
+      designation: await assignDesignation(facultyId, user!, req.body),
     });
   }),
 );
@@ -56,18 +55,18 @@ facultyDesignationRouter.post(
 facultyDesignationRouter.patch(
   '/faculty-designations/:id',
   requireAuth,
-  requireRole('CHAIR','ACADEMIC_ADMIN'),
+  requireRole('CHAIR','FACULTY'),
   asyncHandler(async (req: Request, res: Response) => {
-    res.status(200).json({ designation: await updateFacultyDesignation(parseId(req), req.body) });
+    res.status(200).json({ designation: await updateFacultyDesignation(parseId(req), req.body, req.user!) });
   }),
 );
 
 facultyDesignationRouter.delete(
   '/faculty-designations/:id',
   requireAuth,
-  requireRole('CHAIR','ACADEMIC_ADMIN'),
+  requireRole('CHAIR','FACULTY'),
   asyncHandler(async (req: Request, res: Response) => {
-    await deleteFacultyDesignation(parseId(req));
+    await deleteFacultyDesignation(parseId(req), req.user!);
     res.status(204).send();
   }),
 );

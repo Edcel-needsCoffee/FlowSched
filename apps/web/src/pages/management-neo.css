@@ -1,0 +1,67 @@
+.management-neo { font-family:'Plus Jakarta Sans','Segoe UI',sans-serif; padding-right:5px; padding-bottom:6px; }
+.app-bg .management-neo>div:first-child,.app-bg .management-neo>div[class*='border'],.app-bg .management-neo div.overflow-x-auto { background:var(--ui-surface)!important; border:2px solid var(--ui-ink)!important; border-radius:14px!important; box-shadow:4px 4px 0 #0b0b0b!important; }
+.management-neo>div:first-child { padding:16px; margin-bottom:20px; }
+.management-neo h1 { font-family:'Plus Jakarta Sans','Segoe UI',sans-serif; letter-spacing:-.6px; }
+.app-bg .management-neo input:not([type=checkbox]):not([type=radio]):not([type=file]),.app-bg .management-neo select { border:2px solid var(--ui-ink)!important; border-radius:8px!important; }
+.management-neo button { border:2px solid var(--ui-ink); border-radius:9px; box-shadow:2px 2px 0 #0b0b0b; transition:transform .15s ease,box-shadow .15s ease; }
+.management-neo button:hover:not(:disabled) { transform:translate(-1px,-1px); box-shadow:3px 3px 0 #0b0b0b; }
+.management-neo button:active:not(:disabled) { transform:translate(2px,2px); box-shadow:none; }
+.app-bg .management-neo button[class*='bg-leaf-'],.app-bg .management-neo button[class*='bg-brand-'],.app-bg .management-neo button[class*='bg-primary'],.app-bg .management-neo button[type=submit] { background:linear-gradient(135deg,#a8f06a,#22c55e 55%,#0f9d58)!important; color:#06210f!important; border-color:#0b0b0b!important; }
+.app-bg .management-neo th { background:#fde047!important; color:#0b0b0b!important; border-bottom:2px solid #0b0b0b; text-transform:none; letter-spacing:0; }
+.management-neo td { padding-top:14px; padding-bottom:14px; }
+.app-bg .management-neo tbody tr:hover { background:var(--ui-soft); }
+.app-bg .management-neo [role=dialog] { background:var(--ui-surface)!important; border:2px solid var(--ui-ink)!important; box-shadow:6px 6px 0 #0b0b0b!important; }
+.management-neo [role=dialog] h2 { font-family:'Plus Jakarta Sans','Segoe UI',sans-serif; }
+.management-neo [role=dialog]>div:first-child { background:#fde047!important; border-bottom:2px solid #0b0b0b; }
+.app-bg .management-neo [role=dialog] button[aria-label='Close dialog'],.app-bg .management-neo button[class*='bg-red-'] { background:#dc2626!important; color:#fff!important; border-color:#991b1b!important; }
+.app-bg .management-neo [role=dialog] button[aria-label='Close dialog']:hover { background:#b91c1c!important; }
+@media(prefers-reduced-motion:reduce) { .management-neo button { transition:none; } }
+.subjects-management-page>div:first-child,.rooms-management-page>div:first-child { flex-wrap:wrap; }
+.subjects-management-page td button,.rooms-management-page td button { padding:6px 12px; font-size:12px; font-weight:600; }
+.subjects-management-page th button { border:0; box-shadow:none; border-radius:0; padding:0; color:#0b0b0b; }
+.subjects-management-page th button:hover:not(:disabled) { transform:none; box-shadow:none; text-decoration:underline; }
+.subjects-management-page [role=dialog],.rooms-management-page [role=dialog] { max-height:calc(100dvh - 40px); overflow-y:auto!important; }
+.app-bg .section-management-page td button { background:var(--ui-surface); color:var(--ui-ink); border-color:var(--ui-ink); }
+.app-bg .section-management-page td button.management-delete-button { color:#fff!important; border-color:#991b1b!important; background:#dc2626!important; }
+.app-bg .section-management-page td button.management-delete-button:hover { background:#b91c1c!important; }
+.faculty-management-page .faculty-table-wrap { border:2px solid var(--ui-ink)!important; border-radius:14px; box-shadow:4px 4px 0 #0b0b0b; }
+.faculty-management-page th,.faculty-management-page td { padding:12px 14px; vertical-align:middle; }
+.faculty-management-page td { border-bottom:1px solid var(--ui-border); }
+.faculty-management-page tbody tr:last-child td { border-bottom:0; }
+.faculty-management-page th button { padding:0; border:0; border-radius:0; box-shadow:none; color:#0b0b0b; text-align:left; }
+.faculty-management-page th button:hover:not(:disabled) { transform:none; box-shadow:none; text-decoration:underline; }
+.faculty-management-page .faculty-row-actions { white-space:nowrap; }
+.faculty-management-page .faculty-row-actions button { padding:6px 12px; background:transparent; color:var(--ui-ink); font-size:12px; font-weight:600; text-decoration:none; }
+.faculty-management-page .faculty-row-actions button[class*='text-red'] { color:var(--ui-ink)!important; border-color:var(--ui-ink); background:transparent!important; }
+.section-management-page td button { font-weight:600; padding:6px 12px; }
+.faculty-management-page .faculty-row-actions button:hover { background:var(--ui-soft)!important; }
+.faculty-management-page [role=dialog] { max-height:calc(100dvh - 40px); overflow-y:auto!important; }
+.faculty-management-page [role=dialog] form>div.grid { gap:16px; }
+.faculty-management-page [role=dialog] label { font-size:12px; }
+@media(max-width:480px) { .faculty-management-page [role=dialog] form>div.grid { grid-template-columns:1fr; } }
+/* Shared management button palette, overriding legacy page utility colors. */
+.app-bg .management-neo.rooms-management-page button.room-maintenance-switch { width:48px; height:28px; padding:0; border-radius:999px!important; background:#d4d4d4!important; border:2px solid #404040!important; box-shadow:2px 2px 0 #0b0b0b; }
+.app-bg .management-neo.rooms-management-page button.room-maintenance-switch[aria-checked=true] { background:#f59e0b!important; border-color:#92400e!important; }
+.app-bg .management-neo.rooms-management-page button.room-maintenance-switch>span { background:#fff!important; border:1px solid #525252; box-shadow:0 1px 3px #0005; }
+.app-bg .management-neo .management-table { border:2px solid var(--ui-ink)!important; border-radius:14px!important; background:var(--ui-surface)!important; box-shadow:4px 4px 0 #0b0b0b!important; }
+.management-neo table { width:100%; border-collapse:collapse; text-align:left; font-size:14px; }
+.management-neo table th,.management-neo table td { padding:12px 14px; vertical-align:middle; }
+.app-bg .management-neo table th { background:#fde047!important; color:#0b0b0b!important; border-bottom:2px solid #0b0b0b; font-size:14px; font-weight:600; text-transform:none; letter-spacing:0; text-align:left; }
+.app-bg .section-management-page table :is(th, td).section-students { text-align:center; }
+.app-bg .section-management-page table th.section-actions-heading { text-align:right; }
+.app-bg .management-neo table td { border-bottom:1px solid var(--ui-border); }
+.management-neo table tbody tr:last-child td { border-bottom:0; }
+.app-bg :is(.workload-assignment-page,.section-management-page) table tbody,.app-bg :is(.workload-assignment-page,.section-management-page) table tbody tr,.app-bg :is(.workload-assignment-page,.section-management-page) table tbody td { background:var(--ui-surface)!important; }
+.app-bg :is(.workload-assignment-page,.section-management-page) table tbody tr:hover td { background:var(--ui-soft)!important; }
+.app-bg .rooms-management-page table tbody,.app-bg .rooms-management-page table tbody tr,.app-bg .rooms-management-page table tbody td { background:var(--ui-surface)!important; }
+.app-bg .rooms-management-page table tbody tr:hover td { background:var(--ui-soft)!important; }
+.management-neo table td button { padding:6px 12px; font-size:12px; font-weight:600; border-radius:9px; text-decoration:none; white-space:nowrap; }
+.app-bg .management-neo table button.management-edit-button { background:linear-gradient(135deg,#a8f06a,#22c55e 55%,#0f9d58)!important; color:#06210f!important; border:2px solid #0b0b0b!important; }
+.app-bg .management-neo table button.management-delete-button { background:#dc2626!important; color:#fff!important; border:2px solid #991b1b!important; }
+.app-bg .management-neo.faculty-management-page button.faculty-view-workload { background:#fde047!important; color:#0b0b0b!important; border:2px solid #0b0b0b!important; padding:6px 12px; font-size:12px; font-weight:600; text-decoration:none; }
+.app-bg .management-neo.faculty-management-page button.faculty-view-workload:hover { background:#facc15!important; }
+.app-bg .management-neo button.management-edit-button { background:linear-gradient(135deg,#a8f06a,#22c55e 55%,#0f9d58)!important; color:#06210f!important; border-color:#0b0b0b!important; }
+.app-bg .management-neo button:not(th button) { background:var(--ui-surface)!important; color:var(--ui-ink)!important; border:2px solid var(--ui-ink)!important; border-radius:9px; box-shadow:2px 2px 0 #0b0b0b; font-weight:600; }
+.app-bg .management-neo button[class*='bg-primary'],.app-bg .management-neo button[class*='bg-brand-'],.app-bg .management-neo button[class*='bg-leaf-'],.app-bg .management-neo button[type=submit] { background:linear-gradient(135deg,#a8f06a,#22c55e 55%,#0f9d58)!important; color:#06210f!important; border-color:#0b0b0b!important; }
+.app-bg .management-neo button[class*='text-red-'],.app-bg .management-neo button[class*='bg-red-'],.app-bg .management-neo [role=dialog] button[aria-label='Close dialog'] { background:#dc2626!important; color:#fff!important; border-color:#991b1b!important; }
+.app-bg .management-neo button[class*='text-red-']:hover,.app-bg .management-neo button[class*='bg-red-']:hover,.app-bg .management-neo [role=dialog] button[aria-label='Close dialog']:hover { background:#b91c1c!important; }

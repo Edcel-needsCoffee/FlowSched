@@ -11,7 +11,7 @@ export function AssignmentsTable(props: {
 }): JSX.Element {
   return (
     <div>
-      <div className="overflow-x-auto rounded-2xl border border-leaf-100 bg-white shadow-sm">
+      <div className="management-table overflow-x-auto rounded-2xl border border-leaf-100 bg-white shadow-sm">
         <table className="w-full min-w-[880px] text-left text-sm">
           <thead>
             <tr className="border-b border-leaf-100 bg-leaf-50/60 text-xs uppercase tracking-wide text-ink/60">
@@ -51,7 +51,7 @@ export function AssignmentsTable(props: {
                         type="button"
                         aria-label={`Edit assignment for ${assignment.faculty_name}`}
                         onClick={() => props.onEdit(assignment)}
-                        className="rounded-lg border border-leaf-200 px-3 py-1.5 text-xs font-semibold text-ink hover:bg-leaf-50"
+                        className="management-edit-button rounded-lg border border-leaf-200 px-3 py-1.5 text-xs font-semibold text-ink hover:bg-leaf-50"
                       >
                         Edit
                       </button>
@@ -59,7 +59,7 @@ export function AssignmentsTable(props: {
                         type="button"
                         aria-label={`Delete assignment for ${assignment.faculty_name}`}
                         onClick={() => props.onDelete(assignment)}
-                        className="rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50"
+                        className="management-delete-button rounded-lg border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-700 hover:bg-red-50"
                       >
                         Delete
                       </button>

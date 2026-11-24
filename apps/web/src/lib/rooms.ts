@@ -45,3 +45,7 @@ export function updateRoom(id: string, input: Partial<RoomInput>): Promise<{ roo
     body: JSON.stringify(input),
   });
 }
+
+export async function deleteRoom(id: string): Promise<void> {
+  await apiFetch<unknown>(`/api/rooms/${id}`, { method: 'DELETE' });
+}

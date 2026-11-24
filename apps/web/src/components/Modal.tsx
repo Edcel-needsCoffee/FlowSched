@@ -6,6 +6,7 @@ interface ModalProps {
   title: string;
   onClose: () => void;
   children: ReactNode;
+  dialogClassName?: string;
 }
 
 /**
@@ -15,7 +16,7 @@ interface ModalProps {
  * top accent bar (`from-brand-500 via-signal-300 to-brand-500`), glass
  * close button, fade+scale entrance respecting `prefers-reduced-motion`.
  */
-export function Modal({ open, title, onClose, children }: ModalProps): JSX.Element {
+export function Modal({ open, title, onClose, children, dialogClassName = '' }: ModalProps): JSX.Element {
   const dialogRef = useRef<HTMLDivElement>(null);
   const reduce = useReducedMotion();
 
@@ -69,7 +70,7 @@ export function Modal({ open, title, onClose, children }: ModalProps): JSX.Eleme
             role="dialog"
             aria-modal="true"
             aria-label={title}
-            className="glass-card relative z-10 w-full max-w-lg overflow-hidden !rounded-2xl p-0"
+            className={`glass-card relative z-10 w-full max-w-lg overflow-hidden !rounded-2xl p-0 ${dialogClassName}`}
             initial={reduce ? { opacity: 1 } : { opacity: 0, scale: 0.96, y: 8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={reduce ? { opacity: 1 } : { opacity: 0, scale: 0.96, y: 8 }}

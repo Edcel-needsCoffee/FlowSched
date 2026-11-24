@@ -52,11 +52,13 @@ function integerFrom(label: string, min: number, max: number) {
  * (the column is a plain int in the DB; this range is the app-level guard).
  */
 export const yearLevelSchema = integerFrom('Year level', 1, 6);
+export const studentCountSchema = z.number().int('Student count must be a whole number').min(0).max(200).nullable().optional();
 
 export const createSectionSchema = z
   .object({
     year_level: yearLevelSchema,
     name: presentString('Section name', 60),
+    student_count: studentCountSchema,
   })
   .strict();
 
@@ -66,6 +68,7 @@ export const updateSectionSchema = z
   .object({
     year_level: yearLevelSchema.optional(),
     name: presentString('Section name', 60).optional(),
+    student_count: studentCountSchema,
   })
   .strict()
   .refine((data) => Object.keys(data).length > 0, {
@@ -84,6 +87,7 @@ export const sectionQuerySchema = z.object({
     (value) => (value === undefined || value === null || value === '' ? undefined : value),
     yearLevelSchema.optional(),
   ),
+  termId: z.string().uuid().optional(),
 });
 
 export type SectionQueryInput = z.infer<typeof sectionQuerySchema>;

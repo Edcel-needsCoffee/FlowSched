@@ -104,3 +104,18 @@ export async function updateTerm(id: string, rawBody: unknown): Promise<TermDto>
   }
   return toTermDto(await termRepository.update(id, input));
 }
+
+export async function deleteTerm(id: string): Promise<void> {
+  const result = await termRepository.deleteIfEmpty(id);
+  if (result.status === 'NOT_FOUND') throw ApiError.notFound('Term not found');
+  if (result.status === 'ACTIVE') {
+    throw ApiError.conflict('TERM_ACTIVE', 'Make another term active before deleting this term.');
+  }
+  if (result.status === 'HAS_SAVED_DATA') {
+    throw ApiError.conflict(
+      'TERM_HAS_SAVED_DATA',
+      'This term contains saved schedules, faculty information, or effectivity dates and cannot be deleted.',
+      result.counts,
+    );
+  }
+}

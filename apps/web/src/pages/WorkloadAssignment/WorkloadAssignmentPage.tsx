@@ -1,3 +1,4 @@
+import '../management-neo.css';
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import { Modal } from '../../components/Modal';
 import { useToast } from '../../components/Toast';
@@ -208,7 +209,7 @@ export function WorkloadAssignmentPage(): JSX.Element {
   const meta = result?.meta ?? null;
   const rows = result?.data ?? [];
   return (
-    <section aria-label="Workload Assignment">
+    <section aria-label="Workload Assignment" className="workload-assignment-page management-neo">
       <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="text-2xl font-semibold text-primary-dark">Workload Assignment</h2>
@@ -302,3 +303,4 @@ export function WorkloadAssignmentPage(): JSX.Element {
     </section>
   );
 }
+import './workload-assignment.css';

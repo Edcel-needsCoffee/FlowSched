@@ -33,6 +33,28 @@ export async function findById(id: string): Promise<Section | null> {
   return prisma.section.findUnique({ where: { id } });
 }
 
+export async function findEnrollments(sectionIds: string[], termId: string) {
+  if (!sectionIds.length) return [];
+  return prisma.sectionEnrollment.findMany({ where: { section_id: { in: sectionIds }, term_id: termId } });
+}
+
+export async function findEnrollment(sectionId: string, termId: string) {
+  return prisma.sectionEnrollment.findUnique({ where: { section_id_term_id: { section_id: sectionId, term_id: termId } } });
+}
+
+export async function saveEnrollment(sectionId: string, termId: string, studentCount: number) {
+  const key = { section_id_term_id: { section_id: sectionId, term_id: termId } };
+  return prisma.sectionEnrollment.upsert({
+    where: key,
+    create: { section_id: sectionId, term_id: termId, student_count: studentCount },
+    update: { student_count: studentCount },
+  });
+}
+
+export async function clearEnrollment(sectionId: string, termId: string) {
+  return prisma.sectionEnrollment.deleteMany({ where: { section_id: sectionId, term_id: termId } });
+}
+
 /** Mirrors the DB unique constraint Section(year_level, name). */
 export async function findByYearLevelAndName(
   yearLevel: number,

@@ -46,6 +46,9 @@ export function FacultyLoadPanel({
                   <span className="block truncate font-mono text-[11px] text-slate-500">
                     {entry.employee_no}
                   </span>
+                  <span className="db-load-track" role="progressbar" aria-label={`${entry.name} weekly faculty time`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.min(100,Math.round(((entry.total_faculty_time??0)/(entry.weekly_hours||40))*100))}>
+                    <span className={`db-load-fill db-load-${entry.status}`} style={{width:`${Math.min(100,Math.max(0,((entry.total_faculty_time??0)/(entry.weekly_hours||40))*100))}%`}} />
+                  </span>
                 </span>
                 <span className="shrink-0 text-right font-mono text-xs text-slate-700">
                   {entry.total_faculty_time??0}/{entry.weekly_hours??40}
@@ -55,7 +58,7 @@ export function FacultyLoadPanel({
                 <span
                   className={`inline-flex shrink-0 items-center gap-1.5 rounded-full bg-brand-500/10 px-2 py-0.5 text-[10px] font-semibold ${style.text}`}
                 >
-                  <span aria-hidden="true" className={`h-1.5 w-1.5 rounded-full ${style.dot}`} />
+                  <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full" style={{backgroundColor:entry.status==='over'?'#df6363':entry.status==='near'?'#dfa22e':'#169f73'}} />
                   {style.label}
                 </span>
               </li>

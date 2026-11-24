@@ -1,10 +1,8 @@
 /**
  * Module — Schedule-view API tests (real DB + real HTTP via supertest).
- * The four read-only reshapes of ScheduleSlot data: the section view
- * ("Student Class Program"), the faculty view ("Faculty Class Program"), the
- * room view and rooms overview ("Classroom Utilization"). Covers the flat
- * row shape, section/faculty/room/term filtering, day-then-time sort order,
- * the Faculty-role self-scope (403), and unknown/malformed id handling.
+ * The read-only section and room reshapes of ScheduleSlot data plus the rooms
+ * overview. Covers row shape, section/room/term filtering, day-then-time sort
+ * order, and unknown/malformed id handling.
  *
  * Every fixture carries this suite's VWSX- marker; cleanup runs before each
  * test so the seeded dev data (term 2026-2027, rooms, subjects) is untouched.
@@ -23,12 +21,10 @@ beforeAll(() => {
 
 const PREFIX = 'VWSX-';
 const CHAIR_EMAIL = `vwstst-chair-${process.pid}@flowsched.local`;
-const LINKED_EMAIL = `vwstst-linked-${process.pid}@flowsched.local`;
 const UNLINKED_EMAIL = `vwstst-unlinked-${process.pid}@flowsched.local`;
 const PASSWORD = 'Test-Password-123';
 
 let chairToken = '';
-let linkedToken = '';
 let unlinkedToken = '';
 
 /** The exact wire shape every view row must have — nothing more, nothing less. */
@@ -60,7 +56,7 @@ async function cleanFixtures(): Promise<void> {
   // Unlink accounts first: user.faculty_id would otherwise restrict the
   // faculty deleteMany below.
   await prisma.user.updateMany({
-    where: { email: { in: [LINKED_EMAIL, UNLINKED_EMAIL] } },
+    where: { email: { in: [UNLINKED_EMAIL] } },
     data: { faculty_id: null },
   });
   await prisma.workloadAssignment.deleteMany({
@@ -83,7 +79,7 @@ beforeEach(cleanFixtures);
 afterAll(async () => {
   await cleanFixtures();
   await prisma.user.deleteMany({
-    where: { email: { in: [CHAIR_EMAIL, LINKED_EMAIL, UNLINKED_EMAIL] } },
+    where: { email: { in: [CHAIR_EMAIL, UNLINKED_EMAIL] } },
   });
 });
 
@@ -91,7 +87,6 @@ beforeAll(async () => {
   const passwordHash = await hashPassword(PASSWORD);
   for (const [email, role] of [
     [CHAIR_EMAIL, 'CHAIR'],
-    [LINKED_EMAIL, 'FACULTY'],
     [UNLINKED_EMAIL, 'FACULTY'],
   ] as const) {
     await prisma.user.upsert({
@@ -116,8 +111,7 @@ beforeAll(async () => {
 /**
  * Fixture graph covering every view dimension:
  *  - two sections, two faculty, three rooms, two terms;
- *  - facultyA teaches in BOTH sections (aggregation) while facultyB shares
- *    section1 (isolation from facultyA's view);
+ *  - each section contains assignments from different faculty;
  *  - termB rows prove the term filter; one termB slot has NO room (TBA).
  */
 async function seedFixtures(): Promise<Fixtures> {
@@ -171,14 +165,6 @@ async function seedFixtures(): Promise<Fixtures> {
     data: { faculty_id: facultyA.id, subject_id: subject1.id, section_id: section1.id, term_id: termB.id },
   });
 
-  // Re-link the FACULTY-role account to facultyA for this fixture set and
-  // mint a fresh token — the token payload carries the linked facultyId.
-  await prisma.user.update({ where: { email: LINKED_EMAIL }, data: { faculty_id: facultyA.id } });
-  const linkedLogin = await request(createApp())
-    .post('/api/auth/login')
-    .send({ email: LINKED_EMAIL, password: PASSWORD });
-  linkedToken = linkedLogin.body.accessToken as string;
-
   const slot = (
     workload_assignment_id: string,
     room_id: string | null,
@@ -202,7 +188,7 @@ async function seedFixtures(): Promise<Fixtures> {
   await slot(assignmentA1.id, roomA.id, 'MON', '07:00', '09:00');
   await slot(assignmentA1.id, roomA.id, 'WED', '09:00', '10:00');
   await slot(assignmentB1.id, roomB.id, 'MON', '10:00', '11:00');
-  // section2 / termA — facultyA's other section (drives the faculty view).
+  // section2 / termA — additional section assignment used by the room views.
   await slot(assignmentA2.id, roomB.id, 'TUE', '13:00', '15:00', 'LAB');
   // termB rows — excluded whenever termId=termA is passed.
   await slot(assignmentB2.id, roomA.id, 'FRI', '10:00', '11:00');
@@ -312,78 +298,6 @@ describe('Schedule-view API', () => {
         .get(`/api/schedule-views/section/${f.section1Id}?termId=not-a-uuid`)
         .set('Authorization', `Bearer ${chairToken}`);
       expect(badTerm.status).toBe(400);
-    });
-  });
-
-  describe('GET /schedule-views/faculty/:facultyId (Faculty Class Program)', () => {
-    it('aggregates one faculty member\'s slots across all their sections', async () => {
-      const f = await seedFixtures();
-      const res = await request(createApp())
-        .get(`/api/schedule-views/faculty/${f.facultyAId}?termId=${f.termAId}`)
-        .set('Authorization', `Bearer ${chairToken}`);
-      expect(res.status).toBe(200);
-      expect(res.body.faculty).toMatchObject({
-        id: f.facultyAId,
-        employee_no: `${PREFIX}A`,
-        name: 'Ada Lovelace',
-      });
-      expect(res.body.meta).toEqual({ total: 3 });
-      for (const row of res.body.data as Record<string, unknown>[]) {
-        expect(Object.keys(row).sort()).toEqual(ROW_KEYS);
-      }
-      expect(res.body.data).toMatchObject([
-        { day_of_week: 'MON', start_time: '07:00', subject_code: `${PREFIX}101`, color: null },
-        // assignmentA2 carries a custom color; its rows must surface it.
-        { day_of_week: 'TUE', start_time: '13:00', subject_code: `${PREFIX}103`, color: '#7C3AED' },
-        { day_of_week: 'WED', start_time: '09:00', subject_code: `${PREFIX}101`, color: null },
-      ]);
-    });
-
-    it('lets a FACULTY-role account view its own schedule but 403s on anyone else', async () => {
-      const f = await seedFixtures();
-      const own = await request(createApp())
-        .get(`/api/schedule-views/faculty/${f.facultyAId}?termId=${f.termAId}`)
-        .set('Authorization', `Bearer ${linkedToken}`);
-      expect(own.status).toBe(200);
-      expect(own.body.meta).toEqual({ total: 3 });
-
-      const other = await request(createApp())
-        .get(`/api/schedule-views/faculty/${f.facultyBId}`)
-        .set('Authorization', `Bearer ${linkedToken}`);
-      expect(other.status).toBe(403);
-      expect(other.body.error.code).toBe('FORBIDDEN');
-
-      // A FACULTY-role account with NO linked faculty record has no "own"
-      // schedule — every faculty view is out of bounds.
-      const unlinked = await request(createApp())
-        .get(`/api/schedule-views/faculty/${f.facultyAId}`)
-        .set('Authorization', `Bearer ${unlinkedToken}`);
-      expect(unlinked.status).toBe(403);
-    });
-
-    it('lets management roles view any faculty member', async () => {
-      const f = await seedFixtures();
-      const res = await request(createApp())
-        .get(`/api/schedule-views/faculty/${f.facultyBId}?termId=${f.termAId}`)
-        .set('Authorization', `Bearer ${chairToken}`);
-      expect(res.status).toBe(200);
-      expect(res.body.meta).toEqual({ total: 1 });
-      expect(res.body.data).toMatchObject([
-        { day_of_week: 'MON', start_time: '10:00', subject_code: `${PREFIX}102` },
-      ]);
-    });
-
-    it('404s unknown faculty ids and 400s malformed ones', async () => {
-      await seedFixtures();
-      const unknown = await request(createApp())
-        .get('/api/schedule-views/faculty/00000000-0000-4000-8000-000000000000')
-        .set('Authorization', `Bearer ${chairToken}`);
-      expect(unknown.status).toBe(404);
-
-      const malformed = await request(createApp())
-        .get('/api/schedule-views/faculty/not-a-uuid')
-        .set('Authorization', `Bearer ${chairToken}`);
-      expect(malformed.status).toBe(400);
     });
   });
 
@@ -498,7 +412,6 @@ describe('Schedule-view API', () => {
   it('requires authentication on every view endpoint', async () => {
     const f = await seedFixtures();
     expect((await request(createApp()).get(`/api/schedule-views/section/${f.section1Id}`)).status).toBe(401);
-    expect((await request(createApp()).get(`/api/schedule-views/faculty/${f.facultyAId}`)).status).toBe(401);
     expect((await request(createApp()).get(`/api/schedule-views/room/${f.roomAId}`)).status).toBe(401);
     expect((await request(createApp()).get('/api/schedule-views/rooms-overview')).status).toBe(401);
   });

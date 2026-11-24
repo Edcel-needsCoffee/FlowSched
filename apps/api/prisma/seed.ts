@@ -58,7 +58,7 @@ async function main(): Promise<void> {
     },
   });
 
-  const designationCount=await seedProgramDefaults(prisma,devPasswordHash);
+  const designationCount=await seedProgramDefaults(prisma);
 
   // Sections + faculty, so every filter dropdown and the Workload Assignment
   // page's form (faculty × subject × section) have real options on a fresh

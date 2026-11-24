@@ -18,6 +18,7 @@ import {
   type WorkloadAssignment,
 } from '../lib/workload-assignments';
 import { useAuthStore } from '../store/auth.store';
+import { AvatarImage } from '../components/dashboard/AvatarImage';
 
 // Mirrors apps/api/src/validation/faculty.validation.ts: required names,
 // optional rank, FULL_TIME|PART_TIME status, integer max_units in 1..99.
@@ -335,10 +336,10 @@ export function FacultyPage(): JSX.Element {
     deletingFaculty?.user && deletingFaculty.user.is_active ? deletingFaculty.user : null;
 
   return (
-    <section aria-labelledby="faculty-title">
-      <div className="flex items-center justify-between gap-4">
+    <section aria-labelledby="faculty-title" className="management-neo faculty-management-page">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 id="faculty-title" className="text-2xl font-semibold text-primary-dark">
-          Faculty
+          Faculty Management
         </h1>
         {canEdit ? (
           <button
@@ -392,7 +393,7 @@ export function FacultyPage(): JSX.Element {
 
       {status === 'ready' ? (
         <>
-          <table className="mt-4 w-full border-collapse text-left text-sm">
+          <div className="faculty-table-wrap mt-5 overflow-x-auto"><table className="w-full min-w-[900px] border-collapse text-left text-sm">
             <thead>
               <tr className="border-b border-slate-200">
                 <th scope="col" aria-sort={sortHeaderState('employee_no', sort)} className="py-2 pr-4">
@@ -423,7 +424,10 @@ export function FacultyPage(): JSX.Element {
                   <tr key={faculty.id} className="border-b border-slate-100">
                     <td className="py-2 pr-4 font-mono">{faculty.employee_no}</td>
                     <td className="py-2 pr-4">
-                      {faculty.last_name}, {faculty.first_name}
+                      <span className="flex items-center gap-2">
+                        <AvatarImage src={faculty.avatar_url} name={`${faculty.first_name} ${faculty.last_name}`} size="sm" />
+                        <span>{faculty.last_name}, {faculty.first_name}</span>
+                      </span>
                     </td>
                     <td className="py-2 pr-4">{faculty.rank ?? '—'}</td>
                     <td className="py-2 pr-4">
@@ -443,24 +447,24 @@ export function FacultyPage(): JSX.Element {
                         onClick={() => {
                           void openWorkload(faculty);
                         }}
-                        className="text-primary-dark hover:underline"
+                        className="faculty-view-workload text-primary-dark hover:underline"
                       >
                         View workload
                       </button>
                     </td>
                     {canEdit ? (
-                      <td className="py-2 pr-4">
+                      <td className="faculty-row-actions py-2 pr-4">
                         <button
                           type="button"
                           onClick={() => openEdit(faculty)}
-                          className="text-primary-dark hover:underline"
+                          className="management-edit-button text-primary-dark hover:underline"
                         >
                           Edit
                         </button>
                         <button
                           type="button"
                           onClick={() => openDelete(faculty)}
-                          className="ml-3 text-red-600 hover:underline"
+                          className="management-delete-button ml-3 text-red-600 hover:underline"
                         >
                           Delete
                         </button>
@@ -470,7 +474,7 @@ export function FacultyPage(): JSX.Element {
                 ))
               )}
             </tbody>
-          </table>
+          </table></div>
 
           {meta ? (
             <nav aria-label="Table pagination" className="mt-4 flex items-center gap-4 text-sm text-slate-600">
@@ -843,3 +847,4 @@ function SortButton({
 
 
 
+import './management-neo.css';

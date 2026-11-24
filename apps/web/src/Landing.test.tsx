@@ -28,7 +28,7 @@ function renderLandingAt(path = '/'): void {
       <LoginModal />
       <Routes>
         <Route path="/" element={<Landing />} />
-        <Route path="/login" element={<Landing openLoginOnMount />} />
+        <Route path="/login" element={<Landing />} />
         <Route path="/dashboard" element={<div>Dashboard page</div>} />
         <Route path="/workload" element={<div>My workload page</div>} />
       </Routes>
@@ -46,6 +46,18 @@ describe('Landing page', () => {
     expect(screen.queryByText(legacyCta)).not.toBeInTheDocument();
   });
 
+  it('changes the landing palette when the theme toggle is used', () => {
+    renderLandingAt();
+    const landing = screen.getByTestId('landing-page');
+    const startedLight = landing.dataset.theme === 'light';
+
+    fireEvent.click(screen.getByRole('button', {
+      name: startedLight ? 'Switch to dark mode' : 'Switch to light mode',
+    }));
+
+    expect(landing.dataset.theme).toBe(startedLight ? 'dark' : 'light');
+  });
+
   it('exposes Log in buttons that open the modal without navigating', () => {
     renderLandingAt();
     const nav = screen.getByRole('navigation', { name: 'Landing' });
@@ -53,7 +65,10 @@ describe('Landing page', () => {
     // Nav holds Log in + the theme toggle (aria-labelled, not "Log in").
     const navScoped = within(nav).getByRole('button', { name: 'Log in' });
     expect(navScoped).toBeInTheDocument();
-    expect(logins.length).toBeGreaterThanOrEqual(3);
+    expect(within(nav).getByRole('img', { name: 'PIT logo' })).toHaveAttribute('src', '/school-logo.jpg');
+    expect(within(nav).getByText('Palompon Institute of Technology')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Admin' })).not.toBeInTheDocument();
+    expect(logins.length).toBe(2);
     for (const btn of logins) {
       expect(btn.tagName).toBe('BUTTON');
     }
@@ -63,18 +78,25 @@ describe('Landing page', () => {
     expect(screen.getByRole('heading', { name: /chaos, plotted/i })).toBeInTheDocument();
   });
 
-  it('opens the modal on mount for the /login route', () => {
+  it('keeps the modal closed when the /login route is opened directly', () => {
     renderLandingAt('/login');
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(screen.getByRole('heading', { name: /chaos, plotted/i })).toBeInTheDocument();
   });
 
-  it('closes the modal via backdrop, X, and Escape', async () => {
+  it('uses a floating panel without a backdrop and closes via toggle, X, and Escape', async () => {
     renderLandingAt();
     fireEvent.click(screen.getAllByRole('button', { name: 'Log in' })[0]);
     expect(screen.getByRole('dialog')).toBeInTheDocument();
-    fireEvent.click(screen.getByTestId('login-modal-backdrop'));
+    expect(screen.queryByTestId('login-modal-backdrop')).not.toBeInTheDocument();
+    expect(document.body.style.overflow).toBe('');
+    const artwork = document.querySelector('.fs-art-wrap');
+    expect(artwork).toHaveAttribute('aria-hidden', 'true');
+    expect(artwork).toHaveClass('fs-art-hidden');
+    fireEvent.click(screen.getAllByRole('button', { name: 'Log in' })[0]);
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(artwork).toHaveAttribute('aria-hidden', 'false');
+    expect(artwork).not.toHaveClass('fs-art-hidden');
     fireEvent.click(screen.getAllByRole('button', { name: 'Log in' })[0]);
     fireEvent.click(screen.getByRole('button', { name: /close login/i }));
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
@@ -94,21 +116,28 @@ describe('Landing page', () => {
     expect(screen.queryByRole('heading', { name: /chaos, plotted/i })).not.toBeInTheDocument();
   });
 
-  it('redirects FACULTY sessions to their own workload', () => {
+  it('redirects FACULTY sessions to the dashboard', () => {
     useAuthStore.getState().login({
       user: { id: 'u', email: 'f@x.local', role: 'FACULTY', facultyId: 'fac-1' },
       accessToken: 'a',
       refreshToken: 'r',
     });
     renderLandingAt();
-    expect(screen.getByText('My workload page')).toBeInTheDocument();
+    expect(screen.getByText('Dashboard page')).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: /chaos, plotted/i })).not.toBeInTheDocument();
   });
 
-  it('keeps the responsive section anchors in place', () => {
+  it('links the feature CTA to the feature strip', () => {
     renderLandingAt();
-    expect(document.getElementById('features')).not.toBeNull();
-    expect(document.getElementById('roles')).not.toBeNull();
-    expect(document.getElementById('get-started')).not.toBeNull();
+    expect(document.getElementById('what-it-does')).not.toBeNull();
+    expect(screen.getByRole('link', {name:/See what it does/})).toHaveAttribute('href','#what-it-does');
+  });
+  it('opens with the chosen role and focuses email after the entrance', async () => {
+    renderLandingAt();
+    fireEvent.click(screen.getByRole('button',{name:/Faculty/}));
+    const roleChoices = within(screen.getByRole('group', { name: 'Sign in role' }));
+    expect(roleChoices.getAllByRole('button').map(button => button.textContent)).toEqual(['Chair','Faculty']);
+    expect(roleChoices.getByRole('button',{name:'Faculty'})).toHaveAttribute('aria-pressed','true');
+    await waitFor(()=>expect(screen.getByLabelText('Email')).toHaveFocus(),{timeout:900});
   });
 });

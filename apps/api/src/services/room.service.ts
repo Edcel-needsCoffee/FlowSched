@@ -89,3 +89,18 @@ export async function updateRoom(id: string, rawBody: unknown): Promise<RoomDto>
   }
   return toRoomDto(await roomRepository.update(id, input));
 }
+
+export async function deleteRoom(id: string): Promise<void> {
+  const existing = await roomRepository.findById(id);
+  if (!existing) {
+    throw ApiError.notFound('Room not found');
+  }
+  if (await roomRepository.hasScheduleSlots(id)) {
+    throw ApiError.conflict(
+      'ROOM_IN_USE',
+      'This room has scheduled classes. Remove or move those schedule slots before deleting the room.',
+      { field: 'room_id', room_id: id },
+    );
+  }
+  await roomRepository.remove(id);
+}

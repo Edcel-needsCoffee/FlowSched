@@ -6,6 +6,7 @@ import { formatTimeOfDay, timeOfDayToMinutes } from '../utils/time.js';
 import { dashboardSummaryQuerySchema } from '../validation/dashboard.validation.js';
 import { getFacultyTeachingLoad,round2 } from './teaching-load.service.js';
 import { getLoadConfig } from './load-settings.service.js';
+import { selectTodayClasses } from './dashboard-today.js';
 
 /** Faculty load band thresholds (FR-06): >=90% = near, >=100% = over. */
 const NEAR_LOAD_RATIO = 0.9;
@@ -129,6 +130,13 @@ export interface PersonalClassEntry {
 }
 
 export interface PersonalSummary {
+  profile?: {
+    employee_no: string;
+    department: string | null;
+    program: string | null;
+    sections: string[];
+    employment_status: string;
+  };
   remaining_to_target:number;
   total_faculty_time:number;
   weekly_hours:number;
@@ -320,9 +328,9 @@ async function getDepartmentSummary(
   const faculty_load: FacultyLoadEntry[] = await Promise.all(facultyRows.map(async (member) => {
     const scheduled = round2(scheduledByFaculty.get(member.id) ?? 0);
     const load=termId?await getFacultyTeachingLoad(member.id,termId):null;
-    const ratio=round2((load?.total_faculty_time??0)/config.facultyWeeklyHours);
+    const ratio=round2((load?.total_faculty_time??0)/(load?.weekly_hours??config.facultyWeeklyHours));
     return {
-      total_faculty_time:load?.total_faculty_time??0,weekly_hours:config.facultyWeeklyHours,teaching_overload:load?.teaching_overload??0,
+      total_faculty_time:load?.total_faculty_time??0,weekly_hours:load?.weekly_hours??config.facultyWeeklyHours,teaching_overload:load?.teaching_overload??0,
       faculty_id: member.id,
       employee_no: member.employee_no,
       name: `${member.first_name} ${member.last_name}`,
@@ -530,6 +538,7 @@ async function getPersonalSummary(
   const assignments = await prisma.workloadAssignment.findMany({
     where: { deleted_at: null, faculty_id: faculty.id, ...termFilter },
     include: {
+      section: { select: { name: true } },
       subject: { select: { lecture_hours: true, lab_hours: true, units: true } },
       slots: { select: { start_time: true, end_time: true, session_type: true } },
     },
@@ -566,22 +575,20 @@ async function getPersonalSummary(
     orderBy: [{ day_of_week: 'asc' }, { start_time: 'asc' }],
   });
   const classes = rows.map(toPersonalClass);
-  const byDay = new Map<string, PersonalClassEntry[]>();
-  for (const entry of classes) {
-    const list = byDay.get(entry.day_of_week) ?? [];
-    list.push(entry);
-    byDay.set(entry.day_of_week, list);
-  }
-  const orderedDays = [...byDay.keys()].sort((a, b) => dayRank(a) - dayRank(b));
-  const todays_classes = orderedDays.length > 0 ? (byDay.get(orderedDays[0]) ?? []) : [];
-  const sortedAll = [...classes].sort(
-    (a, b) => dayRank(a.day_of_week) - dayRank(b.day_of_week) || a.start_time.localeCompare(b.start_time),
-  );
+  const { todays_classes, my_next_class } = selectTodayClasses(classes);
+  const settings = await prisma.formSettings.findUnique({ where: { id: 'singleton' } });
   return {
     scope: 'personal',
+    profile: {
+      employee_no: faculty.employee_no,
+      department: settings?.department ?? null,
+      program: settings?.program ?? null,
+      sections: [...new Set(assignments.map(assignment => assignment.section.name))].sort((a, b) => a.localeCompare(b, undefined, { numeric: true })),
+      employment_status: faculty.employment_status,
+    },
     total_faculty_time:load?.total_faculty_time??0,weekly_hours:config.facultyWeeklyHours,teaching_overload:load?.teaching_overload??0,remaining_to_target:load?.remaining_to_target??config.facultyWeeklyHours,
     term_id: termId,
-    avatar_url: avatarUrl,
+    avatar_url: avatarUrl ?? faculty.avatar_url,
     faculty_id: faculty.id,
     faculty_name: `${faculty.first_name} ${faculty.last_name}`,
     my_total_hours: weeklyTotal,
@@ -592,7 +599,7 @@ async function getPersonalSummary(
     load_status,
     my_subjects_count: subjectIds.size,
     todays_classes,
-    my_next_class: sortedAll[0] ?? null,
+    my_next_class,
   };
 }
 

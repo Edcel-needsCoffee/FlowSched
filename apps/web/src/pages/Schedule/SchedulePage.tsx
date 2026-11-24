@@ -1,3 +1,5 @@
+import { ScheduleNoteButton } from '../../components/ScheduleNoteButton';
+import { createPortal } from 'react-dom';
 import React, {
   useCallback,
   useEffect,
@@ -26,6 +28,8 @@ import {
 import { motion, useReducedMotion } from 'framer-motion';
 import { Modal } from '../../components/Modal';
 import { downloadProgramWorkbook } from '../../lib/program-download';
+import { apiFetch } from '../../lib/api';
+import type { FacultySession } from '../../lib/teaching-load';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { useToast } from '../../components/Toast';
 import { useAuthStore } from '../../store/auth.store';
@@ -310,6 +314,56 @@ export function SchedulePage(): JSX.Element {
 
   // Drag + placement state.
   const [activeDrag, setActiveDrag] = useState<DragInfo | null>(null);
+  const [lunchBlocked,setLunchBlocked]=useState(false);
+  const [noteSlot,setNoteSlot]=useState<ScheduleSlot|null>(null);
+  const [noteText,setNoteText]=useState('');
+  const [noteLevel,setNoteLevel]=useState('normal');
+  const [notesVersion,setNotesVersion]=useState(0);
+  const [noteError,setNoteError]=useState('');
+  const noteUserId=useAuthStore(s=>s.user?.id);
+  function readNote(slot:ScheduleSlot): {text:string;level:string}|null {
+    try { const raw=localStorage.getItem(`flowsched:slot-note:${noteUserId}:${slot.id}`); if(!raw)return null; try { const parsed=JSON.parse(raw); if(typeof parsed.text==='string')return parsed; }catch {} return {text:raw,level:'normal'}; } catch {return null;}
+  }
+  function openNote(slot:ScheduleSlot) {
+    const note=readNote(slot);setNoteText(note?.text??'');setNoteLevel(note?.level??'normal');setNoteError('');setInspectedSlotId(null);setNoteSlot(slot);
+  }
+  const fitGridRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const grid = fitGridRef.current;
+    if (!grid) return;
+    const fit = () => {
+      const main = grid.closest('main');
+      if (main) { main.style.padding = '12px 16px'; main.scrollTop = 0; }
+      const available = window.innerHeight - grid.getBoundingClientRect().top - 24;
+      const scale = Math.min(1, Math.max(0.2, available / (GRID_HEIGHT + 64)));
+      grid.style.zoom = String(scale);
+      const parentWidth = grid.parentElement?.clientWidth ?? 0;
+      if (parentWidth) grid.style.width = `${Math.floor(parentWidth / scale) - 2}px`;
+    };
+    fit();
+    window.addEventListener('resize', fit);
+    const observer = new ResizeObserver(fit);
+    if (grid.parentElement) observer.observe(grid.parentElement);
+    return () => { window.removeEventListener('resize', fit); observer.disconnect(); const main = grid.closest('main'); if (main) main.style.padding = ''; };
+  });
+  const [functionPreview, setFunctionPreview] = useState<{facultyId:string;termId:string;sessions:FacultySession[]} | null>(null);
+  const [teachingPreview, setTeachingPreview] = useState<{facultyId:string;termId:string;slots:ScheduleSlot[]} | null>(null);
+  const draggingFacultyId = activeDrag?.type === 'new' ? activeDrag.assignment.faculty_id : activeDrag?.slot.faculty_id;
+  useEffect(() => {
+    if (!draggingFacultyId || !selectedTermId) return;
+    let cancelled = false;
+    listScheduleSlots({termId:selectedTermId,facultyId:draggingFacultyId})
+      .then(result => { if (!cancelled) setTeachingPreview({facultyId:draggingFacultyId,termId:selectedTermId,slots:result.data}); })
+      .catch(() => { if (!cancelled) setTeachingPreview(null); });
+    apiFetch<{data:FacultySession[]}>(`/api/faculty/${encodeURIComponent(draggingFacultyId)}/sessions?termId=${encodeURIComponent(selectedTermId)}`)
+      .then(result => { if (!cancelled) setFunctionPreview({facultyId:draggingFacultyId,termId:selectedTermId,sessions:result.data}); })
+      .catch(() => { if (!cancelled) setFunctionPreview(null); });
+    return () => { cancelled = true; };
+  }, [draggingFacultyId, selectedTermId]);
+  const draggingFunctions = activeDrag && functionPreview?.facultyId === draggingFacultyId && functionPreview?.termId === selectedTermId
+    ? functionPreview.sessions.filter(session => ['RESEARCH','EXTENSION','IMP','CONSULTATION','DESIGNATION'].includes(session.type)) : [];
+  const draggingTeaching = activeDrag && teachingPreview?.facultyId === draggingFacultyId && teachingPreview?.termId === selectedTermId
+    ? teachingPreview.slots.filter(slot => slot.room_id !== selectedRoomId && !(activeDrag.type === 'move' && activeDrag.slot.id === slot.id)) : [];
   /** Cell id under the pointer mid-drag — anchors the multi-cell drop preview. */
   const [dragOverCell, setDragOverCell] = useState<string | null>(null);
   const [shakeCell, setShakeCell] = useState<string | null>(null);
@@ -486,6 +540,7 @@ export function SchedulePage(): JSX.Element {
       // Exactly the picker's selected duration — not the full remaining chunk.
       // The page-level selected room IS the drop target.
       const placement = chunkPlacement(info, cell);
+      if(timeToMinutes(placement.start_time)<780 && timeToMinutes(placement.end_time)>720){setLunchBlocked(true);return;}
       await placeNew(
         info.assignment,
         { ...placement, room_id: selectedRoomId || null },
@@ -495,6 +550,7 @@ export function SchedulePage(): JSX.Element {
       const durationHours =
         (timeToMinutes(info.slot.end_time) - timeToMinutes(info.slot.start_time)) / 60;
       const { start, end } = placementRange(cell.hour, cell.offset, durationHours);
+      if(timeToMinutes(start)<780 && timeToMinutes(end)>720){setLunchBlocked(true);return;}
       await moveSlot(
         info.slot,
         { day_of_week: cell.day, start_time: start, end_time: end, room_id: info.slot.room_id, session_type: info.slot.session_type },
@@ -791,9 +847,8 @@ export function SchedulePage(): JSX.Element {
   }, [activeDrag, dragOverCell]);
 
   return (
-    <section aria-labelledby="schedule-title" className="space-y-4">
-      <div role="tablist" aria-label="Scheduling scope" className="flex gap-2">{(['room','faculty','section'] as const).map(value=><button key={value} role="tab" aria-selected={scope===value} onClick={()=>{setScope(value);setInspectedSlotId(null);}} className={`rounded-lg border px-4 py-2 text-sm ${scope===value?'border-leaf-500 bg-leaf-100':'border-leaf-100 bg-white'}`}>By {value[0].toUpperCase()+value.slice(1)}</button>)}</div>
-      <div className="flex flex-wrap items-end justify-between gap-3">
+    <section aria-labelledby="schedule-title" className="schedule-page min-w-0 space-y-2 overflow-x-clip">
+      <div className="schedule-toolbar flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 id="schedule-title" className="text-2xl font-semibold text-primary-dark">
             Schedule
@@ -807,8 +862,8 @@ export function SchedulePage(): JSX.Element {
         <div className="flex flex-wrap items-center gap-3">
           {scope==='faculty'&&<label className="text-xs">Faculty<select aria-label="Select faculty schedule" value={scopeFacultyId} onChange={e=>setScopeFacultyId(e.target.value)} className={selectCls}><option value="">Select faculty…</option>{faculty.map(f=><option key={f.id} value={f.id}>{f.last_name}, {f.first_name}</option>)}</select></label>}
           {scope==='section'&&<label className="text-xs">Section<select aria-label="Select section schedule" value={scopeSectionId} onChange={e=>setScopeSectionId(e.target.value)} className={selectCls}><option value="">Select section…</option>{sections.map(s=><option key={s.id} value={s.id}>{s.label}</option>)}</select></label>}
-          {selectedEntityId&&<a className="text-sm text-leaf-700 underline" href={`/print/${scope==='room'?'rooms':scope==='faculty'?'faculty':'sections'}/${selectedEntityId}?termId=${selectedTermId}`}>Print {scope} program</a>}
-          <label className="flex items-center gap-1.5 text-xs text-ink/60">
+          <label className={`schedule-room-picker flex items-center gap-2 text-xs text-ink/60 ${selectedRoomId ? 'is-selected' : ''}`}>
+            <span className="schedule-room-status" aria-hidden="true" />
             {scope==='room'?'Room':'Room for new blocks'}
             <select
               aria-label={scope==='room'?'Select room to view its schedule':'Room for new blocks'}
@@ -825,62 +880,7 @@ export function SchedulePage(): JSX.Element {
               ))}
             </select>
           </label>
-          <label className="flex items-center gap-1.5 text-xs text-ink/60">
-            Faculty
-            <select
-              aria-label="Filter by faculty"
-              value={filterFacultyId}
-              onChange={(event) => setFilterFacultyId(event.target.value)}
-              className={selectCls}
-            >
-              <option value="">All</option>
-              {faculty.map((member) => (
-                <option key={member.id} value={member.id}>
-                  {member.last_name}, {member.first_name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="flex items-center gap-1.5 text-xs text-ink/60">
-            Section
-            <select
-              aria-label="Filter by section"
-              value={filterSectionId}
-              onChange={(event) => setFilterSectionId(event.target.value)}
-              className={selectCls}
-            >
-              <option value="">All</option>
-              {sections.map((section) => (
-                <option key={section.id} value={section.id}>
-                  {section.label}
-                </option>
-              ))}
-            </select>
-          </label>
-          {/* Excel export — writes the printed Classroom Utilization form:
-              title block, half-hour gutter, merged colored class blocks. */}
-          <button
-            type="button"
-            onClick={() => void handleExport()}
-            disabled={exporting||!selectedEntityId}
-            className="inline-flex items-center gap-1.5 self-end rounded-lg border border-leaf-200 bg-white px-3 py-1.5 text-xs font-semibold text-ink transition-colors hover:border-leaf-400 hover:bg-leaf-50 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <svg
-              aria-hidden="true"
-              width="13"
-              height="13"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <path d="M7 10l5 5 5-5M12 15V3" />
-            </svg>
-            {exporting ? 'Preparing…' : 'Export Excel'}
-          </button>
+          {canEdit && scope==='room' && <button type="button" disabled={!selectedRoomId||!selectedTermId||exporting} onClick={()=>void handleExport()} className="inline-flex items-center gap-1.5 rounded-lg border-2 border-ink bg-leaf-200 px-3 py-1.5 text-xs font-semibold text-ink shadow-[2px_2px_0_#0b0b0b] disabled:cursor-not-allowed disabled:opacity-50">{exporting?'Preparing Excel...':'Export Excel'}</button>}
           {canEdit ? (
             <button
               type="button"
@@ -890,7 +890,7 @@ export function SchedulePage(): JSX.Element {
                 setResetError(null);
                 setResetOpen(true);
               }}
-              className="inline-flex items-center gap-1.5 self-end rounded-lg border border-red-200 bg-white px-3 py-1.5 text-xs font-semibold text-red-700 transition-colors hover:border-red-400 hover:bg-red-50"
+              className="schedule-reset-danger inline-flex items-center gap-1.5 self-end rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors"
             >
               Reset schedule
             </button>
@@ -953,13 +953,31 @@ export function SchedulePage(): JSX.Element {
               the panel to place one.
             </p>
           ) : null}
-          <div className="flex items-start gap-4" data-testid="schedule-grid">
+          <div ref={fitGridRef} className="flex items-start gap-4" data-testid="schedule-grid">
             {/* Left panel: unassigned classes. The page-level room selector is
                 the drop target — no second room picker. */}
-            <aside className="w-72 shrink-0 space-y-3 rounded-2xl border border-leaf-100 bg-white p-4 shadow-sm">
+            <aside className="w-56 shrink-0 space-y-2 rounded-2xl border border-leaf-100 bg-white p-3 shadow-sm">
               <div>
                 <h2 className="text-sm font-semibold text-ink">Unassigned classes</h2>
                 <p className="text-xs text-ink/50">{term ? term.label : 'Loading term…'}</p>
+              </div>
+              <div className="space-y-2 border-b border-leaf-200 pb-3">
+          <label className="flex min-w-0 flex-col gap-1 text-xs font-medium text-slate-600">
+            Faculty
+            <select
+              aria-label="Filter by faculty"
+              value={filterFacultyId}
+              onChange={(event) => setFilterFacultyId(event.target.value)}
+              className={`${selectCls} !w-full min-w-0 max-w-full`}
+            >
+              <option value="">All</option>
+              {faculty.map((member) => (
+                <option key={member.id} value={member.id}>
+                  {member.last_name}, {member.first_name}
+                </option>
+              ))}
+            </select>
+          </label>
               </div>
               <div className="max-h-80 space-y-2 overflow-y-auto pr-1">
                 {unassignedChunks.length === 0 ? (
@@ -997,7 +1015,7 @@ export function SchedulePage(): JSX.Element {
             {/* Time-gutter + day columns. Each day column is a droppable hour
                 stack; placed blocks are absolutely positioned by start/end
                 time (flowsched.html block math). */}
-            <div className="flex min-w-0 flex-1 overflow-x-auto rounded-2xl border border-leaf-100 bg-white p-4 shadow-sm">
+            <div className="schedule-grid-surface flex min-w-0 flex-1 overflow-hidden rounded-2xl border border-leaf-100 bg-white p-2 shadow-sm">
               {/* `flex-1` on the inner row matters: without an explicit width the
                   flex row collapses to its content and the day columns stop
                   filling the panel, leaving dead space on the right. */}
@@ -1009,12 +1027,12 @@ export function SchedulePage(): JSX.Element {
                     with their rows. Height must match the grid cells exactly. */}
                 {/* Wide enough for the longest label, the 11:30 AM - 12:00 PM row,
                     which is the one range that carries a marker on both ends. */}
-                <div className="w-[124px] shrink-0 pt-7 pr-3" aria-hidden="true">
+                <div className="schedule-time-gutter w-[124px] shrink-0 pt-7" aria-hidden="true">
                   {rows.map((row) => (
                     <div
                       key={row.key}
-                      className="flex items-center justify-end whitespace-nowrap text-right font-mono text-[11px] leading-none tabular-nums text-ink/70"
-                      style={{ height: HALF_HOUR_HEIGHT }}
+                      className="flex items-center justify-end whitespace-nowrap text-right text-[11px] font-medium leading-none tracking-normal tabular-nums text-slate-600 dark:text-neutral-300"
+                      style={{ height: HALF_HOUR_HEIGHT, fontFamily: 'inherit' }}
                     >
                       {rangeLabel(row)}
                     </div>
@@ -1025,7 +1043,7 @@ export function SchedulePage(): JSX.Element {
                   return (
                     <motion.div
                       key={day}
-                      className="min-w-[132px] flex-1"
+                      className="min-w-0 flex-1"
                       animate={
                         shaking && !reduce ? { x: [0, -6, 6, -4, 4, 0] } : { x: 0 }
                       }
@@ -1038,10 +1056,10 @@ export function SchedulePage(): JSX.Element {
                         }
                       }}
                     >
-                      <div className="pb-1 text-center text-xs font-semibold uppercase tracking-wide text-ink/60">
+                      <div className="schedule-day-heading pb-1 text-center text-xs font-semibold tracking-normal text-slate-700 dark:text-neutral-200">
                         {DAY_LABELS[day]}
                       </div>
-                      <div className="relative border-l border-leaf-300" style={{ height: GRID_HEIGHT }}>
+                      <div className="schedule-grid-day relative border-l border-leaf-300" style={{ height: GRID_HEIGHT }}>
                         {hours.map((hour) => (
                           <React.Fragment key={`${day}-${hour}`}>
                             {/* :00 half-hour row (top half of the hour) */}
@@ -1053,7 +1071,7 @@ export function SchedulePage(): JSX.Element {
                                 lighter than the solid hour line so the hour
                                 boundaries still read as the primary structure. */}
                             <div
-                              className="absolute left-0 right-0 border-t border-dashed border-leaf-200"
+                              className="schedule-grid-half-hour absolute left-0 right-0 border-t border-dashed border-leaf-200"
                               style={{ top: HALF_HOUR_HEIGHT }}
                             />
                             {/* :30 half-hour row (bottom half of the hour) */}
@@ -1063,6 +1081,33 @@ export function SchedulePage(): JSX.Element {
                             />
                           </React.Fragment>
                         ))}
+                        <div
+                          aria-label="Lunch Break, 12:00 PM to 1:00 PM"
+                          className="pointer-events-none absolute inset-x-0 z-[1] flex items-center justify-center border-y border-neutral-400 bg-neutral-300/65 text-[11px] font-semibold text-neutral-700 dark:border-neutral-500 dark:bg-neutral-600/60 dark:text-neutral-100"
+                          style={{top:slotTop(12*60),height:HOUR_HEIGHT}}
+                        >
+                          Lunch Break
+                        </div>
+                        {draggingTeaching.filter(slot => slot.day_of_week === day).map((slot,index) => {
+                          const start = Math.max(DAY_START_HOUR*60,timeToMinutes(slot.start_time));
+                          const end = Math.min(DAY_END_HOUR*60,timeToMinutes(slot.end_time));
+                          if (end <= start) return null;
+                          return <motion.div key={`teaching-preview-${slot.id}`} initial={reduce ? false : {opacity:0,scale:0.94,y:6}} animate={{opacity:1,scale:1,y:0}} transition={reduce ? {duration:0} : {duration:0.45,delay:Math.min(index*0.09,0.9),ease:[0.22,1,0.36,1]}} className="pointer-events-none absolute inset-x-1 z-20 overflow-hidden rounded-md border-2 border-dashed px-2 py-1 text-[10px] leading-tight" style={{top:slotTop(start),height:slotHeight(start,end),backgroundColor:`${assignmentColor(slot)}66`,borderColor:assignmentColor(slot),color:'var(--ui-ink)',boxShadow:'none'}}>
+                            <span className="block font-bold">{slot.subject_code}</span>
+                            <span className="block">{slot.room_name ?? 'Room unassigned'} · {slot.section_label}</span>
+                            <span>{formatTime12h(slot.start_time)}–{formatTime12h(slot.end_time)}</span>
+                          </motion.div>;
+                        })}
+                        {draggingFunctions.filter(session => session.day_of_week === day).map(session => {
+                          const start = Math.max(DAY_START_HOUR * 60,timeToMinutes(session.start_time));
+                          const end = Math.min(DAY_END_HOUR * 60,timeToMinutes(session.end_time));
+                          if (end <= start) return null;
+                          const color = session.type === 'EXTENSION' ? '#93c5fd' : session.type === 'CONSULTATION' ? '#fde047' : session.type === 'IMP' ? '#c4b5fd' : session.type === 'DESIGNATION' ? '#fdba74' : '#6ee7b7';
+                          return <motion.div key={`function-preview-${session.id}`} initial={reduce ? false : {opacity:0,scale:0.94,y:6}} animate={{opacity:1,scale:1,y:0}} transition={reduce ? {duration:0} : {duration:0.45,delay:Math.min(draggingFunctions.indexOf(session)*0.09,0.9),ease:[0.22,1,0.36,1]}} className="pointer-events-none absolute inset-x-1 z-20 overflow-hidden rounded-md border-2 border-dashed px-2 py-1 text-[10px] leading-tight" style={{top:slotTop(start),height:slotHeight(start,end),backgroundColor:`${color}66`,borderColor:color,color:'var(--ui-ink)',boxShadow:'none'}}>
+                            <span className="block font-bold">{session.type === 'IMP' ? 'IMP' : session.type.charAt(0)+session.type.slice(1).toLowerCase()}</span>
+                            <span>{formatTime12h(session.start_time)}–{formatTime12h(session.end_time)}</span>
+                          </motion.div>;
+                        })}
                         {(slotsByDay.get(day) ?? []).map((slot) => (
                           <PlacedBlock
                             key={slot.id}
@@ -1076,6 +1121,9 @@ export function SchedulePage(): JSX.Element {
                             onFlashComplete={() => clearFlash(slot.id)}
                             onRemove={() => setDeletingSlot(slot)}
                             onInspect={() => setInspectedSlotId(slot.id)}
+                            onNote={()=>openNote(slot)}
+                            noteLevel={readNote(slot)?.text.trim() ? readNote(slot)?.level : undefined}
+                            noteText={readNote(slot)?.text}
                           />
                         ))}
                       </div>
@@ -1145,9 +1193,12 @@ export function SchedulePage(): JSX.Element {
         />
       ) : null}
 
+      {createPortal(<div className="app-bg workspace-ui schedule-reset-dialog"><Modal open={lunchBlocked} title="Lunch break is reserved" onClose={()=>setLunchBlocked(false)}><p className="text-sm">Classes cannot be scheduled during lunch break, from 12:00 PM to 1:00 PM. Choose a time that ends by noon or starts at 1:00 PM or later.</p><div className="mt-5 flex justify-end"><button type="button" onClick={()=>setLunchBlocked(false)} className="rounded-lg px-4 py-2 text-sm font-semibold">Choose another time</button></div></Modal></div>,document.body)}
       {inspectedSlot ? (
         <BlockDetailsDialog
           info={{ type: 'move', slot: inspectedSlot }}
+          onNote={()=>openNote(inspectedSlot)}
+          hasNote={Boolean(readNote(inspectedSlot)?.text.trim())}
           onClose={() => setInspectedSlotId(null)}
         />
       ) : null}
@@ -1166,7 +1217,8 @@ export function SchedulePage(): JSX.Element {
         onCancel={() => setDeletingSlot(null)}
       />
 
-      <Modal
+      {createPortal(<div className="app-bg workspace-ui schedule-reset-dialog"><Modal open={noteSlot!==null} title={`Note - ${noteSlot?.subject_code ?? ''}`} onClose={()=>setNoteSlot(null)}><form onSubmit={e=>{e.preventDefault();if(!noteSlot)return;try { const key=`flowsched:slot-note:${noteUserId}:${noteSlot.id}`; if(noteText.trim())localStorage.setItem(key,JSON.stringify({text:noteText,level:noteLevel}));else localStorage.removeItem(key);setNotesVersion(v=>v+1);setNoteSlot(null);pushToast('success','Note saved.'); } catch { setNoteError('Could not save the note. Browser storage may be unavailable.'); }}} className="space-y-4"><p className="text-xs text-slate-500">Personal note saved in this browser for this scheduled class.</p><label className="block text-sm font-medium">Priority<select value={noteLevel} onChange={e=>setNoteLevel(e.target.value)} className="mt-2 w-full rounded-lg border-2 border-neutral-500 p-2"><option value="critical">Critical - Requires immediate attention; must be addressed first.</option><option value="high">High Priority - Needs attention soon but isn't critical yet.</option><option value="normal">Normal - Regular notice; no immediate action required.</option></select></label><label className="block text-sm font-medium">Note<textarea autoFocus value={noteText} onChange={e=>setNoteText(e.target.value)} rows={5} maxLength={2000} className="mt-2 w-full rounded-lg border-2 border-neutral-500 p-3 text-sm" placeholder="Write a reminder?" /></label>{noteError&&<p role="alert" className="text-sm text-red-700">{noteError}</p>}<div className="flex justify-end gap-3"><button type="button" onClick={()=>setNoteSlot(null)} className="px-3 py-2">Cancel</button><button type="submit" className="px-3 py-2">Save note</button></div></form></Modal></div>,document.body)}
+      {createPortal(<div className="app-bg workspace-ui schedule-reset-dialog"><Modal
         open={resetOpen}
         title="Reset schedule"
         onClose={() => {
@@ -1182,7 +1234,7 @@ export function SchedulePage(): JSX.Element {
             Clear placed classes for {term ? term.label : 'this term'}. Assignments stay —
             everything returns to Unassigned classes.
           </p>
-          <fieldset className="space-y-2">
+          <fieldset disabled={resetBusy} className="space-y-2">
             <legend className="text-xs font-semibold uppercase tracking-wide text-slate-500">
               Scope
             </legend>
@@ -1266,7 +1318,7 @@ export function SchedulePage(): JSX.Element {
             </button>
           </div>
         </form>
-      </Modal>
+      </Modal></div>, document.body)}
     </section>
   );
 }
@@ -1284,7 +1336,7 @@ function DropCell({ id, highlighted = false }: { id: string; highlighted?: boole
       data-drop-id={id}
       // Exposed so tests can assert the multi-cell preview without class names.
       data-drop-preview={highlighted ? 'true' : undefined}
-      className={`border-b border-leaf-200 transition-colors duration-150 ${
+      className={`schedule-grid-drop-cell border-b border-leaf-200 transition-colors duration-150 ${
         // The drop preview must out-read the grid lines underneath it, so the
         // highlighted state gets both a tint and an inset ring.
         isOver || highlighted ? 'bg-leaf-100 ring-2 ring-inset ring-leaf-500/70' : ''
@@ -1440,7 +1492,7 @@ function DetailsCard({ info, compact = true }: { info: DragInfo; compact?: boole
       {/* Header band in the block's own color, mirroring the block's own
           color structure so the two read as one object. */}
       <div
-        className={`flex items-center gap-2 ${compact ? 'px-3 py-2' : 'px-5 py-3.5'}`}
+        className={`flex items-center gap-2 ${compact ? 'px-3 py-2' : 'pl-5 pr-16 py-3.5'}`}
         style={accent ? { backgroundColor: accent, color: headerText } : undefined}
       >
         <span
@@ -1480,9 +1532,13 @@ function DetailsCard({ info, compact = true }: { info: DragInfo; compact?: boole
 function BlockDetailsDialog({
   info,
   onClose,
+  onNote,
+  hasNote,
 }: {
   info: DragInfo;
   onClose: () => void;
+  onNote?: () => void;
+  hasNote?: boolean;
 }): JSX.Element {
   const reduce = useReducedMotion();
   const transition = reduce ? { duration: 0 } : { duration: 0.18, ease: 'easeOut' as const };
@@ -1522,11 +1578,12 @@ function BlockDetailsDialog({
             close control rides in the same band so the color block stays intact. */}
         <div className="relative">
           <DetailsCard info={info} compact={false} />
+          {onNote&&<div className="border-t border-neutral-200 bg-white p-4"><button type="button" onClick={onNote} className="rounded-lg border-2 border-black bg-sky-200 px-3 py-2 text-sm font-semibold text-black shadow-[2px_2px_0_#000]">{hasNote?'Edit note':'Add note'}</button></div>}
           <button
             type="button"
             aria-label="Close details"
             onClick={onClose}
-            className="absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-lg bg-black/15 text-current transition-colors hover:bg-black/25"
+            className="schedule-details-close absolute right-4 top-4 flex h-8 w-8 items-center justify-center rounded-lg border-2 border-black transition-colors"
           >
             <svg
               aria-hidden="true"
@@ -1891,6 +1948,9 @@ function PlacedBlock({
   onFlashComplete,
   onRemove,
   onInspect,
+  onNote,
+  noteLevel,
+  noteText,
 }: {
   slot: ScheduleSlot;
   justPlaced: boolean;
@@ -1901,6 +1961,9 @@ function PlacedBlock({
   onRemove: () => void;
   /** Click-to-inspect: open the full record for this block. */
   onInspect: () => void;
+  onNote: () => void;
+  noteLevel?: string;
+  noteText?: string;
 }): JSX.Element {
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: `slot:${slot.id}`,
@@ -1951,9 +2014,10 @@ function PlacedBlock({
         title={slot.subject_code}
         subtitle={slot.section_label}
         meta={`${slot.faculty_name} · ${formatTime12h(slot.start_time)}`}
-        className={`h-full ${slot.color ? '' : 'border-leaf-300 bg-leaf-50/90'}`}
+        className={`schedule-subject-block h-full ${slot.color ? '' : 'schedule-default-slot border-leaf-300 bg-leaf-50/90'}`}
         color={slot.color}
       />
+      {noteLevel && <ScheduleNoteButton level={noteLevel} text={noteText??''} subject={slot.subject_code} onClick={onNote} />}
       <button
         type="button"
         aria-label={`Remove ${slot.subject_code} from the grid`}
@@ -2050,4 +2114,5 @@ export function ConflictDetailsList({ details }: { details: ConflictDetails | nu
     </ul>
   );
 }
+
 

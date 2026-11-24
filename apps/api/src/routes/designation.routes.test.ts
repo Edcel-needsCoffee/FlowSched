@@ -241,6 +241,70 @@ describe('Designations API', () => {
     expect(otherRes.status).toBe(403);
   });
 
+  it('faculty can set, edit and remove their own designation and equivalent credit', async () => {
+    const f = await seedFixtures();
+    const assigned = await request(createApp()).post(`/api/faculty/${f.facultyAId}/designations`)
+      .set('Authorization', `Bearer ${facultyAToken}`)
+      .send({ designation_id: f.designationGrantsId, term_id: f.termId, hours: 4, service_credit: 2, details: 'Extension activities coordinator' });
+    expect(assigned.status).toBe(201);
+    expect(assigned.body.designation).toMatchObject({faculty_id:f.facultyAId,hours:4,service_credit:2,details:'Extension activities coordinator'});
+    const id = assigned.body.designation.id;
+    const updated = await request(createApp()).patch(`/api/faculty-designations/${id}`)
+      .set('Authorization', `Bearer ${facultyAToken}`).send({hours:6,service_credit:3});
+    expect(updated.status).toBe(200);
+    expect(updated.body.designation).toMatchObject({hours:6,service_credit:3});
+    const details = await request(createApp()).patch(`/api/faculty-designations/${id}`)
+      .set('Authorization', `Bearer ${facultyAToken}`).send({details:'  Coordinates community outreach  '});
+    expect(details.status).toBe(200);
+    expect(details.body.designation).toMatchObject({details:'Coordinates community outreach',hours:6,service_credit:3});
+    expect((await request(createApp()).patch(`/api/faculty-designations/${id}`)
+      .set('Authorization', `Bearer ${facultyAToken}`).send({details:'x'.repeat(501)})).status).toBe(400);
+    const invalid = await request(createApp()).patch(`/api/faculty-designations/${id}`)
+      .set('Authorization', `Bearer ${facultyAToken}`).send({service_credit:-1});
+    expect(invalid.status).toBe(400);
+    const load = await request(createApp()).get(`/api/faculty/${f.facultyAId}/teaching-load?termId=${f.termId}`)
+      .set('Authorization', `Bearer ${facultyAToken}`);
+    expect(load.body.load.service_credits).toBe(0); // No approved sessions yet.
+    expect(load.body.load.designations[0].details).toBe('Coordinates community outreach');
+    const cleared = await request(createApp()).patch(`/api/faculty-designations/${id}`)
+      .set('Authorization', `Bearer ${facultyAToken}`).send({details:''});
+    expect(cleared.status).toBe(200);
+    expect(cleared.body.designation.details).toBeNull();
+    expect((await request(createApp()).delete(`/api/faculty-designations/${id}`)
+      .set('Authorization', `Bearer ${facultyAToken}`)).status).toBe(204);
+  });
+
+  it('faculty cannot assign to others or edit/delete another faculty assignment', async () => {
+    const f = await seedFixtures();
+    const body = {designation_id:f.designationGrantsId,term_id:f.termId,hours:4,service_credit:2};
+    expect((await request(createApp()).post(`/api/faculty/${f.facultyBId}/designations`)
+      .set('Authorization', `Bearer ${facultyAToken}`).send(body)).status).toBe(403);
+    const other = await request(createApp()).post(`/api/faculty/${f.facultyBId}/designations`)
+      .set('Authorization', `Bearer ${chairToken}`).send(body);
+    const id = other.body.designation.id;
+    expect((await request(createApp()).patch(`/api/faculty-designations/${id}`)
+      .set('Authorization', `Bearer ${facultyAToken}`).send({service_credit:10})).status).toBe(403);
+    expect((await request(createApp()).delete(`/api/faculty-designations/${id}`)
+      .set('Authorization', `Bearer ${facultyAToken}`)).status).toBe(403);
+    expect(await prisma.facultyDesignation.findUnique({where:{id}})).toMatchObject({service_credit:2,deleted_at:null});
+    const unlinked = signAccessToken({userId:'unlinked',role:'FACULTY',facultyId:null});
+    expect((await request(createApp()).post(`/api/faculty/${f.facultyAId}/designations`)
+      .set('Authorization', `Bearer ${unlinked}`).send(body)).status).toBe(403);
+  });
+
+  it('faculty cannot turn an ineligible designation into service credits', async () => {
+    const f = await seedFixtures();
+    const assigned = await request(createApp()).post(`/api/faculty/${f.facultyAId}/designations`)
+      .set('Authorization', `Bearer ${facultyAToken}`)
+      .send({designation_id:f.designationNoGrantsId,term_id:f.termId,hours:4,service_credit:20});
+    expect(assigned.status).toBe(201);
+    expect(assigned.body.designation.service_credit).toBe(0);
+    const updated = await request(createApp()).patch(`/api/faculty-designations/${assigned.body.designation.id}`)
+      .set('Authorization', `Bearer ${facultyAToken}`).send({service_credit:20});
+    expect(updated.status).toBe(200);
+    expect(updated.body.designation.service_credit).toBe(0);
+  });
+
   it('engine integration: assigned designations without plotted sessions do not count', async () => {
     const f = await seedFixtures();
 

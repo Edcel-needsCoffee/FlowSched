@@ -1,0 +1,247 @@
+- application [ref=e1]:
+  - iframe [aria-hidden] [ref=e442]
+  - iframe [aria-hidden] [ref=e443]
+  - banner "Menu bar" [ref=e2]:
+    - dialog "Hanapin at palitan" [ref=e859]:
+      - generic [ref=e860]:
+        - heading "Hanapin at palitan" [level=2] [ref=e861]
+        - generic [ref=e863]:
+          - button "Isara" [ref=e864] [cursor=pointer]
+          - tooltip [aria-hidden] [ref=e869]: Isara
+      - generic [ref=e870]:
+        - generic [ref=e871]:
+          - generic [ref=e873]:
+            - generic:
+              - generic:
+                - generic:
+                  - generic: Maghanap
+                  - generic [aria-hidden]: Maghanap
+                  - generic [aria-hidden]: Maghanap
+            - textbox "Maghanap" [ref=e875]: In the current system configuration, subject hours are used as teaching units, and workload is monitored against configured maximum-unit values. More detailed workload rules will be refined once the official workload or teaching-unit rules are confirmed by the Industrial Engineering Department.
+            - generic [ref=e899]: 0 ng 0
+          - generic [ref=e877]:
+            - generic:
+              - generic:
+                - generic:
+                  - generic: Palitan ng
+                  - generic [aria-hidden]: Palitan ng
+                  - generic [aria-hidden]: Palitan ng
+            - textbox "Palitan ng" [active] [ref=e879]: In the current system configuration, teaching load is calculated from lecture hours plus laboratory hours weighted by a configurable coefficient. The system counts distinct lecture and laboratory preparations, applies configurable preparation-based teaching ceilings, separates claimable whole-hour overload from fractional Teaching Service Credit, and computes total weekly faculty time from regular teaching and qualifying plotted research, extension, IMP, consultation, and designation sessions. These rules and their policy assumptions remain configurable pending confirmation by the Department Chair.
+        - generic [ref=e880]:
+          - generic [ref=e881] [cursor=pointer]:
+            - checkbox "Itugma ang laki ng titik" [ref=e883]
+            - generic [ref=e884]: Itugma ang laki ng titik
+          - generic [ref=e885]:
+            - checkbox "Gumamit ng mga karaniwang expression (hal. \\n para sa newline, \\t para sa tab)" [ref=e887] [cursor=pointer]
+            - generic [ref=e888]:
+              - text: Gumamit ng mga karaniwang expression (hal. \n para sa newline, \t para sa tab)
+              - link "Tulong" [ref=e889] [cursor=pointer]:
+                - /url: https://support.google.com/docs/answer/62754#regular_expressions
+          - generic [ref=e890] [cursor=pointer]:
+            - checkbox "Balewalain ang mga diacritic (hal. ä = a, E = É, אַ = א)" [checked] [ref=e892]
+            - generic [ref=e893]: Balewalain ang mga diacritic (hal. ä = a, E = É, אַ = א)
+      - generic [ref=e894]:
+        - generic [ref=e895]:
+          - button "Palitan" [disabled]
+        - generic [ref=e896]:
+          - button "Palitan lahat" [disabled]
+        - generic [ref=e897]:
+          - button "Nakaraan" [disabled]
+        - generic [ref=e898]:
+          - button "Susunod" [disabled]
+    - generic [ref=e5]:
+      - link "Docs home" [ref=e7] [cursor=pointer]:
+        - /url: https://docs.google.com/document/?usp=docs_web
+      - generic [ref=e14]:
+        - generic "FLOWSCHED Documentation Centralized" [ref=e16]:
+          - 'button "Status ng dokumento: Sine-save…." [ref=e913]':
+            - generic [ref=e914] [cursor=pointer]: Sine-save…
+        - generic [ref=e30]:
+          - generic [ref=e35]:
+            - button "Anonymous na Capybara" [ref=e36]:
+              - img "Anonymous na Capybara" [ref=e41] [cursor=pointer]
+            - button "edcel hermoso" [ref=e784]:
+              - img "edcel hermoso" [ref=e789] [cursor=pointer]
+          - button "Ipakita ang lahat ng komento" [ref=e49] [cursor=pointer]
+          - generic [ref=e52]:
+            - button "Ibahagi. Sinuman na may link. Maa-access ng sinumang may link. Hindi kailangang mag-sign in." [disabled] [ref=e444]: Ibahagi
+            - button "Mga pagkilos para sa mabilis na pag-share" [disabled] [ref=e55]
+          - link "Mag-sign in" [ref=e59] [cursor=pointer]:
+            - /url: https://accounts.google.com/ServiceLogin?service=wise&passive=1209600&osid=1&continue=https://docs.google.com/document/d/1G9YJcYCclf1jDJP4aa9O5pDEKEQS2P6RP1eABWzGiSA/edit?tab%3Dt.0&followup=https://docs.google.com/document/d/1G9YJcYCclf1jDJP4aa9O5pDEKEQS2P6RP1eABWzGiSA/edit?tab%3Dt.0&ltmpl=docs&ec=GAZAGQ
+    - generic [ref=e60]:
+      - menubar [ref=e62]:
+        - menuitem "File" [ref=e63] [cursor=pointer]
+        - menuitem "I-edit" [ref=e64] [cursor=pointer]
+        - menuitem "Tingnan" [ref=e65] [cursor=pointer]
+        - menuitem "Ipasok" [ref=e66] [cursor=pointer]
+        - menuitem "Format" [ref=e67] [cursor=pointer]
+        - menuitem "Mga tool" [ref=e68] [cursor=pointer]
+        - menuitem "Mga Extension" [ref=e69] [cursor=pointer]
+        - menuitem "Tulong" [ref=e70] [cursor=pointer]
+      - generic [ref=e71]:
+        - generic [ref=e72]:
+          - generic [ref=e73]:
+            - button "Hanapan ang mga menu (Alt+/)" [ref=e74] [cursor=pointer]
+            - combobox "Mga Menu" [ref=e76]
+          - toolbar "Pangunahin" [ref=e77]:
+            - button "I-undo (Ctrl+Z)" [ref=e78] [cursor=pointer]
+            - button "Gawing muli (Ctrl+Y)" [ref=e83] [cursor=pointer]
+            - button "I-print (Ctrl+P)" [ref=e88] [cursor=pointer]
+            - button "Pagsusuri sa spelling at grammar (Ctrl+Alt+X)" [ref=e93] [cursor=pointer]
+            - button "Format ng Paint" [ref=e98] [cursor=pointer]
+            - combobox "I-zoom" [ref=e103] [cursor=pointer]:
+              - generic "Listahan ng I-zoom. Pinili ang 100%." [ref=e106]:
+                - textbox "I-zoom" [ref=e107]: 100%
+            - separator [disabled] [ref=e111]
+            - listbox "Mga Istilo" [ref=e112] [cursor=pointer]:
+              - option "Listahan ng Mga Istilo. Pinili ang Normal na text." [selected] [ref=e446]: Normal na text
+            - separator [disabled] [ref=e119]
+            - listbox "Font" [ref=e120] [cursor=pointer]:
+              - option "Listahan ng Font. Pinili ang Times New Roman." [selected] [ref=e919]: Times New Roman
+            - separator [disabled] [ref=e127]
+            - button "Paliitin ang font (Ctrl+Shift+kuwit)" [ref=e128] [cursor=pointer]
+            - combobox "Laki ng font" [ref=e133] [cursor=pointer]:
+              - generic "Listahan ng Laki ng font. Pinili ang 11." [ref=e136]:
+                - textbox "Laki ng font" [ref=e137]: "11"
+            - button "Palakihin ang font (Ctrl+Shift+tuldok)" [ref=e138] [cursor=pointer]
+            - separator [disabled] [ref=e143]
+            - button "Bold (Ctrl+B)" [ref=e144] [cursor=pointer]
+            - button "Italic (Ctrl+I)" [ref=e149] [cursor=pointer]
+            - button "Salungguhitan (Ctrl+U)" [ref=e154] [cursor=pointer]
+            - button "Kulay ng teksto" [ref=e159] [cursor=pointer]
+            - button "Kulay ng highlight" [ref=e166] [cursor=pointer]
+            - separator [disabled] [ref=e173]
+            - button "Higit Pa" [disabled] [ref=e174] [cursor=pointer]
+        - toolbar "Mode at view" [ref=e181]:
+          - button "Mode para sa pag-edit" [ref=e447] [cursor=pointer]:
+            - generic [ref=e183]: Pag-edit
+          - separator [disabled] [ref=e186]
+          - button "Itago ang mga menu (Ctrl+Shift+F)" [ref=e187] [cursor=pointer]
+  - generic [ref=e194]:
+    - generic [ref=e199]:
+      - generic [ref=e200]: "22"
+      - generic [ref=e205]: "21"
+      - generic [ref=e210]: "20"
+      - generic [ref=e215]: "19"
+      - generic [ref=e220]: "18"
+      - generic [ref=e225]: "17"
+      - generic [ref=e230]: "16"
+      - generic [ref=e235]: "15"
+      - generic [ref=e240]: "14"
+      - generic [ref=e245]: "13"
+      - generic [ref=e250]: "12"
+      - generic [ref=e255]: "11"
+      - generic [ref=e260]: "10"
+      - generic [ref=e265]: "9"
+      - generic [ref=e270]: "8"
+      - generic [ref=e275]: "7"
+      - generic [ref=e280]: "6"
+      - generic [ref=e285]: "5"
+      - generic [ref=e290]: "4"
+      - generic [ref=e295]: "3"
+      - generic [ref=e300]: "2"
+      - generic [ref=e305]: "1"
+      - generic [ref=e314]: "1"
+      - generic [ref=e319]: "2"
+      - generic [ref=e324]: "3"
+      - generic [ref=e329]: "4"
+      - generic [ref=e334]: "5"
+      - generic [ref=e339]: "6"
+      - generic [ref=e344]: "7"
+      - generic [ref=e349]: "8"
+      - generic [ref=e354]: "9"
+      - generic [ref=e359]: "10"
+      - generic [ref=e364]: "11"
+      - generic [ref=e369]: "12"
+      - generic [ref=e374]: "13"
+      - generic [ref=e379]: "14"
+      - generic [ref=e384]: "15"
+      - generic [ref=e389]: "16"
+      - generic [ref=e394]: "17"
+      - generic [ref=e399]: "18"
+      - generic [ref=e404]: "19"
+      - generic [ref=e409]: "20"
+      - generic [ref=e414]: "21"
+    - generic [ref=e429]:
+      - generic:
+        - generic [ref=e433]:
+          - button [aria-hidden]
+        - generic:
+          - list
+    - generic [ref=e456]:
+      - generic [ref=e920]: "28"
+      - generic [ref=e925]: "27"
+      - generic [ref=e930]: "26"
+      - generic [ref=e935]: "25"
+      - generic [ref=e940]: "24"
+      - generic [ref=e945]: "23"
+      - generic [ref=e950]: "22"
+      - generic [ref=e955]: "21"
+      - generic [ref=e960]: "20"
+      - generic [ref=e965]: "19"
+      - generic [ref=e970]: "18"
+      - generic [ref=e975]: "17"
+      - generic [ref=e980]: "16"
+      - generic [ref=e985]: "15"
+      - generic [ref=e990]: "14"
+      - generic [ref=e995]: "13"
+      - generic [ref=e1000]: "12"
+      - generic [ref=e1005]: "11"
+      - generic [ref=e1010]: "10"
+      - generic [ref=e1015]: "9"
+      - generic [ref=e1020]: "8"
+      - generic [ref=e1025]: "7"
+      - generic [ref=e1030]: "6"
+      - generic [ref=e1035]: "5"
+      - generic [ref=e1040]: "4"
+      - generic [ref=e1045]: "3"
+      - generic [ref=e1050]: "2"
+      - generic [ref=e1055]: "1"
+      - generic [ref=e1064]: "1"
+      - generic [ref=e1069]: "2"
+      - generic [ref=e1074]: "3"
+      - generic [ref=e1079]: "4"
+      - generic [ref=e1084]: "5"
+      - generic [ref=e1089]: "6"
+      - generic [ref=e1094]: "7"
+      - generic [ref=e1099]: "8"
+      - generic [ref=e1104]: "9"
+      - generic [ref=e1109]: "10"
+      - generic [ref=e1114]: "11"
+      - generic [ref=e1119]: "12"
+      - generic [ref=e1124]: "13"
+      - generic [ref=e1129]: "14"
+      - generic [ref=e1134]: "15"
+      - generic [ref=e1139]: "16"
+      - generic [ref=e1144]: "17"
+      - generic [ref=e1149]: "18"
+      - generic [ref=e1154]: "19"
+      - generic [ref=e1159]: "20"
+      - generic [ref=e1164]: "21"
+      - generic [ref=e1169]: "22"
+      - generic [ref=e1174]: "23"
+      - generic [ref=e1179]: "24"
+      - generic [ref=e1184]: "25"
+      - generic [ref=e1189]: "26"
+      - generic [ref=e1194]: "27"
+    - generic "Mga tab ng dokumento" [ref=e741]:
+      - button "Itago ang mga tab at balangkas" [ref=e743] [cursor=pointer]:
+        - button [disabled] [ref=e744]:
+          - button "Bumalik" [disabled] [ref=e748]
+      - generic [ref=e754]:
+        - generic [ref=e756]:
+          - heading "Mga tab ng dokumento" [level=2] [ref=e757]
+          - button "Magdagdag ng tab" [ref=e760]
+        - tree "Mga tab ng dokumento" [ref=e764]:
+          - generic [ref=e766] [cursor=pointer]:
+            - treeitem "Tab 1" [selected] [ref=e767]:
+              - button "Mga opsyong tab" [ref=e777]
+            - generic [ref=e780]: Lalabas dito ang mga heading na idaragdag mo sa dokumento.
+  - iframe [ref=e439]:
+    - textbox "Nilalaman ng dokumento" [ref=f1e1]
+    - group
+  - link "I-on ang suporta sa screen reader" [ref=e440] [cursor=pointer]:
+    - /url: "#"
+  - region [ref=e441]: Upang i-enable ang screen reader support, pindutin ang Ctrl+Alt+Z Para matutunan ang mga keyboard shortcut, pindutin ang Ctrl+slash
+  - generic [ref=e783]: Naitago ang banner
+  - region

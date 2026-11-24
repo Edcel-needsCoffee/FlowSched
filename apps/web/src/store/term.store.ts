@@ -1,6 +1,24 @@
 import { create } from 'zustand';
 import { getActiveTerm, listTerms, type Term } from '../lib/terms';
 
+const TERM_SELECTION_KEY = 'flowsched:selected-term-id';
+
+function savedTermId(): string | null {
+  try {
+    return typeof localStorage === 'undefined' ? null : localStorage.getItem(TERM_SELECTION_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function persistTermId(id: string): void {
+  try {
+    if (typeof localStorage !== 'undefined') localStorage.setItem(TERM_SELECTION_KEY, id);
+  } catch {
+    // The in-memory selection still works when browser storage is unavailable.
+  }
+}
+
 interface TermState {
   terms: Term[];
   status: 'idle' | 'loading' | 'ready' | 'error';
@@ -19,7 +37,7 @@ interface TermState {
 export const useTermStore = create<TermState>()((set, get) => ({
   terms: [],
   status: 'idle',
-  selectedTermId: null,
+  selectedTermId: savedTermId(),
   async loadTerms() {
     if (get().status === 'loading') {
       return;
@@ -30,18 +48,23 @@ export const useTermStore = create<TermState>()((set, get) => ({
       const terms = list.data;
       const activeId =
         active.term?.id ?? terms.find((term) => term.is_active)?.id ?? terms[0]?.id ?? null;
-      set((state) => ({
-        terms,
-        status: 'ready',
-        // Keep an explicit user selection; otherwise adopt the active term.
-        selectedTermId: state.selectedTermId ?? activeId,
-      }));
+      set((state) => {
+        const selectionExists = state.selectedTermId && terms.some((term) => term.id === state.selectedTermId);
+        const selectedTermId = selectionExists ? state.selectedTermId : activeId;
+        if (selectedTermId) persistTermId(selectedTermId);
+        return {
+          terms,
+          status: 'ready',
+          selectedTermId,
+        };
+      });
     } catch {
       set({ status: 'error' });
     }
   },
   selectTerm: (id) => {
     if (id) {
+      persistTermId(id);
       set({ selectedTermId: id });
     }
   },

@@ -1,4 +1,6 @@
-﻿import { useCallback, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { formatTime12h } from './Schedule/schedule-time';
+import { useCallback, useEffect, useState } from 'react';
 import {
   getDashboardSummary,
   type DashboardSummary,
@@ -13,24 +15,27 @@ import { RoomUtilizationCard } from '../components/dashboard/RoomUtilizationCard
 import { FacultyLoadPanel } from '../components/dashboard/FacultyLoadPanel';
 import { WeekSchedulePreview } from '../components/dashboard/WeekSchedulePreview';
 import { RoomsStatusList } from '../components/dashboard/RoomsStatusList';
+import { ProfilePhoto } from '../components/dashboard/ProfilePhoto';
+import { downloadProgramWorkbook } from '../lib/program-download';
+import './dashboard.css';
 
 type Status = 'loading' | 'ready' | 'error';
 
-export const cardCls = 'glass-card p-4';
-export const statValueCls = 'mt-1 font-mono text-3xl font-bold text-slate-900';
-export const statLabelCls = 'text-xs font-medium uppercase tracking-wide text-slate-500';
-export const sectionTitleCls = 'text-sm font-semibold text-slate-900';
+export const cardCls = 'dashboard-card rounded-xl border border-neutral-200 bg-white p-5 shadow-[0_2px_10px_rgba(0,0,0,0.035)]';
+export const statValueCls = 'mt-1 text-3xl font-bold tracking-tight text-neutral-950';
+export const statLabelCls = 'text-xs font-medium uppercase tracking-wide text-neutral-500';
+export const sectionTitleCls = 'text-base font-semibold text-neutral-900';
 export const sectionSubCls = 'text-xs text-slate-500';
 
 /**
- * Dashboard â€” department overview (ui-ux.md section 4, FR-06/FR-08).
+ * Dashboard — department overview (ui-ux.md section 4, FR-06/FR-08).
  * Chair sees live department-wide panels; Faculty see only
  * their own summary. All numbers come from GET /api/dashboard/summary.
  */
 export function DashboardPage(): JSX.Element {
   // The summary is role-scoped server-side, so it must be re-fetched whenever
-  // the signed-in identity changes â€” otherwise a login that swaps users inside
-  // one SPA session (chair â†’ faculty) would keep showing the previous user's
+  // the signed-in identity changes — otherwise a login that swaps users inside
+  // one SPA session (chair → faculty) would keep showing the previous user's
   // department-wide payload under the new account.
   const userId = useAuthStore((s) => s.user?.id ?? null);
   const role = useAuthStore((s) => s.user?.role ?? null);
@@ -67,7 +72,7 @@ export function DashboardPage(): JSX.Element {
   }, [termStatus, load]);
 
   return (
-    <section aria-labelledby="dashboard-title" className="space-y-4">
+    <section aria-labelledby="dashboard-title" className="dashboard-page space-y-5 font-body text-neutral-900">
       {status === 'error' ? (
         <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-8 text-center">
           <p className="text-sm font-medium text-red-700">Couldn&apos;t load the dashboard</p>
@@ -136,7 +141,9 @@ function ChairDashboard({
     <DashboardStagger className="space-y-4">
       <DashboardStaggerItem>
         <DashboardHeader
-          greetingName={user?.email?.split('@')[0] ?? 'there'}
+          greetingName={user?.role === 'CHAIR' && user.username
+            ? user.username
+            : user?.email?.split('@')[0] ?? 'there'}
           termLabel={termLabel}
           scheduledPercent={summary.term_scheduled_percent}
           roomsInUsePercent={summary.rooms_in_use_percent}
@@ -166,92 +173,40 @@ function ChairDashboard({
   );
 }
 
-export function PersonalView({
-  summary,
-}: {
-  summary: Extract<DashboardSummary, { scope: 'personal' }>;
-}): JSX.Element {
-  const pct =
-    Math.min(100, Math.round(((summary.total_faculty_time??0) / (summary.weekly_hours??40)) * 100));
-  const barCls =
-    summary.load_status === 'over' ? 'bg-red-500' : summary.load_status === 'near' ? 'bg-amber-500' : 'bg-leaf-500';
-  const badgeCls =
-    summary.load_status === 'over'
-      ? 'bg-red-100 text-red-800'
-      : summary.load_status === 'near'
-        ? 'bg-amber-100 text-amber-800'
-        : 'bg-leaf-100 text-leaf-700';
-  if (!summary.faculty_id) {
-    return (
-      <div className="rounded-xl border border-dashed border-leaf-200 bg-white px-4 py-10 text-center">
-        <p className="text-sm font-medium text-ink">Your account is not linked to a faculty record yet.</p>
-        <p className="mt-1 text-sm text-ink/60">Ask the department chair to link your login.</p>
-      </div>
-    );
-  }
-  return (
-    <div className="space-y-4">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <div className={cardCls}>
-          <p className={statLabelCls}>My load</p>
-          <p className={statValueCls}>
-            {summary.total_faculty_time??0}h <span className="text-base font-medium text-ink/50">/ {summary.weekly_hours??40}</span>
-          </p>
-          <div
-            className="mt-2 h-2 overflow-hidden rounded-full bg-leaf-100"
-            role="progressbar"
-            aria-valuenow={pct}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-label="Faculty time vs weekly target"
-          >
-            <div className={`h-full rounded-full ${barCls}`} style={{ width: `${pct}%` }} />
-          </div>
-          <p className="mt-2">
-            <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${badgeCls}`}>
-              {summary.load_status === 'over' ? 'Over load' : summary.load_status === 'near' ? 'Near load' : 'Within capacity'}
-            </span>
-          </p>
-          {(summary.teaching_overload??0)>0&&<p className="mt-2 text-sm text-amber-700">Teaching overload: {summary.teaching_overload}h</p>}
+export function PersonalView({ summary }: { summary: Extract<DashboardSummary, { scope: 'personal' }> }): JSX.Element {
+  const term = useTermStore(selectSelectedTerm);
+  const user = useAuthStore(state => state.user);
+  const total = summary.total_faculty_time ?? 0;
+  const target = summary.weekly_hours ?? 40;
+  const percent = Math.max(0, Math.min(100, target > 0 ? total / target * 100 : 0));
+  const hours = (value: number) => Number(value.toFixed(1)).toString();
+  const remaining = Math.max(0, target - total);
+  const profile = summary.profile;
+  const employment = profile?.employment_status === 'FULL_TIME' ? 'Full-time' : profile?.employment_status === 'PART_TIME' ? 'Part-time' : profile?.employment_status || 'Not set';
+  if (!summary.faculty_id) return <div className={cardCls}><h1 id="dashboard-title">Faculty dashboard</h1><p>Your account is not linked to a faculty record yet. Ask the department chair to link your login.</p></div>;
+  return <div className="personal-dashboard faculty-dashboard">
+    <header className="fd-header"><div><h1 id="dashboard-title">Faculty dashboard</h1><p>{term?.label ?? 'No academic term selected'}</p></div><Link to="/workload" className="fd-open-load">Open Teaching Load</Link></header>
+    <div className="fd-grid">
+      <aside className="fd-profile fd-card" aria-label="Faculty profile">
+        <div className="fd-portrait"><div className="fd-portrait-outline" aria-hidden="true"/><ProfilePhoto src={user?.avatar_url ?? summary.avatar_url} name={summary.faculty_name} alt={summary.faculty_name + ' profile photo'} className="fd-photo"/><span className="fd-role">Faculty</span></div>
+        <h2>{summary.faculty_name}</h2><p className="fd-department">{profile?.department || 'Department not set'}</p>
+        <dl>{[['Employee ID', profile?.employee_no || 'Not set'], ['Program', profile?.program || 'Not set'], ['Sections', profile?.sections.length ? profile.sections.join(', ') : 'None assigned'], ['Status', employment]].map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>
+      </aside>
+      <div className="fd-main">
+        <div className="fd-metrics">
+          <section className="fd-card fd-weekly" aria-labelledby="fd-weekly-label"><h2 id="fd-weekly-label">Weekly faculty time</h2><p className="fd-value">{hours(total)}h <span>/ {hours(target)}</span></p><div className="fd-progress" role="progressbar" aria-label="Faculty time vs weekly target" aria-valuenow={Number(percent.toFixed(1))} aria-valuemin={0} aria-valuemax={100}><span style={{width: percent + '%'}}/></div><p className="fd-remaining">{total > target ? hours(total - target) + 'h above target' : remaining === 0 ? 'Weekly target met' : hours(remaining) + 'h remaining'}</p></section>
+          <section className="fd-card fd-assigned" aria-labelledby="fd-assigned-label"><h2 id="fd-assigned-label">Assigned teaching hours</h2><p className="fd-secondary">{hours(summary.my_total_hours)}h</p></section>
         </div>
-        <StatCard label="My subjects" value={summary.my_subjects_count} />
-        <StatCard label="Hours to weekly target" value={summary.remaining_to_target??0} suffix="h" />
-      </div>
-      <div className={cardCls}>
-        <h2 className={sectionTitleCls}>Upcoming classes</h2>
-        <p className={sectionSubCls}>Earliest weekday with classes â€” {summary.faculty_name}.</p>
-        {summary.todays_classes.length === 0 ? (
-          <p className="mt-3 rounded-lg border border-dashed border-leaf-200 px-3 py-4 text-center text-xs text-ink/60">
-            No classes scheduled yet for this term.
-          </p>
-        ) : (
-          <ul className="mt-3 space-y-2">
-            {summary.todays_classes.map((cls, i) => (
-              <li
-                key={`${cls.day_of_week}-${cls.start_time}-${i}`}
-                className="flex items-center justify-between gap-3 rounded-lg border border-leaf-100 px-3 py-2"
-              >
-                <span className="min-w-0">
-                  <span className="block truncate font-mono text-sm font-medium text-ink">
-                    {cls.subject_code} Â· {cls.day_of_week} {cls.start_time}â€“{cls.end_time}
-                  </span>
-                  <span className="block truncate text-[11px] text-ink/60">
-                    {cls.subject_title} Â· {cls.section_label} Â· {cls.room_name ?? 'TBA'}
-                  </span>
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-        {summary.my_next_class ? (
-          <p className="mt-3 text-xs text-ink/60">
-            Next class: {summary.my_next_class.subject_code} â€” {summary.my_next_class.day_of_week}{' '}
-            {summary.my_next_class.start_time}.
-          </p>
-        ) : null}
+        <section className="fd-card fd-upcoming" aria-labelledby="fd-upcoming-title"><h2 id="fd-upcoming-title">Upcoming classes</h2><p className="fd-subtitle">Today’s classes · Philippine time</p>
+          {summary.todays_classes.length === 0 ? <p className="fd-empty">No classes scheduled for today.</p> : <ul>{summary.todays_classes.map((entry, index) => {
+            const next = summary.my_next_class;
+            const isNext = next !== null && entry.day_of_week === next.day_of_week && entry.start_time === next.start_time && entry.subject_code === next.subject_code && entry.section_label === next.section_label;
+            return <li key={entry.day_of_week + entry.start_time + entry.subject_code + index} className={isNext ? 'fd-class fd-next' : 'fd-class'}><div className="fd-class-time"><strong>{entry.day_of_week.slice(0, 1).toUpperCase() + entry.day_of_week.slice(1).toLowerCase()}</strong><span>{formatTime12h(entry.start_time)}–{formatTime12h(entry.end_time)}</span></div><div className="fd-class-details"><strong>{entry.subject_code} · {entry.subject_title}</strong><span>{entry.section_label} · {entry.room_name ?? 'Room TBA'}</span></div><span className="fd-class-badge">{isNext ? 'Next class' : 'Today'}</span></li>;
+          })}</ul>}
+        </section>
       </div>
     </div>
-  );
+  </div>;
 }
 
 export function StatCard({ label, value, suffix }: { label: string; value: number; suffix?: string }): JSX.Element {

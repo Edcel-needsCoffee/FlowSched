@@ -43,6 +43,7 @@ export interface FacultyDto {
   rank: string | null;
   employment_status: 'FULL_TIME' | 'PART_TIME';
   max_units: number;
+  avatar_url: string | null;
   created_at: string;
   updated_at: string;
   user: LinkedUserDto | null;
@@ -75,6 +76,7 @@ export function toFacultyDto(faculty: FacultyWithUser): FacultyDto {
     rank: faculty.rank,
     employment_status: faculty.employment_status as 'FULL_TIME' | 'PART_TIME',
     max_units: faculty.max_units,
+    avatar_url: faculty.avatar_url ?? null,
     created_at: faculty.created_at.toISOString(),
     updated_at: faculty.updated_at.toISOString(),
     user: toLinkedUserDto(faculty.user),
@@ -90,6 +92,7 @@ export function toFacultyDtoFromRow(faculty: Faculty): Omit<FacultyDto, 'user'> 
     rank: faculty.rank,
     employment_status: faculty.employment_status as 'FULL_TIME' | 'PART_TIME',
     max_units: faculty.max_units,
+    avatar_url: faculty.avatar_url ?? null,
     created_at: faculty.created_at.toISOString(),
     updated_at: faculty.updated_at.toISOString(),
     user: null,

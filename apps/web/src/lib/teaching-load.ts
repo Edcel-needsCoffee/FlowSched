@@ -1,7 +1,7 @@
 import { apiFetch } from './api';
 export type FunctionType='RESEARCH'|'EXTENSION'|'IMP'|'CONSULTATION'|'DESIGNATION'|'OVERLOAD';
 export interface FacultySession {id:string;type:FunctionType;day_of_week:string;start_time:string;end_time:string;faculty_designation_id:string|null}
-export interface LoadDesignation {id:string;name:string;hours:number;service_credit:number;grants_service_credit:boolean;plotted_hours:number;accepted:boolean;counted_hours:number}
+export interface LoadDesignation {id:string;name:string;details?:string|null;hours:number;service_credit:number;grants_service_credit:boolean;plotted_hours:number;accepted:boolean;counted_hours:number}
 export interface TeachingLoad {
   lecture_hours:number;lab_hours:number;weighted_lab_hours:number;teaching_hours:number;preps:number;
   prep_breakdown:{subject_id:string;subject_code?:string;component:'LEC'|'LAB'}[];prep_ceiling:number;prep_ceiling_source:string;

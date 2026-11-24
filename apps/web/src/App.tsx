@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Landing } from './pages/Landing/Landing';
 import { LoginModal } from './components/auth/LoginModal';
@@ -5,31 +6,36 @@ import { SessionBootstrap } from './components/auth/SessionBootstrap';
 import { AppShell } from './layouts/AppShell';
 import { DashboardPage } from './pages/DashboardPage';
 import { SubjectsPage } from './pages/SubjectsPage';
+import { SectionsPage } from './pages/SectionsPage';
 import { FacultyPage } from './pages/FacultyPage';
 import { SchedulePage } from './pages/Schedule/SchedulePage';
-import { SectionSchedulePage } from './pages/Views/SectionSchedulePage';
-import { FacultySchedulePage } from './pages/Views/FacultySchedulePage';
-import { RoomSchedulePage } from './pages/Views/RoomSchedulePage';
 import { TeachingLoadPage } from './pages/TeachingLoadPage';
 import { FormSettingsPage } from './pages/FormSettingsPage';
 import { ProgramPrintPage } from './pages/ProgramPrintPage';
 import { WorkloadAssignmentPage } from './pages/WorkloadAssignment/WorkloadAssignmentPage';
 import { RoomsPage } from './pages/RoomsPage';
-import { ReportsPage } from './pages/ReportsPage';
 import { AccountSettingsPage } from './pages/AccountSettingsPage';
+import { ProfilePage } from './pages/ProfilePage';
 import { NotAuthorizedPage } from './pages/NotAuthorizedPage';
 import { RequireAuth } from './components/RequireAuth';
 import { ToastProvider } from './components/Toast';
 import { ALL_ROLES, MANAGEMENT_ROLES } from './config/navigation';
 import type { AuthRole } from './store/auth.store';
-
-/** Reports: Chair only (ui-ux.md §4). */
-const REPORTS_ROLES: AuthRole[] = ['CHAIR','ACADEMIC_ADMIN'];
+import { useUiStore } from './store/ui.store';
+import './layouts/workspace-theme.css';
 
 /** My Workload: Chair + Faculty. */
 const MY_WORKLOAD_ROLES: AuthRole[] = ['CHAIR', 'FACULTY'];
 
 export function App(): JSX.Element {
+  const theme = useUiStore((state) => state.theme);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+    document.documentElement.style.colorScheme = theme;
+    window.localStorage.setItem('flowsched-theme', theme);
+  }, [theme]);
+
   return (
     <BrowserRouter>
       {/* Boot-time session restore — must wrap the router content so the
@@ -40,8 +46,9 @@ export function App(): JSX.Element {
         <Routes>
           {/* Public landing: full-bleed marketing layout (own nav/footer). */}
           <Route path="/" element={<Landing />} />
-          {/* Direct-link entry: same landing base with modal open on mount. */}
-          <Route path="/login" element={<Landing openLoginOnMount />} />
+          {/* Protected-route redirects land here, but the dialog only opens
+              after an explicit click on a Login button. */}
+          <Route path="/login" element={<Landing />} />
           {/* Authenticated-app shell (nav + constrained content width). */}
           <Route element={<AppShell />}>
             <Route path="/not-authorized" element={<NotAuthorizedPage />} />
@@ -58,35 +65,8 @@ export function App(): JSX.Element {
             <Route
               path="/schedule"
               element={
-                <RequireAuth allowedRoles={ALL_ROLES}>
+                <RequireAuth allowedRoles={MANAGEMENT_ROLES}>
                   <SchedulePage />
-                </RequireAuth>
-              }
-            />
-            {/* Read-only schedule views (the paper-form replacements).
-                Faculty role sees only their own program; management can pick
-                any section / faculty / room. */}
-            <Route
-              path="/views/section"
-              element={
-                <RequireAuth allowedRoles={MANAGEMENT_ROLES}>
-                  <SectionSchedulePage />
-                </RequireAuth>
-              }
-            />
-            <Route
-              path="/views/faculty"
-              element={
-                <RequireAuth allowedRoles={ALL_ROLES}>
-                  <FacultySchedulePage />
-                </RequireAuth>
-              }
-            />
-            <Route
-              path="/views/rooms"
-              element={
-                <RequireAuth allowedRoles={MANAGEMENT_ROLES}>
-                  <RoomSchedulePage />
                 </RequireAuth>
               }
             />
@@ -98,6 +78,7 @@ export function App(): JSX.Element {
                 </RequireAuth>
               }
             />
+            <Route path="/function-planner" element={<RequireAuth allowedRoles={['FACULTY']}><TeachingLoadPage plannerOnly /></RequireAuth>}/>
             <Route
               path="/workload-assignment"
               element={
@@ -123,6 +104,14 @@ export function App(): JSX.Element {
               }
             />
             <Route
+              path="/sections"
+              element={
+                <RequireAuth allowedRoles={MANAGEMENT_ROLES}>
+                  <SectionsPage />
+                </RequireAuth>
+              }
+            />
+            <Route
               path="/faculty"
               element={
                 <RequireAuth allowedRoles={MANAGEMENT_ROLES}>
@@ -131,18 +120,18 @@ export function App(): JSX.Element {
               }
             />
             <Route
-              path="/reports"
-              element={
-                <RequireAuth allowedRoles={REPORTS_ROLES}>
-                  <ReportsPage />
-                </RequireAuth>
-              }
-            />
-            <Route
               path="/account"
               element={
                 <RequireAuth allowedRoles={ALL_ROLES}>
                   <AccountSettingsPage />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <RequireAuth allowedRoles={ALL_ROLES}>
+                  <ProfilePage />
                 </RequireAuth>
               }
             />

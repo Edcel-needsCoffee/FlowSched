@@ -1,3 +1,4 @@
+import { assertPlannerOpen, readPlannerAccess, type FunctionTargets } from './planner-access.service.js';
 import { z } from 'zod';
 import { prisma } from '../config/prisma.js';
 import { ApiError } from '../errors/apiError.js';
@@ -5,12 +6,18 @@ import type { AuthTokenPayload } from './auth.service.js';
 import { getLoadConfig } from './load-settings.service.js';
 import { getFacultyTeachingLoad, round2 } from './teaching-load.service.js';
 import * as repo from '../repositories/faculty-program.repository.js';
-import { effectivitySchema,functionsSchema,sessionSchema,studentsSchema } from '../validation/faculty-program.validation.js';
+import { functionsSchema,sessionSchema,studentsSchema } from '../validation/faculty-program.validation.js';
 export function validate<T extends z.ZodTypeAny>(schema:T,value:unknown):z.infer<T>{
   const result=schema.safeParse(value); if(!result.success) throw ApiError.badRequest('Invalid request',result.error.flatten()); return result.data;
 }
 export const sessionHours=(s:{start_time:string;end_time:string})=>round2((toMinutes(s.end_time)-toMinutes(s.start_time))/60);
 const toMinutes=(s:string)=>Number(s.slice(0,2))*60+Number(s.slice(3,5));
+const functionTargetKeys = {
+  RESEARCH: 'research',
+  EXTENSION: 'extension',
+  IMP: 'imp',
+  CONSULTATION: 'consultation',
+} satisfies Record<string, keyof FunctionTargets>;
 export async function assertFacultyScope(user:AuthTokenPayload,facultyId:string,termId:string){
   validate(z.string().uuid(),facultyId); validate(z.string().uuid(),termId);
   if(user.role==='FACULTY' && user.facultyId!==facultyId) throw new ApiError(403,'FORBIDDEN','Faculty accounts may access only their own program');
@@ -25,14 +32,8 @@ export async function putFunctions(user:AuthTokenPayload,faculty_id:string,term_
   for(const key of ['research','extension','imp'] as const) if(data[`${key}_hours`]<config.minFunctionHours[key]) throw ApiError.badRequest(`${key} must be at least ${config.minFunctionHours[key]} hours`);
   const current=await repo.getFacultyLoad(faculty_id,term_id);
   if(data.consultation_hours!==undefined && user.role!=='CHAIR' && data.consultation_hours!==(current?.consultation_hours??config.consultationHours)) throw new ApiError(403,'FORBIDDEN','Only Chair can override consultation hours');
-  if(data.consultation_hours!==undefined && data.consultation_hours<config.minDesignationSessionHours) throw ApiError.badRequest('Consultation must meet the minimum session hours');
+  if(data.consultation_hours!==undefined && data.consultation_hours<0.5) throw ApiError.badRequest('Consultation must meet the minimum session hours');
   if(user.role!=='CHAIR') delete data.consultation_hours;
-  return prisma.facultyLoad.upsert({where:repo.programKey(faculty_id,term_id),create:{faculty_id,term_id,...data},update:data});
-}
-export async function putFacultyEffectivity(user:AuthTokenPayload,faculty_id:string,term_id:string,body:unknown){
-  await assertFacultyScope(user,faculty_id,term_id);
-  if(user.role!=='CHAIR') throw new ApiError(403,'FORBIDDEN','Only Chair manages effectivity');
-  const data=validate(effectivitySchema,body);
   return prisma.facultyLoad.upsert({where:repo.programKey(faculty_id,term_id),create:{faculty_id,term_id,...data},update:data});
 }
 export async function getFacultyStudents(faculty_id:string,term_id:string){
@@ -45,17 +46,20 @@ export async function putFacultyStudents(user:AuthTokenPayload,faculty_id:string
   await assertFacultyScope(user,faculty_id,term_id); const data=validate(studentsSchema,body);
   const handled=new Set((await repo.getHandledSections(faculty_id,term_id)).map(r=>r.section.id));
   for(const s of data.students) if(!handled.has(s.section_id)) throw ApiError.badRequest('Student count section is not handled by this faculty in this term');
-  await prisma.$transaction(data.students.map(s=>prisma.facultySectionStudents.upsert({where:{faculty_id_section_id_term_id:{faculty_id,term_id,section_id:s.section_id}},create:{faculty_id,term_id,...s},update:{student_count:s.student_count}})));
+  await prisma.$transaction(data.students.map(s=>prisma.sectionEnrollment.upsert({where:{section_id_term_id:{section_id:s.section_id,term_id}},create:{section_id:s.section_id,term_id,student_count:s.student_count},update:{student_count:s.student_count}})));
   return getFacultyStudents(faculty_id,term_id);
 }
 export async function saveFacultySession(user:AuthTokenPayload,faculty_id:string,term_id:string,body:unknown,id?:string){
   await assertFacultyScope(user,faculty_id,term_id);
   const data=validate(sessionSchema,body), config=await getLoadConfig(), hours=sessionHours(data);
-  if(hours<config.minDesignationSessionHours) throw ApiError.badRequest(`A session must be at least ${config.minDesignationSessionHours} hour(s)`);
+  const minimum = data.type === 'DESIGNATION' ? config.minDesignationSessionHours : 0.5;
+  if(hours<minimum) throw ApiError.badRequest(`A session must be at least ${minimum} hour(s)`);
   if(data.type==='OVERLOAD' && !Number.isInteger(hours)) throw ApiError.badRequest('Overload sessions must have a whole-hour duration');
   const cap=(await getFacultyTeachingLoad(faculty_id,term_id)).claimable_overload_hours;
   return prisma.$transaction(async(tx)=>{
-    if(id && !await tx.facultySession.findFirst({where:{id,faculty_id,term_id,deleted_at:null}})) throw ApiError.notFound('Session not found');
+    if (user.role === 'FACULTY') await assertPlannerOpen(faculty_id, term_id, tx);
+    const previous = id ? await tx.facultySession.findFirst({where:{id,faculty_id,term_id,deleted_at:null}}) : null;
+    if (id && !previous) throw ApiError.notFound('Session not found');
     if(data.type==='DESIGNATION' && !await tx.facultyDesignation.findFirst({where:{id:data.faculty_designation_id!,faculty_id,term_id,deleted_at:null,designation:{deleted_at:null}}})) throw ApiError.badRequest('Designation does not belong to this faculty and term');
     const sessions=await tx.facultySession.findMany({where:{faculty_id,term_id,deleted_at:null,id:id?{not:id}:undefined,OR:[{faculty_designation_id:null},{faculty_designation:{deleted_at:null,designation:{deleted_at:null}}}]}});
     const overlap=sessions.filter(s=>s.day_of_week===data.day_of_week && s.start_time<data.end_time && s.end_time>data.start_time);
@@ -64,6 +68,21 @@ export async function saveFacultySession(user:AuthTokenPayload,faculty_id:string
       faculty_id,day_of_week:data.day_of_week,start_time:data.start_time,end_time:data.end_time,
       conflicting_slots:[...overlap.map(s=>({slot_id:s.id,assignment_id:'',day_of_week:s.day_of_week,start_time:s.start_time,end_time:s.end_time,room_name:null,faculty_name:'',subject_code:s.type,section_label:''})),...teaching.map(s=>({slot_id:s.id,assignment_id:s.workload_assignment_id,day_of_week:s.day_of_week,start_time:s.start_time,end_time:s.end_time,room_name:null,faculty_name:'',subject_code:s.workload_assignment.subject.code,section_label:s.workload_assignment.section.name}))],
     });
+    if (data.type !== 'DESIGNATION' && data.type !== 'OVERLOAD') {
+      const { targets } = await readPlannerAccess(faculty_id, term_id, tx);
+      const key = functionTargetKeys[data.type];
+      const limit = targets?.[key];
+      const previousHours = previous?.type === data.type ? sessionHours(previous) : 0;
+      if (limit !== undefined && hours > previousHours) {
+        const otherHours = sessions.filter(session => session.type === data.type)
+          .reduce((total, session) => total + sessionHours(session), 0);
+        if (round2(otherHours + hours) > limit) {
+          const remaining = Math.max(0, round2(limit - otherHours - previousHours));
+          const label = key === 'imp' ? 'IMP' : key[0].toUpperCase() + key.slice(1);
+          throw ApiError.conflict('FUNCTION_TARGET_EXCEEDED', `${label} has a ${limit}h weekly limit. ${remaining}h left to add.`);
+        }
+      }
+    }
     if(data.type==='OVERLOAD' && round2(sessions.filter(s=>s.type==='OVERLOAD').reduce((n,s)=>n+sessionHours(s),0)+hours)>cap) throw ApiError.conflict('OVERLOAD_CAP_EXCEEDED',`Plotted overload cannot exceed ${cap} claimable hour(s)`);
     return id?tx.facultySession.update({where:{id},data}):tx.facultySession.create({data:{faculty_id,term_id,...data}});
   });
@@ -73,5 +92,8 @@ export async function deleteFacultySession(user:AuthTokenPayload,id:string){
   const session=await prisma.facultySession.findFirst({where:{id,deleted_at:null}});
   if(!session) throw ApiError.notFound('Session not found');
   await assertFacultyScope(user,session.faculty_id,session.term_id);
-  await prisma.facultySession.update({where:{id},data:{deleted_at:new Date()}});
+  await prisma.$transaction(async tx => {
+    if (user.role === 'FACULTY') await assertPlannerOpen(session.faculty_id, session.term_id, tx);
+    await tx.facultySession.update({where:{id},data:{deleted_at:new Date()}});
+  });
 }

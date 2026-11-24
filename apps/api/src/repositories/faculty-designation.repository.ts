@@ -9,11 +9,12 @@ export interface FacultyDesignationCreateData {
   term_id: string;
   hours: number;
   service_credit?: number;
+  details?: string | null;
   assigned_by_user_id?: string;
 }
 
 export type FacultyDesignationUpdateData = Partial<
-  Pick<FacultyDesignationCreateData, 'hours' | 'service_credit'>
+  Pick<FacultyDesignationCreateData, 'hours' | 'service_credit' | 'details'>
 >;
 
 /**

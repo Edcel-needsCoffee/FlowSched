@@ -19,18 +19,19 @@ datasource db {
 }
 
 model User {
-  id            String   @id @default(uuid())
-  email         String   @unique
-  password_hash String
-  role          String   @default("FACULTY") // CHAIR | FACULTY | ACADEMIC_ADMIN
-  faculty_id    String?  @unique
-  faculty       Faculty? @relation(fields: [faculty_id], references: [id], onDelete: Restrict)
+  id                  String               @id @default(uuid())
+  email               String               @unique
+  username            String?              @unique
+  password_hash       String
+  role                String               @default("FACULTY") // CHAIR | FACULTY
+  faculty_id          String?              @unique
+  faculty             Faculty?             @relation(fields: [faculty_id], references: [id], onDelete: Restrict)
   /// URL of the profile photo (local uploads path or S3 key URL). Null = no
   /// photo uploaded yet; the UI falls back to initials.
-  avatar_url    String?
-  is_active     Boolean  @default(true)
-  created_at    DateTime @default(now())
-  updated_at    DateTime @default(now()) @updatedAt
+  avatar_url          String?
+  is_active           Boolean              @default(true)
+  created_at          DateTime             @default(now())
+  updated_at          DateTime             @default(now()) @updatedAt
   facultyDesignations FacultyDesignation[]
 
   @@map("users")
@@ -50,54 +51,71 @@ model PasswordReset {
 }
 
 model LoadSettings {
-  id String @id @default("singleton")
-  lab_coefficient Float @default(0.7)
-  weekly_hours Float @default(40)
-  consultation_hours Float @default(4)
-  min_research Float @default(1)
-  min_extension Float @default(1)
-  min_imp Float @default(0)
-  min_session_hours Float @default(1)
-  prep_tiers_json String @default("[{\"minPreps\":1,\"maxPreps\":2,\"ceiling\":21},{\"minPreps\":3,\"maxPreps\":4,\"ceiling\":18},{\"minPreps\":5,\"maxPreps\":6,\"ceiling\":15}]")
+  id                 String @id @default("singleton")
+  lab_coefficient    Float  @default(0.7)
+  weekly_hours       Float  @default(40)
+  consultation_hours Float  @default(4)
+  min_research       Float  @default(1)
+  min_extension      Float  @default(1)
+  min_imp            Float  @default(0)
+  min_session_hours  Float  @default(1)
+  prep_tiers_json    String @default("[{\"minPreps\":1,\"maxPreps\":2,\"ceiling\":21},{\"minPreps\":3,\"maxPreps\":4,\"ceiling\":18},{\"minPreps\":5,\"maxPreps\":6,\"ceiling\":15}]")
+
   @@map("load_settings")
 }
 
+model AuditLog {
+  id          String   @id @default(uuid())
+  actor_id    String
+  actor_email String
+  action      String
+  entity_type String
+  entity_id   String?
+  details     String?
+  created_at  DateTime @default(now())
+
+  @@index([created_at])
+  @@index([actor_id, created_at])
+  @@map("audit_logs")
+}
+
 model Faculty {
-  id                String           @id @default(uuid())
-  employee_no       String           @unique
-  first_name        String
-  last_name         String
-  rank              String?
-  employment_status String           @default("FULL_TIME") // FULL_TIME | PART_TIME
-  max_units         Int              @default(24) // Deprecated for load calculations; retained for compatibility.
+  plannerSettings FacultyPlannerAccess[]
+  id                  String                   @id @default(uuid())
+  employee_no         String                   @unique
+  first_name          String
+  last_name           String
+  rank                String?
+  employment_status   String                   @default("FULL_TIME") // FULL_TIME | PART_TIME
+  max_units           Int                      @default(24) // Deprecated for load calculations; retained for compatibility.
   /// Mirror of the linked user's avatar (denormalized so faculty lists on the
   /// dashboard/load panels can render the photo without a user join).
-  avatar_url        String?
-  created_at        DateTime         @default(now())
-  updated_at        DateTime         @default(now()) @updatedAt
-  deleted_at        DateTime?
-  user              User?
-  assignments       WorkloadAssignment[]
-  loads FacultyLoad[]
-  sessions FacultySession[]
-  studentCounts FacultySectionStudents[]
+  avatar_url          String?
+  created_at          DateTime                 @default(now())
+  updated_at          DateTime                 @default(now()) @updatedAt
+  deleted_at          DateTime?
+  user                User?
+  assignments         WorkloadAssignment[]
+  loads               FacultyLoad[]
+  sessions            FacultySession[]
+  studentCounts       FacultySectionStudents[]
   facultyDesignations FacultyDesignation[]
 
   @@map("faculty")
 }
 
 model Subject {
-  id            String    @id @default(uuid())
-  code          String    @unique
+  id            String               @id @default(uuid())
+  code          String               @unique
   title         String
   // Float instead of Decimal: SQLite has no arbitrary-precision decimal type.
   // IEEE-754 double precision is a fine tradeoff for department-scale
   // unit/hour counts (values stay exact for the small 2dp ranges used here).
   units         Float
-  lecture_hours Float     @default(0)
-  lab_hours     Float     @default(0)
-  created_at    DateTime  @default(now())
-  updated_at    DateTime  @default(now()) @updatedAt
+  lecture_hours Float                @default(0)
+  lab_hours     Float                @default(0)
+  created_at    DateTime             @default(now())
+  updated_at    DateTime             @default(now()) @updatedAt
   deleted_at    DateTime?
   assignments   WorkloadAssignment[]
 
@@ -105,42 +123,46 @@ model Subject {
 }
 
 model Section {
-  id          String   @id @default(uuid())
-  year_level  Int
-  name        String
-  created_at  DateTime @default(now())
-  updated_at  DateTime @default(now()) @updatedAt
-  assignments WorkloadAssignment[]
+  id            String                   @id @default(uuid())
+  year_level    Int
+  name          String
+  created_at    DateTime                 @default(now())
+  updated_at    DateTime                 @default(now()) @updatedAt
+  assignments   WorkloadAssignment[]
   studentCounts FacultySectionStudents[]
+  enrollments   SectionEnrollment[]
 
   @@unique([year_level, name])
   @@map("sections")
 }
 
 model Room {
-  id                   String   @id @default(uuid())
-  name                 String   @unique
-  is_under_maintenance Boolean  @default(false)
-  created_at           DateTime @default(now())
-  updated_at           DateTime @default(now()) @updatedAt
+  id                   String         @id @default(uuid())
+  name                 String         @unique
+  is_under_maintenance Boolean        @default(false)
+  created_at           DateTime       @default(now())
+  updated_at           DateTime       @default(now()) @updatedAt
   slots                ScheduleSlot[]
 
   @@map("rooms")
 }
 
 model AcademicTerm {
-  id          String   @id @default(uuid())
-  school_year String
-  semester    String   // FIRST | SECOND | SUMMER
-  is_active   Boolean  @default(false)
-  effectivity_start String?
-  effectivity_end String?
-  created_at  DateTime @default(now())
-  assignments WorkloadAssignment[]
+  facultyPlannerSettings FacultyPlannerAccess[]
+  plannerAccess PlannerAccess?
+  id                  String                   @id @default(uuid())
+  school_year         String
+  semester            String // FIRST | SECOND | SUMMER
+  is_active           Boolean                  @default(false)
+  effectivity_start   String?
+  effectivity_end     String?
+  created_at          DateTime                 @default(now())
+  assignments         WorkloadAssignment[]
   facultyDesignations FacultyDesignation[]
-  loads FacultyLoad[]
-  sessions FacultySession[]
-  studentCounts FacultySectionStudents[]
+  loads               FacultyLoad[]
+  sessions            FacultySession[]
+  studentCounts       FacultySectionStudents[]
+  sectionEnrollments  SectionEnrollment[]
 
   @@unique([school_year, semester])
   @@map("academic_terms")
@@ -156,7 +178,7 @@ model WorkloadAssignment {
   section    Section        @relation(fields: [section_id], references: [id], onDelete: Restrict)
   term_id    String
   term       AcademicTerm   @relation(fields: [term_id], references: [id], onDelete: Restrict)
-  color      String?        // #RRGGBB hex (was @db.VarChar(7))
+  color      String? // #RRGGBB hex (was @db.VarChar(7))
   created_at DateTime       @default(now())
   updated_at DateTime       @default(now()) @updatedAt
   deleted_at DateTime?
@@ -174,8 +196,8 @@ model ScheduleSlot {
   workload_assignment    WorkloadAssignment @relation(fields: [workload_assignment_id], references: [id], onDelete: Cascade)
   room_id                String?
   room                   Room?              @relation(fields: [room_id], references: [id], onDelete: Restrict)
-  session_type           String             // LECTURE | LAB
-  day_of_week            String             // MON | TUE | WED | THU | FRI | SAT
+  session_type           String // LECTURE | LAB
+  day_of_week            String // MON | TUE | WED | THU | FRI | SAT
   // Stored as canonical "HH:MM" 24-hour strings — the same format the API
   // boundary sends/receives (SQLite has no native TIME type; zero-padded
   // strings also sort and compare correctly for overlap checks).
@@ -190,35 +212,36 @@ model ScheduleSlot {
 }
 
 model Designation {
-  id                   String   @id @default(uuid())
-  name                 String   @unique
-  default_hours        Float
-  service_credit_hours Float    @default(0)
-  grants_service_credit Boolean @default(false)
-  created_at           DateTime @default(now())
-  updated_at           DateTime @updatedAt
-  deleted_at           DateTime?
-  facultyDesignations  FacultyDesignation[]
+  id                    String               @id @default(uuid())
+  name                  String               @unique
+  default_hours         Float
+  service_credit_hours  Float                @default(0)
+  grants_service_credit Boolean              @default(false)
+  created_at            DateTime             @default(now())
+  updated_at            DateTime             @updatedAt
+  deleted_at            DateTime?
+  facultyDesignations   FacultyDesignation[]
 
   @@map("designations")
 }
 
 model FacultyDesignation {
-  id                   String   @id @default(uuid())
-  faculty_id           String
-  faculty              Faculty  @relation(fields: [faculty_id], references: [id], onDelete: Restrict)
-  designation_id       String
-  designation          Designation @relation(fields: [designation_id], references: [id], onDelete: Restrict)
-  term_id              String
-  term                 AcademicTerm @relation(fields: [term_id], references: [id], onDelete: Restrict)
-  hours                Float
-  service_credit       Float    @default(0)
-  assigned_by_user_id  String?
-  assigned_by          User?    @relation(fields: [assigned_by_user_id], references: [id], onDelete: Restrict)
-  created_at           DateTime @default(now())
-  updated_at           DateTime @updatedAt
-  deleted_at           DateTime?
-  sessions FacultySession[]
+  id                  String           @id @default(uuid())
+  faculty_id          String
+  faculty             Faculty          @relation(fields: [faculty_id], references: [id], onDelete: Restrict)
+  designation_id      String
+  designation         Designation      @relation(fields: [designation_id], references: [id], onDelete: Restrict)
+  term_id             String
+  term                AcademicTerm     @relation(fields: [term_id], references: [id], onDelete: Restrict)
+  hours               Float
+  service_credit      Float            @default(0)
+  details             String?
+  assigned_by_user_id String?
+  assigned_by         User?            @relation(fields: [assigned_by_user_id], references: [id], onDelete: Restrict)
+  created_at          DateTime         @default(now())
+  updated_at          DateTime         @updatedAt
+  deleted_at          DateTime?
+  sessions            FacultySession[]
 
   @@unique([faculty_id, designation_id, term_id])
   @@index([faculty_id])
@@ -228,75 +251,127 @@ model FacultyDesignation {
 }
 
 model FacultyLoad {
-  id String @id @default(uuid())
-  faculty_id String
-  faculty Faculty @relation(fields:[faculty_id], references:[id], onDelete:Cascade)
-  term_id String
-  term AcademicTerm @relation(fields:[term_id], references:[id], onDelete:Cascade)
-  research_hours Float @default(1)
-  extension_hours Float @default(1)
-  imp_hours Float @default(0)
+  id                 String       @id @default(uuid())
+  faculty_id         String
+  faculty            Faculty      @relation(fields: [faculty_id], references: [id], onDelete: Cascade)
+  term_id            String
+  term               AcademicTerm @relation(fields: [term_id], references: [id], onDelete: Cascade)
+  research_hours     Float        @default(1)
+  extension_hours    Float        @default(1)
+  imp_hours          Float        @default(0)
   consultation_hours Float?
-  effectivity_start String?
-  effectivity_end String?
-  @@unique([faculty_id,term_id])
+
+  @@unique([faculty_id, term_id])
   @@map("faculty_loads")
 }
 
 model FacultySession {
-  id String @id @default(uuid())
-  faculty_id String
-  faculty Faculty @relation(fields:[faculty_id], references:[id], onDelete:Cascade)
-  term_id String
-  term AcademicTerm @relation(fields:[term_id], references:[id], onDelete:Cascade)
-  type String // RESEARCH | EXTENSION | IMP | CONSULTATION | DESIGNATION | OVERLOAD
+  id                     String              @id @default(uuid())
+  faculty_id             String
+  faculty                Faculty             @relation(fields: [faculty_id], references: [id], onDelete: Cascade)
+  term_id                String
+  term                   AcademicTerm        @relation(fields: [term_id], references: [id], onDelete: Cascade)
+  type                   String // RESEARCH | EXTENSION | IMP | CONSULTATION | DESIGNATION | OVERLOAD
   faculty_designation_id String?
-  faculty_designation FacultyDesignation? @relation(fields:[faculty_designation_id],references:[id],onDelete:Cascade)
-  day_of_week String
-  start_time String
-  end_time String
-  deleted_at DateTime?
-  @@index([faculty_id,term_id,day_of_week])
+  faculty_designation    FacultyDesignation? @relation(fields: [faculty_designation_id], references: [id], onDelete: Cascade)
+  day_of_week            String
+  start_time             String
+  end_time               String
+  deleted_at             DateTime?
+
+  @@index([faculty_id, term_id, day_of_week])
   @@map("faculty_sessions")
 }
 
 model FacultySectionStudents {
-  id String @id @default(uuid())
-  faculty_id String
-  faculty Faculty @relation(fields:[faculty_id],references:[id],onDelete:Cascade)
-  section_id String
-  section Section @relation(fields:[section_id],references:[id],onDelete:Cascade)
-  term_id String
-  term AcademicTerm @relation(fields:[term_id],references:[id],onDelete:Cascade)
+  id            String       @id @default(uuid())
+  faculty_id    String
+  faculty       Faculty      @relation(fields: [faculty_id], references: [id], onDelete: Cascade)
+  section_id    String
+  section       Section      @relation(fields: [section_id], references: [id], onDelete: Cascade)
+  term_id       String
+  term          AcademicTerm @relation(fields: [term_id], references: [id], onDelete: Cascade)
   student_count Int
-  @@unique([faculty_id,section_id,term_id])
+
+  @@unique([faculty_id, section_id, term_id])
   @@map("faculty_section_students")
 }
 
+model SectionEnrollment {
+  id            String       @id @default(uuid())
+  section_id    String
+  section       Section      @relation(fields: [section_id], references: [id], onDelete: Cascade)
+  term_id       String
+  term          AcademicTerm @relation(fields: [term_id], references: [id], onDelete: Cascade)
+  student_count Int
+
+  @@unique([section_id, term_id])
+  @@index([term_id])
+  @@map("section_enrollments")
+}
+
 model FormSettings {
-  id String @id @default("singleton")
-  school_lines String @default("Republic of the Philippines\nPALOMPON INSTITUTE OF TECHNOLOGY\nPalompon, Leyte")
-  college_lines String @default("COLLEGE OF TECHNOLOGY AND ENGINEERING")
-  department String @default("Industrial Engineering")
-  program String @default("BSIE")
+  id               String  @id @default("singleton")
+  school_lines     String  @default("Republic of the Philippines\nPALOMPON INSTITUTE OF TECHNOLOGY\nPalompon, Leyte")
+  college_lines    String  @default("COLLEGE OF TECHNOLOGY AND ENGINEERING")
+  department       String  @default("Industrial Engineering")
+  program          String  @default("BSIE")
   school_logo_path String? @default("/school-logo.jpg")
-  tuv_logo_path String?
+  tuv_logo_path    String?
+
   @@map("form_settings")
 }
 
 model FormTemplate {
-  type String @id
-  title String
+  type     String @id
+  title    String
   ref_code String
   revision String @default("00")
+
   @@map("form_templates")
 }
 
 model SignatoryOption {
-  id String @id @default(uuid())
-  slot String // PREPARED | REVIEWED | APPROVED
-  name String
-  title String
+  id     String  @id @default(uuid())
+  slot   String // PREPARED | REVIEWED | APPROVED
+  name   String
+  title  String
   active Boolean @default(true)
+
   @@map("signatory_options")
+}
+
+model PlannerDraft {
+  id            String   @id @default(uuid())
+  faculty_id    String
+  term_id       String
+  status        String   @default("DRAFT")
+  sessions_json String   @default("[]")
+  teaching_json String   @default("[]")
+  feedback      String   @default("")
+  updated_at    DateTime @updatedAt
+
+  @@unique([faculty_id, term_id])
+  @@map("planner_drafts")
+}
+
+model PlannerAccess {
+  term_id String @id
+  term AcademicTerm @relation(fields: [term_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  enabled Boolean @default(false)
+  function_targets_json String?
+
+  @@map("planner_access")
+}
+
+model FacultyPlannerAccess {
+  faculty_id String
+  term_id String
+  enabled Boolean @default(false)
+  function_targets_json String
+  faculty Faculty @relation(fields: [faculty_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  term AcademicTerm @relation(fields: [term_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([faculty_id, term_id])
+  @@map("faculty_planner_access")
 }

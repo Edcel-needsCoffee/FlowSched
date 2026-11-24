@@ -1,3 +1,4 @@
+import { readPlannerAccess } from './planner-access.service.js';
 import { prisma } from '../config/prisma.js';
 import { DEFAULT_LOAD_CONFIG, type TeachingLoadConfig } from './teaching-load.config.js';
 import { getLoadConfig } from './load-settings.service.js';
@@ -23,6 +24,7 @@ export interface TeachingLoadOtherFunctions {
 }
 
 export interface TeachingLoadDesignationInput {
+  details?: string | null;
   id?: string;
   name: string;
   hours: number;
@@ -123,7 +125,7 @@ export function calculateTeachingLoad(
   for (const key of ['research', 'extension', 'imp', 'consultation'] as const) {
     const declared = round2(otherFunctions[key] ?? 0);
     const plotted = round2(input.functionPlottedHours?.[key] ?? 0);
-    const valid = plotted >= config.minDesignationSessionHours && (input.functionValidSessions?.[key] ?? true);
+    const valid = plotted >= 0.5 && (input.functionValidSessions?.[key] ?? true);
     functions[key] = { declared, plotted, counted: valid ? round2(Math.min(declared, plotted)) : 0 };
     if (declared > 0 && (!valid || plotted < declared)) warnings.push(`${key}: ${declared} declared, ${plotted} plotted; ${functions[key].counted} counted. Valid sessions are required.`);
   }
@@ -333,13 +335,15 @@ export async function getFacultyTeachingLoad(
     }),
   ]);
 
-  const [functions,sessions,term,handled,students,config]=await Promise.all([
+  const [functions,sessions,term,handled,students,config,plannerAccess]=await Promise.all([
     programRepository.getFacultyLoad(facultyId,termId),programRepository.listSessions(facultyId,termId),
-    prisma.academicTerm.findUnique({where:{id:termId}}),programRepository.getHandledSections(facultyId,termId),programRepository.getStudents(facultyId,termId),getLoadConfig(),
+    prisma.academicTerm.findUnique({where:{id:termId}}),programRepository.getHandledSections(facultyId,termId),programRepository.getStudents(facultyId,termId),getLoadConfig(),readPlannerAccess(facultyId,termId),
   ]);
   if(!term) throw new Error('Term not found');
   const hours=(s:{start_time:string;end_time:string})=>round2((Number(s.end_time.slice(0,2))*60+Number(s.end_time.slice(3,5))-Number(s.start_time.slice(0,2))*60-Number(s.start_time.slice(3,5)))/60);
-  const sumHours=(type:string,id?:string)=>round2(sessions.filter(s=>s.type===type && (!id || s.faculty_designation_id===id) && hours(s)>=config.minDesignationSessionHours && (type!=='OVERLOAD'||Number.isInteger(hours(s)))).reduce((sum,s)=>sum+hours(s),0));
+  const sumHours=(type:string,id?:string)=>round2(sessions.filter(s=>s.type===type && (!id || s.faculty_designation_id===id) && hours(s)>=(type==='DESIGNATION'?config.minDesignationSessionHours:0.5) && (type!=='OVERLOAD'||Number.isInteger(hours(s)))).reduce((sum,s)=>sum+hours(s),0));
+  const plottedFunctions={research:sumHours('RESEARCH'),extension:sumHours('EXTENSION'),imp:sumHours('IMP'),consultation:sumHours('CONSULTATION')};
+  const consultationTarget=plannerAccess.targets?.consultation??functions?.consultation_hours??config.consultationHours;
   const countMap=new Map(students.map(s=>[s.section_id,s.student_count]));
   const input: TeachingLoadInput = {
     assignments: rows.map((row) => ({
@@ -347,12 +351,16 @@ export async function getFacultyTeachingLoad(
       lecture_hours: row.subject.lecture_hours ?? 0,
       lab_hours: row.subject.lab_hours ?? 0,
     })),
-    otherFunctions: { research: functions?.research_hours??config.minFunctionHours.research, extension: functions?.extension_hours??config.minFunctionHours.extension, imp: functions?.imp_hours??config.minFunctionHours.imp, consultation: functions?.consultation_hours??config.consultationHours },
-    functionPlottedHours:{research:sumHours('RESEARCH'),extension:sumHours('EXTENSION'),imp:sumHours('IMP'),consultation:sumHours('CONSULTATION')},
+    // Actual function hours come from valid plotted sessions. Consultation keeps
+    // its configured/Chair target as the cap; other functions count all valid
+    // plotted time and use configured minimums only as progress/warning targets.
+    otherFunctions: { research: plottedFunctions.research, extension: plottedFunctions.extension, imp: plottedFunctions.imp, consultation: consultationTarget },
+    functionPlottedHours:plottedFunctions,
     students:handled.map(({section})=>({section_id:section.id,section_name:`${section.name} (Year ${section.year_level})`,student_count:countMap.get(section.id)??null})),
     designations: designationRows.map((row) => ({
       id: row.id,
       name: row.designation.name,
+      details: row.details,
       hours: row.hours,
       service_credit: row.service_credit,
       grants_service_credit: row.designation.grants_service_credit,
@@ -361,9 +369,9 @@ export async function getFacultyTeachingLoad(
     overload_plotted_hours: sumHours('OVERLOAD'),
   };
 
-  const result=calculateTeachingLoad(input,{...config,consultationHours:functions?.consultation_hours??config.consultationHours});
+  const result=calculateTeachingLoad(input,{...config,consultationHours:consultationTarget,minFunctionHours:plannerAccess.targets??config.minFunctionHours});
   result.prep_breakdown=result.prep_breakdown.map(p=>({...p,subject_code:rows.find(r=>r.subject_id===p.subject_id)?.subject.code}));
-  result.effectivity={start:functions?.effectivity_start??term.effectivity_start,end:functions?.effectivity_end??term.effectivity_end,source:functions?.effectivity_start?'FACULTY':'TERM'};
+  result.effectivity={start:term.effectivity_start,end:term.effectivity_end,source:'TERM'};
   result.sessions=sessions;
   if(result.students_by_section.some(s=>s.student_count===null)) result.warnings.push('Student counts are missing for one or more handled sections.');
   if(!result.effectivity.start) result.warnings.push('Term effectivity dates have not been configured.');

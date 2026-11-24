@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import { z } from 'zod';
+import { ConfirmDialog } from '../components/ConfirmDialog';
 import { Modal } from '../components/Modal';
 import { useToast } from '../components/Toast';
-import { createRoom, listRooms, updateRoom, type Room } from '../lib/rooms';
+import { createRoom, deleteRoom, listRooms, updateRoom, type Room } from '../lib/rooms';
 import { useAuthStore } from '../store/auth.store';
 
 // Mirrors apps/api/src/validation/room.validation.ts (name required, <=120).
@@ -39,6 +40,9 @@ export function RoomsPage(): JSX.Element {
   const [saving, setSaving] = useState(false);
   /** Room ids with an in-flight maintenance PATCH (switch renders as busy). */
   const [toggling, setToggling] = useState<string[]>([]);
+  const [deletingRoom, setDeletingRoom] = useState<Room | null>(null);
+  const [maintenanceRoom, setMaintenanceRoom] = useState<Room | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const requestIdRef = useRef(0);
 
@@ -145,12 +149,27 @@ export function RoomsPage(): JSX.Element {
     }
   }
 
+  async function handleDelete(): Promise<void> {
+    if (!deletingRoom) return;
+    setDeleting(true);
+    try {
+      await deleteRoom(deletingRoom.id);
+      pushToast('success', 'Room deleted.');
+      setDeletingRoom(null);
+      setReloadKey((key) => key + 1);
+    } catch (err) {
+      pushToast('error', err instanceof Error ? err.message : 'Could not delete the room.');
+    } finally {
+      setDeleting(false);
+    }
+  }
+
   return (
-    <section aria-labelledby="rooms-title" className="space-y-6">
+    <section aria-labelledby="room-management-title" className="management-neo rooms-management-page space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 id="rooms-title" className="text-2xl font-semibold text-primary-dark">
-            Rooms
+          <h1 id="room-management-title" className="text-2xl font-semibold text-primary-dark">
+            Room Management
           </h1>
           <p className="mt-1 text-sm text-slate-600">
             Classrooms available for scheduling. Rooms under maintenance are blocked from new
@@ -212,7 +231,7 @@ export function RoomsPage(): JSX.Element {
           ) : null}
         </div>
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-leaf-100 bg-white shadow-sm">
+        <div className="management-table overflow-hidden rounded-2xl border border-leaf-100 bg-white shadow-sm">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-leaf-100 bg-leaf-50/60 text-left">
@@ -246,7 +265,7 @@ export function RoomsPage(): JSX.Element {
                       checked={room.is_under_maintenance}
                       busy={toggling.includes(room.id)}
                       disabled={!canEdit}
-                      onToggle={() => void toggleMaintenance(room)}
+                      onToggle={() => { if(room.is_under_maintenance) void toggleMaintenance(room); else setMaintenanceRoom(room); }}
                     />
                   </td>
                   {canEdit ? (
@@ -254,9 +273,16 @@ export function RoomsPage(): JSX.Element {
                       <button
                         type="button"
                         onClick={() => openEdit(room)}
-                        className="rounded-lg border border-leaf-100 px-3 py-1.5 text-xs font-medium text-ink/70 transition-colors hover:border-leaf-300 hover:text-ink"
+                        className="management-edit-button rounded-lg border border-leaf-100 px-3 py-1.5 text-xs font-medium text-ink/70 transition-colors hover:border-leaf-300 hover:text-ink"
                       >
-                        Rename
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setDeletingRoom(room)}
+                        className="management-delete-button ml-2 rounded-lg px-3 py-1.5 text-xs font-medium text-red-700 transition-colors hover:bg-red-50"
+                      >
+                        Delete
                       </button>
                     </td>
                   ) : null}
@@ -266,6 +292,56 @@ export function RoomsPage(): JSX.Element {
           </table>
         </div>
       )}
+
+      <Modal
+        open={modal.mode !== 'closed'}
+        title={modal.mode === 'create' ? 'Add room' : 'Edit room'}
+        onClose={saving ? () => undefined : closeModal}
+      >
+        <form onSubmit={(event) => void handleSubmit(event)} className="space-y-4">
+          <RoomNameField value={name} onChange={setName} error={nameError} />
+          {formError ? (
+            <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+              {formError}
+            </p>
+          ) : null}
+          <div className="flex justify-end gap-3 pt-2">
+            <button
+              type="button"
+              onClick={closeModal}
+              disabled={saving}
+              className="rounded-lg border border-leaf-100 px-4 py-2 text-sm font-medium text-ink/70 transition-colors hover:bg-leaf-50 disabled:opacity-50"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="rounded-lg bg-leaf-500 px-4 py-2 text-sm font-semibold text-white transition enabled:hover:bg-leaf-600 enabled:hover:text-white disabled:opacity-50"
+            >
+              {saving ? 'Saving…' : 'Save room'}
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      <ConfirmDialog
+        open={maintenanceRoom !== null}
+        title="Place room under maintenance?"
+        message={maintenanceRoom ? `Mark ${maintenanceRoom.name} as under maintenance? You will not be able to drag or place classes into this room until it is marked available again.` : ''}
+        confirmLabel="Mark under maintenance"
+        pending={maintenanceRoom ? toggling.includes(maintenanceRoom.id) : false}
+        onConfirm={() => { if(maintenanceRoom) { const room=maintenanceRoom; void toggleMaintenance(room).then(()=>setMaintenanceRoom(null)); } }}
+        onCancel={() => setMaintenanceRoom(null)}
+      />
+      <ConfirmDialog
+        open={deletingRoom !== null}
+        title="Delete room"
+        message={deletingRoom ? `Delete ${deletingRoom.name}? A room with scheduled classes cannot be deleted.` : ''}
+        pending={deleting}
+        onConfirm={() => void handleDelete()}
+        onCancel={() => setDeletingRoom(null)}
+      />
     </section>
   );
 }
@@ -292,14 +368,14 @@ function MaintenanceSwitch({
       aria-label={label}
       disabled={disabled || busy}
       onClick={onToggle}
-      className={`relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50 ${
+      className={`room-maintenance-switch relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50 ${
         checked ? 'bg-leaf-500' : 'bg-slate-300'
       }`}
     >
       <span
         aria-hidden="true"
-        className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform duration-150 ${
-          checked ? 'translate-x-[19px]' : 'translate-x-[3px]'
+        className={`inline-block h-5 w-5 transform rounded-full bg-white shadow transition-transform duration-150 ${
+          checked ? 'translate-x-[23px]' : 'translate-x-[3px]'
         }`}
       />
     </button>
@@ -334,3 +410,4 @@ function RoomNameField({
     </div>
   );
 }
+import './management-neo.css';

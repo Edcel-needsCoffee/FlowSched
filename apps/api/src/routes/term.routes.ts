@@ -4,6 +4,7 @@ import { requireAuth, requireRole } from '../middleware/auth.middleware.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import {
   createTerm,
+  deleteTerm,
   getActiveTerm,
   listTerms,
   updateTerm,
@@ -55,5 +56,15 @@ termRouter.patch(
   requireRole('CHAIR'),
   asyncHandler(async (req, res) => {
     res.status(200).json({ term: await updateTerm(parseId(req), req.body) });
+  }),
+);
+
+termRouter.delete(
+  '/terms/:id',
+  requireAuth,
+  requireRole('CHAIR'),
+  asyncHandler(async (req, res) => {
+    await deleteTerm(parseId(req));
+    res.status(204).send();
   }),
 );

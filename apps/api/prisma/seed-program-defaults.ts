@@ -1,8 +1,7 @@
 import type { PrismaClient } from '@prisma/client';
 
 /** Add missing defaults only. Never reset a Chair's edited institutional data. */
-export async function seedProgramDefaults(prisma:PrismaClient,devPasswordHash:string){
-  await prisma.user.upsert({where:{email:'admin.dev@flowsched.local'},update:{},create:{email:'admin.dev@flowsched.local',password_hash:devPasswordHash,role:'ACADEMIC_ADMIN'}});
+export async function seedProgramDefaults(prisma:PrismaClient){
   await prisma.loadSettings.upsert({where:{id:'singleton'},create:{id:'singleton'},update:{}});
   await prisma.formSettings.upsert({where:{id:'singleton'},create:{id:'singleton'},update:{}});
   for(const form of [

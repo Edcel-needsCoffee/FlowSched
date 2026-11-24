@@ -98,6 +98,13 @@ export interface PersonalClassEntry {
 }
 
 export interface PersonalSummary {
+  profile?: {
+    employee_no: string;
+    department: string | null;
+    program: string | null;
+    sections: string[];
+    employment_status: string;
+  };
   remaining_to_target?:number;
   total_faculty_time?:number;
   weekly_hours?:number;
@@ -156,8 +163,9 @@ export async function uploadAvatar(file: File): Promise<{ avatar_url: string }> 
 }
 
 export interface UpdateMeInput {
+  username?: string;
   email?: string;
-  current_password: string;
+  current_password?: string;
   new_password?: string;
 }
 
@@ -170,7 +178,8 @@ export function updateMe(input: UpdateMeInput): Promise<{
   user: {
     id: string;
     email: string;
-    role: 'CHAIR' | 'FACULTY' | 'ACADEMIC_ADMIN';
+    username?: string | null;
+    role: 'CHAIR' | 'FACULTY';
     facultyId: string | null;
     avatar_url: string | null;
   };

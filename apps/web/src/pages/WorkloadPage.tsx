@@ -1,11 +1,8 @@
 /**
  * "My Workload" — temporarily closed for the finals presentation.
  *
- * The full feature (self-scoped FacultySchedulePage for FACULTY, faculty
- * picker for CHAIR) is intentionally removed for now; only a "Currently
- * Developing" status placeholder renders. The /workload route and the sidebar
- * entry are kept, so restoring the module is a matter of re-wiring the
- * previous implementation back into this component.
+ * Only the "Currently Developing" status placeholder renders. The /workload
+ * route and sidebar entry remain active while the workload module is rebuilt.
  */
 export function WorkloadPage(): JSX.Element {
   return (
@@ -28,8 +25,7 @@ export function WorkloadPage(): JSX.Element {
         </h2>
         <p className="mx-auto mt-2 max-w-md text-sm text-slate-600">
           This module is still being developed and will be released in a future
-          update. In the meantime, the Faculty Schedule view shows each
-          faculty member&rsquo;s assigned classes.
+          update.
         </p>
       </div>
     </section>

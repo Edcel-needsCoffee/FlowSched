@@ -43,15 +43,25 @@ userRouter.patch(
       res.status(401).json({ error: { code: 'UNAUTHORIZED', message: 'Authentication required' } });
       return;
     }
-    const passwordOk = await verifyPassword(
-      parsed.data.current_password as string,
-      user.password_hash,
-    );
-    if (!passwordOk) {
+    const passwordOk = parsed.data.current_password
+      ? await verifyPassword(parsed.data.current_password, user.password_hash)
+      : false;
+    if ((parsed.data.email !== undefined || parsed.data.new_password !== undefined) && !passwordOk) {
       res.status(401).json({
         error: { code: 'INVALID_CREDENTIALS', message: 'Current password is incorrect' },
       });
       return;
+    }
+    if (parsed.data.username !== undefined && req.user.role !== 'CHAIR') {
+      res.status(403).json({ error: { code: 'FORBIDDEN', message: 'Only the chair can edit the account username' } });
+      return;
+    }
+    if (parsed.data.username !== undefined && parsed.data.username !== user.username) {
+      const taken = await prisma.user.findUnique({ where: { username: parsed.data.username } });
+      if (taken && taken.id !== user.id) {
+        res.status(409).json({ error: { code: 'USERNAME_TAKEN', message: 'That username is already in use' } });
+        return;
+      }
     }
     if (parsed.data.email !== undefined && parsed.data.email !== user.email) {
       const taken = await prisma.user.findUnique({ where: { email: parsed.data.email } });
@@ -66,6 +76,7 @@ userRouter.patch(
       where: { id: user.id },
       data: {
         ...(parsed.data.email !== undefined ? { email: parsed.data.email } : {}),
+        ...(parsed.data.username !== undefined ? { username: parsed.data.username } : {}),
         ...(parsed.data.new_password !== undefined
           ? { password_hash: await hashPassword(parsed.data.new_password) }
           : {}),
@@ -75,6 +86,7 @@ userRouter.patch(
       user: {
         id: updated.id,
         email: updated.email,
+        username: updated.username,
         role: updated.role,
         facultyId: updated.faculty_id,
         avatar_url: updated.avatar_url ?? null,

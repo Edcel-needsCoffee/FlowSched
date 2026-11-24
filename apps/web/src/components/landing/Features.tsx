@@ -27,11 +27,6 @@ const FEATURES: Array<{ title: string; body: string; icon: string }> = [
     body: 'Every block carries its room, so double-booked labs and maintenance closures stand out early.',
     icon: '▭',
   },
-  {
-    title: 'One-click reports',
-    body: 'Export per-faculty or per-section summaries for deliberation season without rebuilding pivots.',
-    icon: '≡',
-  },
 ];
 
 export function Features(): JSX.Element {

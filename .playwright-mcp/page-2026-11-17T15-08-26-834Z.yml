@@ -1,0 +1,101 @@
+- generic [ref=f3e2]:
+  - dialog "Welcome back" [ref=f3e3]:
+    - generic [ref=f3e4]:
+      - generic [ref=f3e5]: F
+      - generic [ref=f3e6]:
+        - generic [ref=f3e7]: FLOWSCHED ENGINEERING
+        - generic [ref=f3e8]: A better way to plan your week.
+      - button "Close login dialog" [ref=f3e9] [cursor=pointer]: ×
+    - separator [ref=f3e10]
+    - heading "Welcome back" [level=2] [ref=f3e11]
+    - paragraph [ref=f3e12]: Your next well-planned week starts here.
+    - group "Sign in role" [ref=f3e13]:
+      - button "Chair" [pressed] [ref=f3e14] [cursor=pointer]
+      - button "Faculty" [ref=f3e15] [cursor=pointer]
+    - generic [ref=f3e16]:
+      - generic [ref=f3e17]: Email
+      - textbox "Email" [ref=f3e18]:
+        - /placeholder: you@department.edu
+      - generic [ref=f3e19]: Password
+      - generic [ref=f3e20]:
+        - textbox "Password" [ref=f3e21]:
+          - /placeholder: Enter your password
+        - button "Show password" [ref=f3e22] [cursor=pointer]
+      - button "Sign in" [ref=f3e26] [cursor=pointer]:
+        - text: Sign in
+        - generic [aria-hidden] [ref=f3e27]: ↗
+      - button "Forgot password?" [ref=f3e28] [cursor=pointer]
+    - separator [ref=f3e29]
+    - paragraph [ref=f3e30]: Having trouble? Contact your department administrator.
+  - iframe [ref=f3e31]:
+    - generic [ref=f4e2]:
+      - banner [ref=f4e3]:
+        - generic [ref=f4e4]:
+          - img "PIT logo" [ref=f4e5]
+          - generic [ref=f4e6]: Palompon Institute of Technology
+        - link "FlowSched home" [ref=f4e7] [cursor=pointer]:
+          - /url: "#"
+          - generic [ref=f4e8]: F
+          - text: FlowSched
+        - link "Log in" [ref=f4e10] [cursor=pointer]:
+          - /url: /login
+          - text: Log in
+          - generic [aria-hidden] [ref=f4e11]: →
+      - generic [ref=f4e12]:
+        - heading [level=1] [ref=f4e13]:
+          - emphasis [ref=f4e14]: Plan
+          - text: fast when conflicts arise
+        - paragraph [ref=f4e15]: Complete class scheduling, conflict detection, and faculty workload tracking—built for the Engineering Department.
+        - generic [ref=f4e16]:
+          - link "Log in" [ref=f4e17] [cursor=pointer]:
+            - /url: /login
+            - text: Log in
+            - generic [aria-hidden] [ref=f4e18]: →
+          - button "See what it does" [ref=f4e19] [cursor=pointer]
+        - generic:
+          - generic "FlowSched dashboard preview":
+            - generic:
+              - generic:
+                - generic: F
+                - text: FlowSched
+              - generic:
+                - generic: Overview
+                - generic: Classes
+                - generic: Faculty
+                - generic: Rooms
+            - generic:
+              - generic:
+                - heading "Welcome in, Dr. Reyes" [level=2]
+                - generic:
+                  - generic: 3 conflicts
+                  - generic: 2 unassigned
+                  - generic: 1st Sem 2026–27
+              - generic:
+                - generic:
+                  - generic: "38"
+                  - text: Classes plotted
+                - generic:
+                  - generic: "4"
+                  - text: Conflicts
+                - generic:
+                  - generic: "18"
+                  - text: Avg units
+            - generic:
+              - generic:
+                - heading "Summary" [level=3]
+                - generic:
+                  - text: Scheduled
+                  - generic: "34"
+                - generic:
+                  - text: Conflicts
+                  - generic: "4"
+                - generic:
+                  - text: Unassigned
+                  - generic: "2"
+              - generic:
+                - heading "Faculty workload" [level=3]
+              - generic:
+                - heading "Conflicts" [level=3]
+                - generic: Room 201
+                - generic: IE 214 · Wed
+  - generic "Notifications"

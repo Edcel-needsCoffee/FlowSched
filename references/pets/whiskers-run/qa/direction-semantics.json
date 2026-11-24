@@ -1,0 +1,22 @@
+{
+  "pet": "Byte",
+  "source": "Visually reviewed final direction QA sheet at normal pet size.",
+  "directions": [
+    {"label":"000","expected":"up","observed":"Up","verdict":"pass","evidence":"Both gold irises sit high in the existing eye shapes while the nose stays centered and the body remains planted."},
+    {"label":"022.5","expected":"up-right","observed":"Up-right","verdict":"pass","evidence":"The irises shift slightly toward the viewer's right and upward from the neutral pose."},
+    {"label":"045","expected":"up-right","observed":"Up-right","verdict":"pass","evidence":"Both irises and the nose line angle toward the upper-right quadrant."},
+    {"label":"067.5","expected":"up-right","observed":"Up-right","verdict":"pass","evidence":"The eyes and small head turn continue toward the upper-right before the right-facing cardinal."},
+    {"label":"090","expected":"right","observed":"Right","verdict":"pass","evidence":"The nose and pupils sit clearly toward the screen-right side of the head."},
+    {"label":"112.5","expected":"down-right","observed":"Down-right","verdict":"pass","evidence":"The pupils lower while remaining on the screen-right side; the nose follows the same gaze."},
+    {"label":"135","expected":"down-right","observed":"Down-right","verdict":"pass","evidence":"Both gold irises aim down-right and the head remains consistently registered over the torso."},
+    {"label":"157.5","expected":"down-right","observed":"Down-right","verdict":"pass","evidence":"The gaze approaches the downward pose from screen-right with the feet and jacket anchored."},
+    {"label":"180","expected":"down","observed":"Down","verdict":"pass","evidence":"Both pupils are lowered below the eye centers and the nose points down; the body remains planted."},
+    {"label":"202.5","expected":"down-left","observed":"Down-left","verdict":"pass","evidence":"The irises move to the viewer's left and down from the down-facing pose."},
+    {"label":"225","expected":"down-left","observed":"Down-left","verdict":"pass","evidence":"Both pupils and the nose angle into the lower-left quadrant."},
+    {"label":"247.5","expected":"down-left","observed":"Down-left","verdict":"pass","evidence":"The head turns farther screen-left while the eyes remain directed below center."},
+    {"label":"270","expected":"left","observed":"Left","verdict":"pass","evidence":"The nose and visible eye profile point clearly toward the screen-left edge."},
+    {"label":"292.5","expected":"up-left","observed":"Up-left","verdict":"pass","evidence":"The pupils rise while remaining to the screen-left side of the eye shapes."},
+    {"label":"315","expected":"up-left","observed":"Up-left","verdict":"pass","evidence":"Both irises aim upper-left and the face remains the same size and style."},
+    {"label":"337.5","expected":"up-left","observed":"Up-left","verdict":"pass","evidence":"The eyes continue toward upper-left as the loop returns toward the frontal up pose."}
+  ]
+}

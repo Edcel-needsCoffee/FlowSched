@@ -17,6 +17,7 @@ export interface FacultyMember {
   rank: string | null;
   employment_status: EmploymentStatus;
   max_units: number;
+  avatar_url: string | null;
   created_at: string;
   updated_at: string;
   user: LinkedUser | null;

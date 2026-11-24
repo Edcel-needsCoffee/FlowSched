@@ -1,0 +1,97 @@
+{
+  "ok": true,
+  "frames_root": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\rows\\jumping\\frames",
+  "states": [
+    "jumping"
+  ],
+  "errors": [],
+  "warnings": [],
+  "rows": [
+    {
+      "state": "jumping",
+      "expected_frames": 5,
+      "actual_frames": 5,
+      "extraction_method": "components",
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "frames": [
+        {
+          "index": 0,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\rows\\jumping\\frames\\jumping\\00.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 10065,
+          "bbox": [
+            45,
+            54,
+            146,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 82
+        },
+        {
+          "index": 1,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\rows\\jumping\\frames\\jumping\\01.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 10660,
+          "bbox": [
+            45,
+            32,
+            146,
+            195
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 114
+        },
+        {
+          "index": 2,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\rows\\jumping\\frames\\jumping\\02.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 10441,
+          "bbox": [
+            44,
+            5,
+            147,
+            163
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 115
+        },
+        {
+          "index": 3,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\rows\\jumping\\frames\\jumping\\03.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 10761,
+          "bbox": [
+            44,
+            27,
+            147,
+            187
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 126
+        },
+        {
+          "index": 4,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\rows\\jumping\\frames\\jumping\\04.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 10407,
+          "bbox": [
+            45,
+            45,
+            146,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 107
+        }
+      ]
+    }
+  ]
+}

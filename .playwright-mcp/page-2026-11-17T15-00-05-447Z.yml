@@ -1,0 +1,71 @@
+- generic [ref=e2]:
+  - iframe [ref=e3]:
+    - generic [ref=f1e2]:
+      - banner [ref=f1e3]:
+        - generic [ref=f1e4]:
+          - img "PIT logo" [ref=f1e5]
+          - generic [ref=f1e6]: Palompon Institute of Technology
+        - link "FlowSched home" [ref=f1e7] [cursor=pointer]:
+          - /url: "#"
+          - generic [ref=f1e8]: F
+          - text: FlowSched
+        - link "Log in" [ref=f1e10] [cursor=pointer]:
+          - /url: "#"
+          - text: Log in
+          - generic [aria-hidden] [ref=f1e11]: →
+      - generic [ref=f1e12]:
+        - heading [level=1] [ref=f1e13]:
+          - emphasis [ref=f1e14]: Plan
+          - text: fast when conflicts arise
+        - paragraph [ref=f1e15]: Complete class scheduling, conflict detection, and faculty workload tracking—built for the Engineering Department.
+        - generic [ref=f1e16]:
+          - link "Log in" [ref=f1e17] [cursor=pointer]:
+            - /url: "#"
+            - text: Log in
+            - generic [aria-hidden] [ref=f1e18]: →
+          - button "See what it does" [ref=f1e19] [cursor=pointer]
+        - generic "FlowSched dashboard preview" [ref=f1e36]:
+          - generic [ref=f1e37]:
+            - generic [ref=f1e38]:
+              - generic [ref=f1e39]: F
+              - text: FlowSched
+            - generic [ref=f1e40]:
+              - generic [ref=f1e41]: Overview
+              - generic [ref=f1e42]: Classes
+              - generic [ref=f1e43]: Faculty
+              - generic [ref=f1e44]: Rooms
+          - generic [ref=f1e52]:
+            - generic [ref=f1e53]:
+              - heading "Welcome in, Dr. Reyes" [level=2] [ref=f1e54]
+              - generic [ref=f1e55]:
+                - generic [ref=f1e56]: 3 conflicts
+                - generic [ref=f1e57]: 2 unassigned
+                - generic [ref=f1e58]: 1st Sem 2026–27
+            - generic [ref=f1e59]:
+              - generic [ref=f1e60]:
+                - generic [ref=f1e61]: "38"
+                - text: Classes plotted
+              - generic [ref=f1e62]:
+                - generic [ref=f1e63]: "4"
+                - text: Conflicts
+              - generic [ref=f1e64]:
+                - generic [ref=f1e65]: "18"
+                - text: Avg units
+          - generic [ref=f1e66]:
+            - generic [ref=f1e67]:
+              - heading "Summary" [level=3] [ref=f1e68]
+              - generic [ref=f1e69]:
+                - text: Scheduled
+                - generic [ref=f1e70]: "34"
+              - generic [ref=f1e71]:
+                - text: Conflicts
+                - generic [ref=f1e72]: "4"
+              - generic [ref=f1e73]:
+                - text: Unassigned
+                - generic [ref=f1e74]: "2"
+            - heading "Faculty workload" [level=3] [ref=f1e76]
+            - generic [ref=f1e80]:
+              - heading "Conflicts" [level=3] [ref=f1e81]
+              - generic [ref=f1e82]: Room 201
+              - generic [ref=f1e83]: IE 214 · Wed
+  - generic "Notifications"

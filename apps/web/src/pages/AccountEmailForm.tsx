@@ -8,7 +8,7 @@ export const inputCls =
   'mt-1 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-500/15';
 
 /** Editable email for the signed-in account (current password required). */
-export function EmailForm(): JSX.Element {
+export function EmailForm({ embedded = false }: { embedded?: boolean }): JSX.Element {
   const user = useAuthStore((s) => s.user);
   const setUser = useAuthStore((s) => s.setUser);
   const { pushToast } = useToast();
@@ -45,7 +45,7 @@ export function EmailForm(): JSX.Element {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="glass-card space-y-3 p-4">
+    <form onSubmit={handleSubmit} className={embedded ? "space-y-3" : "glass-card space-y-3 p-4"}>
       <h2 className="text-sm font-semibold text-slate-900">Change email</h2>
       <div>
         <label htmlFor="account-email" className="text-xs text-slate-500">New email</label>

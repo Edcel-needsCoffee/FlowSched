@@ -5,7 +5,7 @@ import { createApp } from '../app.js';
 import { signAccessToken } from '../services/auth.service.js';
 import ExcelJS from 'exceljs';
 const prefix=`FSP-${process.pid}-${Date.now()}-`;
-let faculty='',other='',term='',assignment='',section='',room='',designation='',chair='',own='',outsider='',admin='';
+let faculty='',other='',term='',assignment='',section='',room='',designation='',chair='',own='',outsider='';
 const app=createApp();
 const session=(extra:Record<string,unknown>={})=>({type:'RESEARCH',day_of_week:'MON',start_time:'08:00',end_time:'09:00',...extra});
 const endpoint=(part:string,id=faculty)=>`/api/faculty/${id}/${part}?termId=${term}`;
@@ -25,7 +25,6 @@ beforeAll(async()=>{
   chair=signAccessToken({userId:'test-chair',role:'CHAIR',facultyId:null});
   own=signAccessToken({userId:'test-faculty',role:'FACULTY',facultyId:faculty});
   outsider=signAccessToken({userId:'test-other',role:'FACULTY',facultyId:other});
-  admin=signAccessToken({userId:'test-admin',role:'ACADEMIC_ADMIN',facultyId:null});
 });
 beforeEach(async()=>{
   await prisma.workloadAssignment.deleteMany({where:{term_id:term,subject:{code:prefix+'SECOND'}}});
@@ -68,46 +67,46 @@ describe('faculty program APIs',()=>{
     const data={research_hours:6,extension_hours:4,imp_hours:0,consultation_hours:4};
     expect((await request(app).put(endpoint('functions')).set('Authorization',`Bearer ${own}`).send({...data,research_hours:0})).status).toBe(400);
     expect((await request(app).put(endpoint('functions')).set('Authorization',`Bearer ${own}`).send({...data,consultation_hours:3})).status).toBe(403);
-    expect((await request(app).put(endpoint('functions')).set('Authorization',`Bearer ${admin}`).send({...data,consultation_hours:3})).status).toBe(403);
+    expect((await request(app).put(endpoint('functions')).set('Authorization',`Bearer ${own}`).send({...data,consultation_hours:3})).status).toBe(403);
     expect((await request(app).put(endpoint('functions')).set('Authorization',`Bearer ${chair}`).send({...data,consultation_hours:3})).status).toBe(200);
   });
   it('counts declared vs plotted functions from persisted sessions on read',async()=>{
     await request(app).put(endpoint('functions')).set('Authorization',`Bearer ${own}`).send({research_hours:6,extension_hours:4,imp_hours:0});
-    expect((await request(app).post(endpoint('sessions')).set('Authorization',`Bearer ${own}`).send(session({end_time:'10:00'}))).status).toBe(201);
+    expect((await request(app).post(endpoint('sessions')).set('Authorization',`Bearer ${chair}`).send(session({end_time:'10:00'}))).status).toBe(201);
     const res=await request(app).get(endpoint('teaching-load')).set('Authorization',`Bearer ${own}`);
-    expect(res.status).toBe(200);expect(res.body.load.functions.research).toEqual({declared:6,plotted:2,counted:2});expect(res.body.load.total_faculty_time).toBe(23);
+    expect(res.status).toBe(200);expect(res.body.load.functions.research).toEqual({declared:2,plotted:2,counted:2});expect(res.body.load.total_faculty_time).toBe(23);
   });
   it('F8: overload accepts 4 hours, rejects 5 and rejects sub-hour/non-whole sessions',async()=>{
-    for(const end_time of ['08:30','09:30']) expect((await request(app).post(endpoint('sessions')).set('Authorization',`Bearer ${own}`).send(session({type:'OVERLOAD',end_time}))).status).toBe(400);
-    expect((await request(app).post(endpoint('sessions')).set('Authorization',`Bearer ${own}`).send(session({type:'OVERLOAD',end_time:'12:00'}))).status).toBe(201);
-    const extra=await request(app).post(endpoint('sessions')).set('Authorization',`Bearer ${own}`).send(session({type:'OVERLOAD',start_time:'13:00',end_time:'14:00'}));
+    for(const end_time of ['08:30','09:30']) expect((await request(app).post(endpoint('sessions')).set('Authorization',`Bearer ${chair}`).send(session({type:'OVERLOAD',end_time}))).status).toBe(400);
+    expect((await request(app).post(endpoint('sessions')).set('Authorization',`Bearer ${chair}`).send(session({type:'OVERLOAD',end_time:'12:00'}))).status).toBe(201);
+    const extra=await request(app).post(endpoint('sessions')).set('Authorization',`Bearer ${chair}`).send(session({type:'OVERLOAD',start_time:'13:00',end_time:'14:00'}));
     expect(extra.status).toBe(409);expect(extra.body.error.code).toBe('OVERLOAD_CAP_EXCEEDED');
     const res=await request(app).get(endpoint('teaching-load')).set('Authorization',`Bearer ${own}`);expect(res.body.load.claim_session_hours).toBe(4);expect(res.body.load.overload_remaining_to_plot).toBe(0);
   });
   it('designations require valid sessions and only accepted flagged designations earn credit',async()=>{
-    const assigned=await request(app).post(`/api/faculty/${faculty}/designations`).set('Authorization',`Bearer ${admin}`).send({designation_id:designation,term_id:term,hours:6,service_credit:2});
+    const assigned=await request(app).post(`/api/faculty/${faculty}/designations`).set('Authorization',`Bearer ${chair}`).send({designation_id:designation,term_id:term,hours:6,service_credit:2});
     expect(assigned.status).toBe(201);const id=assigned.body.designation.id;
-    const duplicate=await request(app).post(`/api/faculty/${faculty}/designations`).set('Authorization',`Bearer ${admin}`).send({designation_id:designation,term_id:term,hours:6});expect(duplicate.status).toBe(409);
-    expect((await request(app).post(endpoint('sessions')).set('Authorization',`Bearer ${own}`).send(session({type:'DESIGNATION',faculty_designation_id:id,end_time:'08:30'}))).status).toBe(400);
-    expect((await request(app).post(endpoint('sessions')).set('Authorization',`Bearer ${own}`).send(session({type:'DESIGNATION',faculty_designation_id:id,end_time:'14:00'}))).status).toBe(201);
+    const duplicate=await request(app).post(`/api/faculty/${faculty}/designations`).set('Authorization',`Bearer ${chair}`).send({designation_id:designation,term_id:term,hours:6});expect(duplicate.status).toBe(409);
+    expect((await request(app).post(endpoint('sessions')).set('Authorization',`Bearer ${chair}`).send(session({type:'DESIGNATION',faculty_designation_id:id,end_time:'08:30'}))).status).toBe(400);
+    expect((await request(app).post(endpoint('sessions')).set('Authorization',`Bearer ${chair}`).send(session({type:'DESIGNATION',faculty_designation_id:id,end_time:'14:00'}))).status).toBe(201);
     const res=await request(app).get(endpoint('teaching-load')).set('Authorization',`Bearer ${own}`);expect(res.body.load.designation_hours).toBe(6);expect(res.body.load.service_credits).toBe(2);
   });
   it('rejects function-vs-function conflicts and supports move, delete, then same-time recreation',async()=>{
-    const first=await request(app).post(endpoint('sessions')).set('Authorization',`Bearer ${own}`).send(session());expect(first.status).toBe(201);
-    expect((await request(app).post(endpoint('sessions')).set('Authorization',`Bearer ${own}`).send(session({type:'EXTENSION'}))).status).toBe(409);
-    expect((await request(app).patch(`/api/faculty-sessions/${first.body.session.id}`).set('Authorization',`Bearer ${own}`).send({start_time:'10:00',end_time:'11:00'})).status).toBe(200);
+    const first=await request(app).post(endpoint('sessions')).set('Authorization',`Bearer ${chair}`).send(session());expect(first.status).toBe(201);
+    expect((await request(app).post(endpoint('sessions')).set('Authorization',`Bearer ${chair}`).send(session({type:'EXTENSION'}))).status).toBe(409);
+    expect((await request(app).patch(`/api/faculty-sessions/${first.body.session.id}`).set('Authorization',`Bearer ${chair}`).send({start_time:'10:00',end_time:'11:00'})).status).toBe(200);
     expect((await request(app).delete(`/api/faculty-sessions/${first.body.session.id}`).set('Authorization',`Bearer ${outsider}`)).status).toBe(403);
-    expect((await request(app).delete(`/api/faculty-sessions/${first.body.session.id}`).set('Authorization',`Bearer ${own}`)).status).toBe(204);
-    expect((await request(app).post(endpoint('sessions')).set('Authorization',`Bearer ${own}`).send(session({start_time:'10:00',end_time:'11:00'}))).status).toBe(201);
+    expect((await request(app).delete(`/api/faculty-sessions/${first.body.session.id}`).set('Authorization',`Bearer ${chair}`)).status).toBe(204);
+    expect((await request(app).post(endpoint('sessions')).set('Authorization',`Bearer ${chair}`).send(session({start_time:'10:00',end_time:'11:00'}))).status).toBe(201);
   });
   it('rejects session-vs-teaching and teaching-vs-session with existing override flow',async()=>{
-    await request(app).post(endpoint('sessions')).set('Authorization',`Bearer ${own}`).send(session());
+    await request(app).post(endpoint('sessions')).set('Authorization',`Bearer ${chair}`).send(session());
     const placement={workload_assignment_id:assignment,session_type:'LECTURE',day_of_week:'MON',start_time:'08:00',end_time:'09:00'};
     const clash=await request(app).post('/api/schedule-slots').set('Authorization',`Bearer ${chair}`).send(placement);
     expect(clash.status).toBe(409);expect(clash.body.error.details.conflicting_slots[0].subject_code).toBe('RESEARCH');
     const {workload_assignment_id,...override}=placement;
     expect((await request(app).post(`/api/schedule-slots/${assignment}/confirm-override`).set('Authorization',`Bearer ${chair}`).send(override)).status).toBe(201);
-    const next=await request(app).post(endpoint('sessions')).set('Authorization',`Bearer ${own}`).send(session({type:'EXTENSION'}));expect(next.status).toBe(409);
+    const next=await request(app).post(endpoint('sessions')).set('Authorization',`Bearer ${chair}`).send(session({type:'EXTENSION'}));expect(next.status).toBe(409);
   });
   it('validates student ranges/handled sections and deduplicates sections across subjects',async()=>{
     const second=await prisma.subject.create({data:{code:prefix+'SECOND',title:'Other subject',units:3,lecture_hours:3}});
@@ -115,13 +114,15 @@ describe('faculty program APIs',()=>{
     for(const count of [-1,201,2.5]) expect((await request(app).put(endpoint('students')).set('Authorization',`Bearer ${own}`).send({students:[{section_id:section,student_count:count}]})).status).toBe(400);
     const res=await request(app).put(endpoint('students')).set('Authorization',`Bearer ${own}`).send({students:[{section_id:section,student_count:35}]});expect(res.status).toBe(200);expect(res.body.total_students).toBe(35);expect(res.body.students).toHaveLength(5);
   });
-  it('validates real dates and applies faculty override then falls back to term defaults',async()=>{
+  it('validates term dates and does not allow faculty effectivity overrides',async()=>{
     expect((await request(app).patch(`/api/terms/${term}/effectivity`).set('Authorization',`Bearer ${chair}`).send({effectivity_start:'2026-02-30',effectivity_end:'2026-02-01'})).status).toBe(400);
-    const res=await request(app).put(endpoint('effectivity')).set('Authorization',`Bearer ${chair}`).send({effectivity_start:'2026-12-01',effectivity_end:'2027-01-31'});expect(res.status).toBe(200);
-    const load=await request(app).get(endpoint('teaching-load')).set('Authorization',`Bearer ${own}`);expect(load.body.load.effectivity).toEqual({start:'2026-12-01',end:'2027-01-31',source:'FACULTY'});
+    await request(app).patch(`/api/terms/${term}/effectivity`).set('Authorization',`Bearer ${chair}`).send({effectivity_start:'2026-12-01',effectivity_end:'2027-01-31'}).expect(200);
+    const override=await request(app).put(endpoint('effectivity')).set('Authorization',`Bearer ${chair}`).send({effectivity_start:'2026-12-01',effectivity_end:'2027-01-31'});expect(override.status).toBe(404);
+    const load=await request(app).get(endpoint('teaching-load')).set('Authorization',`Bearer ${own}`);expect(load.body.load.effectivity).toEqual({start:'2026-12-01',end:'2027-01-31',source:'TERM'});
+    await request(app).patch(`/api/terms/${term}/effectivity`).set('Authorization',`Bearer ${chair}`).send({effectivity_start:'2026-11-01',effectivity_end:'2027-03-31'}).expect(200);
   });
   it('protects Chair settings, validates signatories, and soft-deletes options',async()=>{
-    for(const path of ['/api/load-settings','/api/form-settings']) expect((await request(app).put(path).set('Authorization',`Bearer ${admin}`).send({})).status).toBe(403);
+    for(const path of ['/api/load-settings','/api/form-settings']) expect((await request(app).put(path).set('Authorization',`Bearer ${own}`).send({})).status).toBe(403);
     const option=await request(app).post('/api/signatory-options').set('Authorization',`Bearer ${chair}`).send({slot:'PREPARED',name:prefix+'Signatory',title:'Fixture'});expect(option.status).toBe(201);
     expect((await request(app).delete(`/api/signatory-options/${option.body.option.id}`).set('Authorization',`Bearer ${chair}`)).status).toBe(204);
     expect((await prisma.signatoryOption.findUnique({where:{id:option.body.option.id}}))?.active).toBe(false);

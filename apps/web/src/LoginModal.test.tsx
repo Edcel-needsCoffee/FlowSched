@@ -84,7 +84,7 @@ describe('LoginModal', () => {
     await waitFor(() => expect(screen.getByText('Dashboard page')).toBeInTheDocument());
   });
 
-  it('redirects FACULTY logins to their own workload', async () => {
+  it('redirects FACULTY logins to the dashboard', async () => {
     mockLogin.mockResolvedValueOnce({
       accessToken: 'a',
       refreshToken: 'r',
@@ -94,7 +94,7 @@ describe('LoginModal', () => {
     fireEvent.change(screen.getByLabelText(/email/i), { target: { value: 'f@x.local' } });
     fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'secret' } });
     fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
-    await waitFor(() => expect(screen.getByText('My workload page')).toBeInTheDocument());
+    await waitFor(() => expect(screen.getByText('Dashboard page')).toBeInTheDocument());
   });
 });
 
@@ -107,10 +107,10 @@ describe('RequireAuth route guard', () => {
           <Route path="/login" element={<div>Login page</div>} />
           <Route path="/not-authorized" element={<div>Not authorized</div>} />
           <Route
-            path="/reports"
+            path="/chair-area"
             element={
               <RequireAuth allowedRoles={['CHAIR']}>
-                <div>Reports page</div>
+                <div>Chair-only page</div>
               </RequireAuth>
             }
           />
@@ -120,7 +120,7 @@ describe('RequireAuth route guard', () => {
   }
 
   it('redirects unauthenticated users to /login', () => {
-    renderAt('/reports');
+    renderAt('/chair-area');
     expect(screen.getByText('Login page')).toBeInTheDocument();
   });
 
@@ -130,7 +130,7 @@ describe('RequireAuth route guard', () => {
       accessToken: 'a',
       refreshToken: 'r',
     });
-    renderAt('/reports');
+    renderAt('/chair-area');
     expect(screen.getByText('Not authorized')).toBeInTheDocument();
   });
 
@@ -140,7 +140,7 @@ describe('RequireAuth route guard', () => {
       accessToken: 'a',
       refreshToken: 'r',
     });
-    renderAt('/reports');
-    expect(screen.getByText('Reports page')).toBeInTheDocument();
+    renderAt('/chair-area');
+    expect(screen.getByText('Chair-only page')).toBeInTheDocument();
   });
 });

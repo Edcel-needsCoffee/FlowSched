@@ -4,6 +4,7 @@ import { z } from 'zod';
 export const updateMeSchema = z
   .object({
     email: z.string().email('Enter a valid email address').optional(),
+    username: z.string().trim().min(1, 'Enter a username.').optional(),
     current_password: z.string().min(1, 'Enter your current password').optional(),
     new_password: z
       .string()
@@ -12,8 +13,8 @@ export const updateMeSchema = z
       .optional(),
   })
   .strict()
-  .refine((data) => data.email !== undefined || data.new_password !== undefined, {
-    message: 'Provide an email or a new password to update',
+  .refine((data) => data.email !== undefined || data.new_password !== undefined || data.username !== undefined, {
+    message: 'Provide a username, email, or new password to update',
   })
   .refine(
     (data) => {

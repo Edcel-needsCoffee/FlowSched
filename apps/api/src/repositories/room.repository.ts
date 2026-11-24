@@ -43,3 +43,11 @@ export async function create(data: RoomCreateData): Promise<Room> {
 export async function update(id: string, data: RoomUpdateData): Promise<Room> {
   return prisma.room.update({ where: { id }, data });
 }
+
+export async function hasScheduleSlots(id: string): Promise<boolean> {
+  return (await prisma.scheduleSlot.count({ where: { room_id: id } })) > 0;
+}
+
+export async function remove(id: string): Promise<Room> {
+  return prisma.room.delete({ where: { id } });
+}

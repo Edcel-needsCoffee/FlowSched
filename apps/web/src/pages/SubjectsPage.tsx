@@ -207,7 +207,7 @@ export function SubjectsPage(): JSX.Element {
   const meta = result?.meta ?? null;
 
   return (
-    <section aria-labelledby="subjects-title">
+    <section aria-labelledby="subjects-title" className="management-neo subjects-management-page">
       <div className="flex items-center justify-between gap-4">
         <h1 id="subjects-title" className="text-2xl font-semibold text-primary-dark">
           Subjects
@@ -264,7 +264,7 @@ export function SubjectsPage(): JSX.Element {
 
       {status === 'ready' ? (
         <>
-          <table className="mt-4 w-full border-collapse text-left text-sm">
+          <div className="management-table mt-4 overflow-x-auto"><table className="mt-4 w-full border-collapse text-left text-sm">
             <thead>
               <tr className="border-b border-slate-200">
                 <th scope="col" aria-sort={sortHeaderState('code', sort)} className="py-2 pr-4">
@@ -301,14 +301,14 @@ export function SubjectsPage(): JSX.Element {
                         <button
                           type="button"
                           onClick={() => openEdit(subject)}
-                          className="text-primary-dark hover:underline"
+                          className="management-edit-button text-primary-dark hover:underline"
                         >
                           Edit
                         </button>
                         <button
                           type="button"
                           onClick={() => setDeletingSubject(subject)}
-                          className="ml-3 text-red-600 hover:underline"
+                          className="management-delete-button ml-3 text-red-600 hover:underline"
                         >
                           Delete
                         </button>
@@ -318,7 +318,7 @@ export function SubjectsPage(): JSX.Element {
                 ))
               )}
             </tbody>
-          </table>
+          </table></div>
 
           {meta ? (
             <nav aria-label="Table pagination" className="mt-4 flex items-center gap-4 text-sm text-slate-600">
@@ -605,3 +605,4 @@ function FlaskIcon(): JSX.Element {
     </svg>
   );
 }
+import './management-neo.css';

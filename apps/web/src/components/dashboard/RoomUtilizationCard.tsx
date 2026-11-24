@@ -26,23 +26,16 @@ export function RoomUtilizationCard({
     <div className="glass-card p-4">
       <h2 className="text-sm font-semibold text-slate-900">Room utilization</h2>
       <p className="mt-0.5 text-xs text-slate-500">Share of all rooms by current state</p>
-      <div
-        className="mt-4 flex h-3 w-full overflow-hidden rounded-full bg-brand-500/10"
-        role="img"
-        aria-label={`Rooms: ${utilization.booked_pct}% booked, ${utilization.maintenance_pct}% maintenance, ${utilization.free_pct}% free`}
-      >
-        {SEGMENTS.map((segment) => (
-          <div
-            key={segment.key}
-            className={`${segment.barCls} h-full transition-[width] duration-700 ease-out`}
-            style={{ width: `${utilization[segment.key]}%` }}
-          />
-        ))}
+      <div className="db-room-donut" role="img" aria-label={`Rooms: ${utilization.booked_pct}% booked, ${utilization.maintenance_pct}% maintenance, ${utilization.free_pct}% free`}>
+        <svg viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="45" fill="none" stroke="var(--db-track)" strokeWidth="12"/>{SEGMENTS.map((segment,index)=>{
+          const offset=SEGMENTS.slice(0,index).reduce((sum,item)=>sum+utilization[item.key],0);
+          return <circle key={segment.key} cx="60" cy="60" r="45" fill="none" stroke={['#169f73','#e5a741','#b7d9c9'][index]} strokeWidth="12" pathLength="100" strokeDasharray={`${utilization[segment.key]} ${100-utilization[segment.key]}`} strokeDashoffset={-offset} transform="rotate(-90 60 60)"/>;
+        })}</svg><span>{utilization.booked_pct}%<small>Booked</small></span>
       </div>
       <ul className="mt-3 space-y-1.5">
-        {SEGMENTS.map((segment) => (
+        {SEGMENTS.map((segment,index) => (
           <li key={segment.key} className="flex items-center gap-2 text-xs text-slate-600">
-            <span aria-hidden="true" className={`h-2.5 w-2.5 rounded-full ${segment.dotCls}`} />
+            <span aria-hidden="true" className="h-2.5 w-2.5 rounded-full" style={{backgroundColor:['#169f73','#e5a741','#b7d9c9'][index]}} />
             <span className="font-medium">{segment.label}</span>
             <span className="ml-auto font-mono text-slate-900">{utilization[segment.key]}%</span>
           </li>

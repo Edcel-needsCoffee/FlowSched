@@ -1,0 +1,125 @@
+- application [ref=e1]:
+  - banner "Menu bar" [ref=e2]:
+    - generic [ref=e5]:
+      - link "Docs home" [ref=e7] [cursor=pointer]:
+        - /url: https://docs.google.com/document/?usp=docs_web
+      - generic [ref=e14]:
+        - generic "FLOWSCHED Documentation Centralized" [ref=e16]:
+          - 'button "Status ng dokumento: Na-save sa Drive." [ref=e22]':
+            - generic [ref=e23] [cursor=pointer]: Na-save sa Drive
+        - generic [ref=e30]:
+          - generic [ref=e35]:
+            - button "Anonymous na Capybara" [ref=e36]:
+              - img "Anonymous na Capybara" [ref=e41] [cursor=pointer]
+            - button "edcel hermoso" [ref=e42]:
+              - img "edcel hermoso" [ref=e47] [cursor=pointer]
+          - button "Ipakita ang lahat ng komento" [ref=e49] [cursor=pointer]
+          - generic [ref=e52]:
+            - button "Ibahagi" [disabled] [ref=e53]
+            - button "Mga pagkilos para sa mabilis na pag-share" [ref=e55]
+          - link "Mag-sign in" [ref=e59] [cursor=pointer]:
+            - /url: https://accounts.google.com/ServiceLogin?service=wise&passive=1209600&osid=1&continue=https://docs.google.com/document/d/1G9YJcYCclf1jDJP4aa9O5pDEKEQS2P6RP1eABWzGiSA/edit?tab%3Dt.0&followup=https://docs.google.com/document/d/1G9YJcYCclf1jDJP4aa9O5pDEKEQS2P6RP1eABWzGiSA/edit?tab%3Dt.0&ltmpl=docs&ec=GAZAGQ
+    - generic [ref=e60]:
+      - menubar [ref=e62]:
+        - menuitem "File" [ref=e63] [cursor=pointer]
+        - menuitem "I-edit" [ref=e64] [cursor=pointer]
+        - menuitem "Tingnan" [ref=e65] [cursor=pointer]
+        - menuitem "Ipasok" [ref=e66] [cursor=pointer]
+        - menuitem "Format" [ref=e67] [cursor=pointer]
+        - menuitem "Mga tool" [ref=e68] [cursor=pointer]
+        - menuitem "Mga Extension" [ref=e69] [cursor=pointer]
+        - menuitem "Tulong" [ref=e70] [cursor=pointer]
+      - generic [ref=e71]:
+        - generic [ref=e72]:
+          - generic [ref=e73]:
+            - button "Hanapan ang mga menu (Alt+/)" [ref=e74] [cursor=pointer]
+            - combobox "Mga Menu" [ref=e76]
+          - toolbar "Pangunahin" [ref=e77]:
+            - button "I-undo (Ctrl+Z)" [ref=e78] [cursor=pointer]
+            - button "Gawing muli (Ctrl+Y)" [ref=e83] [cursor=pointer]
+            - button "I-print (Ctrl+P)" [disabled] [ref=e88]
+            - button "Pagsusuri sa spelling at grammar (Ctrl+Alt+X)" [disabled] [ref=e93]
+            - button "Format ng Paint" [disabled] [ref=e98]
+            - combobox "I-zoom" [ref=e103] [cursor=pointer]:
+              - generic "Listahan ng I-zoom. Pinili ang 100%." [ref=e106]:
+                - textbox "I-zoom" [ref=e107]: 100%
+            - separator [disabled] [ref=e111]
+            - listbox "Mga Istilo" [disabled] [ref=e112]:
+              - option "Mga Istilo" [disabled] [selected] [ref=e115]: Normal na text
+            - separator [disabled] [ref=e119]
+            - listbox "Font" [ref=e120] [cursor=pointer]:
+              - option "Times New Roman" [selected] [ref=e123]
+            - separator [disabled] [ref=e127]
+            - button "Paliitin ang font (Ctrl+Shift+kuwit)" [ref=e128] [cursor=pointer]
+            - combobox "Laki ng font" [ref=e133] [cursor=pointer]:
+              - generic "Listahan ng Laki ng font. Pinili ang 11." [ref=e136]:
+                - textbox "Laki ng font" [ref=e137]: "11"
+            - button "Palakihin ang font (Ctrl+Shift+tuldok)" [ref=e138] [cursor=pointer]
+            - separator [disabled] [ref=e143]
+            - button "Bold (Ctrl+B)" [pressed] [ref=e144] [cursor=pointer]
+            - button "Italic (Ctrl+I)" [ref=e149] [cursor=pointer]
+            - button "Salungguhitan (Ctrl+U)" [ref=e154] [cursor=pointer]
+            - button "Kulay ng teksto" [ref=e159] [cursor=pointer]
+            - button "Kulay ng highlight" [ref=e166] [cursor=pointer]
+            - separator [disabled] [ref=e173]
+            - button "Higit Pa" [disabled] [ref=e174] [cursor=pointer]
+        - toolbar "Mode at view" [ref=e181]:
+          - button [disabled] [ref=e182]
+          - separator [disabled] [ref=e186]
+          - button "Itago ang mga menu (Ctrl+Shift+F)" [ref=e187] [cursor=pointer]
+  - generic [ref=e194]:
+    - generic [ref=e199]:
+      - generic [ref=e200]: "22"
+      - generic [ref=e205]: "21"
+      - generic [ref=e210]: "20"
+      - generic [ref=e215]: "19"
+      - generic [ref=e220]: "18"
+      - generic [ref=e225]: "17"
+      - generic [ref=e230]: "16"
+      - generic [ref=e235]: "15"
+      - generic [ref=e240]: "14"
+      - generic [ref=e245]: "13"
+      - generic [ref=e250]: "12"
+      - generic [ref=e255]: "11"
+      - generic [ref=e260]: "10"
+      - generic [ref=e265]: "9"
+      - generic [ref=e270]: "8"
+      - generic [ref=e275]: "7"
+      - generic [ref=e280]: "6"
+      - generic [ref=e285]: "5"
+      - generic [ref=e290]: "4"
+      - generic [ref=e295]: "3"
+      - generic [ref=e300]: "2"
+      - generic [ref=e305]: "1"
+      - generic [ref=e314]: "1"
+      - generic [ref=e319]: "2"
+      - generic [ref=e324]: "3"
+      - generic [ref=e329]: "4"
+      - generic [ref=e334]: "5"
+      - generic [ref=e339]: "6"
+      - generic [ref=e344]: "7"
+      - generic [ref=e349]: "8"
+      - generic [ref=e354]: "9"
+      - generic [ref=e359]: "10"
+      - generic [ref=e364]: "11"
+      - generic [ref=e369]: "12"
+      - generic [ref=e374]: "13"
+      - generic [ref=e379]: "14"
+      - generic [ref=e384]: "15"
+      - generic [ref=e389]: "16"
+      - generic [ref=e394]: "17"
+      - generic [ref=e399]: "18"
+      - generic [ref=e404]: "19"
+      - generic [ref=e409]: "20"
+      - generic [ref=e414]: "21"
+    - generic [ref=e429]:
+      - generic:
+        - generic:
+          - list
+      - generic: edcel hermoso
+  - iframe [active] [ref=e439]:
+    - textbox "Nilalaman ng dokumento" [active] [ref=f1e1]
+    - group
+  - link "I-on ang suporta sa screen reader" [ref=e440] [cursor=pointer]:
+    - /url: "#"
+  - region [ref=e441]: Upang i-enable ang screen reader support, pindutin ang Ctrl+Alt+Z Para matutunan ang mga keyboard shortcut, pindutin ang Ctrl+slash

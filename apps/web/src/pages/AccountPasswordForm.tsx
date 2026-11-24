@@ -15,6 +15,14 @@ export function PasswordForm(): JSX.Element {
   const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const passwordChecks = [
+    newPassword.length >= 8,
+    /[A-Z]/.test(newPassword) && /[a-z]/.test(newPassword),
+    /\d/.test(newPassword),
+    /[^A-Za-z0-9]/.test(newPassword),
+  ];
+  const strength = passwordChecks.filter(Boolean).length;
+  const strengthLabel = ['', 'Weak', 'Fair', 'Good', 'Strong'][strength];
 
   async function handleSubmit(event: FormEvent): Promise<void> {
     event.preventDefault();
@@ -61,6 +69,16 @@ export function PasswordForm(): JSX.Element {
           <input id="account-new-password" type={showNew ? 'text' : 'password'} autoComplete="new-password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className={`${inputCls} pr-10`} />
           <PasswordEyeButton visible={showNew} onToggle={() => setShowNew((v) => !v)} label="new password" />
         </div>
+        {newPassword ? (
+          <div className="mt-2" aria-live="polite">
+            <div className="flex gap-1" role="meter" aria-label="Password strength" aria-valuemin={0} aria-valuemax={4} aria-valuenow={strength}>
+              {passwordChecks.map((passed, index) => (
+                <span key={index} className={`h-1.5 flex-1 rounded-full ${passed ? 'bg-neutral-800 dark:bg-neutral-200' : 'bg-neutral-200 dark:bg-neutral-700'}`} />
+              ))}
+            </div>
+            <p className="mt-1 text-[11px] text-slate-500">{strengthLabel} · Use 8+ characters, mixed case, a number, and a symbol.</p>
+          </div>
+        ) : null}
       </div>
       <div>
         <label htmlFor="account-confirm-password" className="text-xs text-slate-500">Confirm new password</label>

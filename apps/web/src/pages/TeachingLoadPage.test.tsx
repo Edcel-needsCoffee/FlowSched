@@ -37,7 +37,7 @@ describe('Teaching Load page',()=>{
     expect(screen.queryByText('Assign designation')).not.toBeInTheDocument();expect(screen.getByLabelText('consultation hours')).toHaveAttribute('readonly');
   });
   it('shows a picker to management and waits for a faculty selection',async()=>{
-    useAuthStore.setState({user:{id:'u',email:'fixture@test.local',role:'ACADEMIC_ADMIN',facultyId:null}});mount();
+    useAuthStore.setState({user:{id:'u',email:'fixture@test.local',role:'CHAIR',facultyId:null}});mount();
     expect(await screen.findByRole('option',{name:'Reyes, Jose'})).toBeInTheDocument();expect(getTeachingLoad).not.toHaveBeenCalled();
     fireEvent.change(screen.getByLabelText('Teaching load faculty'),{target:{value:'f1'}});
     expect(await screen.findByText('Assign designation')).toBeInTheDocument();

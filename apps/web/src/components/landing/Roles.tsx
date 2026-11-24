@@ -2,7 +2,7 @@ const ROLES: Array<{ name: string; access: string; points: string[] }> = [
   {
     name: 'Chair',
     access: 'Full edit access',
-    points: ['Assign subjects and sections', 'Resolve conflicts and approve the term', 'Export workload reports'],
+    points: ['Assign subjects and sections', 'Resolve conflicts and approve the term'],
   },
   {
     name: 'Faculty',

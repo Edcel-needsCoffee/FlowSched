@@ -7,7 +7,6 @@
 /** RBAC roles (database-specification.md: User.role). */
 export enum Role {
   CHAIR = 'CHAIR',
-  ACADEMIC_ADMIN = 'ACADEMIC_ADMIN',
   FACULTY = 'FACULTY',
 }
 

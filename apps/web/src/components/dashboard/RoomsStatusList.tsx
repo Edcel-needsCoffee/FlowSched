@@ -35,12 +35,7 @@ export function RoomsStatusList({ rooms }: { rooms: RoomStatusEntry[] }): JSX.El
                 key={room.room_id}
                 className="flex items-center gap-2.5 rounded-lg border border-brand-500/15 bg-white/50 px-3 py-2"
               >
-                <span aria-hidden="true" className="relative flex h-2.5 w-2.5 shrink-0">
-                  {meta.pulse ? (
-                    <span className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-60 ${meta.dotCls}`} />
-                  ) : null}
-                  <span className={`relative inline-flex h-2.5 w-2.5 rounded-full ${meta.dotCls}`} />
-                </span>
+                <span aria-hidden="true" className={`db-room-dot db-room-dot-${room.status} relative inline-flex h-2.5 w-2.5 shrink-0 rounded-full`} />
                 <span className="min-w-0 flex-1 truncate font-mono text-xs font-medium text-slate-900">
                   {room.room_name}
                 </span>

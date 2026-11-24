@@ -1,0 +1,973 @@
+{
+  "ok": true,
+  "frames_root": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames",
+  "states": [
+    "idle",
+    "running-right",
+    "running-left",
+    "waving",
+    "jumping",
+    "failed",
+    "waiting",
+    "running",
+    "review"
+  ],
+  "errors": [],
+  "warnings": [],
+  "rows": [
+    {
+      "state": "idle",
+      "expected_frames": 6,
+      "actual_frames": 6,
+      "extraction_method": "components",
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "frames": [
+        {
+          "index": 0,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\idle\\00.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 14058,
+          "bbox": [
+            39,
+            10,
+            153,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 181
+        },
+        {
+          "index": 1,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\idle\\01.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 13938,
+          "bbox": [
+            39,
+            6,
+            152,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 201
+        },
+        {
+          "index": 2,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\idle\\02.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 13933,
+          "bbox": [
+            40,
+            5,
+            152,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 183
+        },
+        {
+          "index": 3,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\idle\\03.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 13899,
+          "bbox": [
+            40,
+            6,
+            152,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 181
+        },
+        {
+          "index": 4,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\idle\\04.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 13977,
+          "bbox": [
+            39,
+            10,
+            153,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 171
+        },
+        {
+          "index": 5,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\idle\\05.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 13972,
+          "bbox": [
+            39,
+            10,
+            153,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 158
+        }
+      ]
+    },
+    {
+      "state": "running-right",
+      "expected_frames": 8,
+      "actual_frames": 8,
+      "extraction_method": "components",
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "frames": [
+        {
+          "index": 0,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\running-right\\00.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 15556,
+          "bbox": [
+            31,
+            5,
+            159,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 285
+        },
+        {
+          "index": 1,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\running-right\\01.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 14090,
+          "bbox": [
+            31,
+            5,
+            160,
+            202
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 300
+        },
+        {
+          "index": 2,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\running-right\\02.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 14718,
+          "bbox": [
+            31,
+            5,
+            159,
+            187
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 301
+        },
+        {
+          "index": 3,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\running-right\\03.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 15335,
+          "bbox": [
+            31,
+            5,
+            160,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 322
+        },
+        {
+          "index": 4,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\running-right\\04.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 14499,
+          "bbox": [
+            31,
+            5,
+            160,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 310
+        },
+        {
+          "index": 5,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\running-right\\05.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 15067,
+          "bbox": [
+            31,
+            5,
+            160,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 288
+        },
+        {
+          "index": 6,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\running-right\\06.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 14957,
+          "bbox": [
+            31,
+            5,
+            159,
+            187
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 275
+        },
+        {
+          "index": 7,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\running-right\\07.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 14906,
+          "bbox": [
+            31,
+            5,
+            160,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 319
+        }
+      ]
+    },
+    {
+      "state": "running-left",
+      "expected_frames": 8,
+      "actual_frames": 8,
+      "extraction_method": "components",
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "frames": [
+        {
+          "index": 0,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\running-left\\00.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 15593,
+          "bbox": [
+            28,
+            5,
+            163,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 266
+        },
+        {
+          "index": 1,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\running-left\\01.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 14568,
+          "bbox": [
+            28,
+            5,
+            163,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 269
+        },
+        {
+          "index": 2,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\running-left\\02.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 15002,
+          "bbox": [
+            28,
+            5,
+            162,
+            188
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 291
+        },
+        {
+          "index": 3,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\running-left\\03.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 15318,
+          "bbox": [
+            28,
+            5,
+            162,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 266
+        },
+        {
+          "index": 4,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\running-left\\04.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 14386,
+          "bbox": [
+            30,
+            5,
+            161,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 258
+        },
+        {
+          "index": 5,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\running-left\\05.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 14650,
+          "bbox": [
+            30,
+            5,
+            161,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 262
+        },
+        {
+          "index": 6,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\running-left\\06.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 15000,
+          "bbox": [
+            29,
+            5,
+            161,
+            188
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 292
+        },
+        {
+          "index": 7,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\running-left\\07.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 15398,
+          "bbox": [
+            29,
+            5,
+            162,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 252
+        }
+      ]
+    },
+    {
+      "state": "waving",
+      "expected_frames": 4,
+      "actual_frames": 4,
+      "extraction_method": "components",
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "frames": [
+        {
+          "index": 0,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\waving\\00.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 15002,
+          "bbox": [
+            37,
+            5,
+            155,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 136
+        },
+        {
+          "index": 1,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\waving\\01.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 14984,
+          "bbox": [
+            37,
+            5,
+            155,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 143
+        },
+        {
+          "index": 2,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\waving\\02.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 15099,
+          "bbox": [
+            37,
+            5,
+            155,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 158
+        },
+        {
+          "index": 3,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\waving\\03.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 15101,
+          "bbox": [
+            37,
+            5,
+            155,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 164
+        }
+      ]
+    },
+    {
+      "state": "jumping",
+      "expected_frames": 5,
+      "actual_frames": 5,
+      "extraction_method": "components",
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "frames": [
+        {
+          "index": 0,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\jumping\\00.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 10065,
+          "bbox": [
+            45,
+            54,
+            146,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 82
+        },
+        {
+          "index": 1,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\jumping\\01.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 10660,
+          "bbox": [
+            45,
+            32,
+            146,
+            195
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 114
+        },
+        {
+          "index": 2,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\jumping\\02.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 10441,
+          "bbox": [
+            44,
+            5,
+            147,
+            163
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 115
+        },
+        {
+          "index": 3,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\jumping\\03.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 10761,
+          "bbox": [
+            44,
+            27,
+            147,
+            187
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 126
+        },
+        {
+          "index": 4,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\jumping\\04.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 10407,
+          "bbox": [
+            45,
+            45,
+            146,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 107
+        }
+      ]
+    },
+    {
+      "state": "failed",
+      "expected_frames": 8,
+      "actual_frames": 8,
+      "extraction_method": "components",
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "frames": [
+        {
+          "index": 0,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\failed\\00.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 15408,
+          "bbox": [
+            36,
+            5,
+            156,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 118
+        },
+        {
+          "index": 1,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\failed\\01.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 14813,
+          "bbox": [
+            36,
+            9,
+            155,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 150
+        },
+        {
+          "index": 2,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\failed\\02.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 13507,
+          "bbox": [
+            33,
+            25,
+            159,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 129
+        },
+        {
+          "index": 3,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\failed\\03.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 12597,
+          "bbox": [
+            33,
+            39,
+            159,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 115
+        },
+        {
+          "index": 4,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\failed\\04.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 12017,
+          "bbox": [
+            33,
+            51,
+            159,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 94
+        },
+        {
+          "index": 5,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\failed\\05.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 12844,
+          "bbox": [
+            33,
+            33,
+            159,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 105
+        },
+        {
+          "index": 6,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\failed\\06.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 14162,
+          "bbox": [
+            35,
+            17,
+            157,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 138
+        },
+        {
+          "index": 7,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\failed\\07.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 15137,
+          "bbox": [
+            36,
+            6,
+            156,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 145
+        }
+      ]
+    },
+    {
+      "state": "waiting",
+      "expected_frames": 6,
+      "actual_frames": 6,
+      "extraction_method": "components",
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "frames": [
+        {
+          "index": 0,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\waiting\\00.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 15056,
+          "bbox": [
+            36,
+            5,
+            156,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 249
+        },
+        {
+          "index": 1,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\waiting\\01.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 15201,
+          "bbox": [
+            36,
+            5,
+            156,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 215
+        },
+        {
+          "index": 2,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\waiting\\02.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 15318,
+          "bbox": [
+            36,
+            5,
+            156,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 229
+        },
+        {
+          "index": 3,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\waiting\\03.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 15297,
+          "bbox": [
+            36,
+            5,
+            156,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 236
+        },
+        {
+          "index": 4,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\waiting\\04.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 15188,
+          "bbox": [
+            36,
+            5,
+            156,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 207
+        },
+        {
+          "index": 5,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\waiting\\05.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 15003,
+          "bbox": [
+            36,
+            5,
+            156,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 215
+        }
+      ]
+    },
+    {
+      "state": "running",
+      "expected_frames": 6,
+      "actual_frames": 6,
+      "extraction_method": "components",
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "frames": [
+        {
+          "index": 0,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\running\\00.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 14972,
+          "bbox": [
+            36,
+            5,
+            155,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 173
+        },
+        {
+          "index": 1,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\running\\01.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 14862,
+          "bbox": [
+            36,
+            5,
+            155,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 208
+        },
+        {
+          "index": 2,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\running\\02.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 15095,
+          "bbox": [
+            36,
+            5,
+            155,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 219
+        },
+        {
+          "index": 3,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\running\\03.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 15046,
+          "bbox": [
+            36,
+            5,
+            155,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 203
+        },
+        {
+          "index": 4,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\running\\04.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 15020,
+          "bbox": [
+            36,
+            5,
+            155,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 190
+        },
+        {
+          "index": 5,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\running\\05.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 14997,
+          "bbox": [
+            36,
+            5,
+            155,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 195
+        }
+      ]
+    },
+    {
+      "state": "review",
+      "expected_frames": 6,
+      "actual_frames": 6,
+      "extraction_method": "components",
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "frames": [
+        {
+          "index": 0,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\review\\00.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 15218,
+          "bbox": [
+            34,
+            5,
+            158,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 180
+        },
+        {
+          "index": 1,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\review\\01.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 14847,
+          "bbox": [
+            34,
+            5,
+            158,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 180
+        },
+        {
+          "index": 2,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\review\\02.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 14246,
+          "bbox": [
+            34,
+            5,
+            158,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 150
+        },
+        {
+          "index": 3,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\review\\03.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 14173,
+          "bbox": [
+            34,
+            7,
+            158,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 153
+        },
+        {
+          "index": 4,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\review\\04.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 14251,
+          "bbox": [
+            34,
+            5,
+            158,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 144
+        },
+        {
+          "index": 5,
+          "file": "C:\\FLOWSCHEDX\\references\\pets\\byte-run\\qa\\standard-frames\\review\\05.png",
+          "width": 192,
+          "height": 208,
+          "nontransparent_pixels": 15224,
+          "bbox": [
+            34,
+            5,
+            158,
+            203
+          ],
+          "edge_pixels": 0,
+          "chroma_adjacent_pixels": 180
+        }
+      ]
+    }
+  ]
+}

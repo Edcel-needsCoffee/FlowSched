@@ -71,3 +71,34 @@ export async function update(id: string, data: TermUpdateData): Promise<Academic
     return tx.academicTerm.update({ where: { id }, data });
   });
 }
+
+export type DeleteTermResult =
+  | { status: 'DELETED' }
+  | { status: 'NOT_FOUND' }
+  | { status: 'ACTIVE' }
+  | { status: 'HAS_SAVED_DATA'; counts: Record<string, number> };
+
+/** A saved term can only be removed when it is inactive and has no term data. */
+export async function deleteIfEmpty(id: string): Promise<DeleteTermResult> {
+  return prisma.$transaction(async (tx) => {
+    const term = await tx.academicTerm.findUnique({ where: { id } });
+    if (!term) return { status: 'NOT_FOUND' };
+    if (term.is_active) return { status: 'ACTIVE' };
+
+    const [assignments, designations, loads, sessions, studentCounts] = await Promise.all([
+      tx.workloadAssignment.count({ where: { term_id: id } }),
+      tx.facultyDesignation.count({ where: { term_id: id } }),
+      tx.facultyLoad.count({ where: { term_id: id } }),
+      tx.facultySession.count({ where: { term_id: id } }),
+      tx.facultySectionStudents.count({ where: { term_id: id } }),
+    ]);
+    const effectivity = term.effectivity_start || term.effectivity_end ? 1 : 0;
+    const counts = { assignments, designations, loads, sessions, studentCounts, effectivity };
+    if (Object.values(counts).some((count) => count > 0)) {
+      return { status: 'HAS_SAVED_DATA', counts };
+    }
+
+    await tx.academicTerm.delete({ where: { id } });
+    return { status: 'DELETED' };
+  });
+}

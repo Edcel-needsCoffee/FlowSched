@@ -1,7 +1,7 @@
 import 'dotenv/config';
 import bcrypt from 'bcrypt';
 import jwt, { type JwtPayload } from 'jsonwebtoken';
-import type { Role } from '../types/domain.js';
+import { isRole, type Role } from '../types/domain.js';
 
 /**
  * Token payload carried by both access and refresh JWTs.
@@ -55,12 +55,12 @@ function toAuthPayload(decoded: string | JwtPayload): AuthTokenPayload {
     throw new Error('Invalid token payload');
   }
   const { userId, role, facultyId } = decoded as Record<string, unknown>;
-  if (typeof userId !== 'string' || !['CHAIR','FACULTY','ACADEMIC_ADMIN'].includes(String(role))) {
+  if (typeof userId !== 'string' || !isRole(role)) {
     throw new Error('Invalid token payload');
   }
   return {
     userId,
-    role: role as Role,
+    role,
     facultyId: typeof facultyId === 'string' ? facultyId : null,
   };
 }

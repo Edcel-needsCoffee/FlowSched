@@ -5,7 +5,7 @@
  * FACULTY gets only the personal summary; loading, error-with-retry and
  * empty states.
  */
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, render, screen, fireEvent } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { MemoryRouter } from 'react-router-dom';
 import { ToastProvider } from '../components/Toast';
@@ -193,9 +193,25 @@ describe('DashboardPage', () => {
 
   it('renders the personal summary for a FACULTY session', async () => {
     setAuth('FACULTY', 'fac-1');
-    getDashboardSummaryMock.mockResolvedValue({ summary: PERSONAL });
+    getDashboardSummaryMock.mockResolvedValue({ summary: { ...PERSONAL, total_faculty_time: 22.2, weekly_hours: 40, my_total_hours: 9, avatar_url: '/uploads/avatars/faculty.jpg', profile: { employee_no: 'FAC-2041', department: 'Industrial Engineering', program: 'BSIE', sections: ['2A', '2B'], employment_status: 'FULL_TIME' } } });
     renderPage();
-    expect(await screen.findByText(/Next class: IE 322/)).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Faculty dashboard' })).toBeInTheDocument();
+    expect(screen.getByText('22.2h')).toBeInTheDocument();
+    expect(screen.getByText('17.8h remaining')).toBeInTheDocument();
+    expect(screen.getByText('9h')).toBeInTheDocument();
+    expect(screen.getByText('FAC-2041')).toBeInTheDocument();
+    expect(screen.getByText('2A, 2B')).toBeInTheDocument();
+    expect(screen.getByText('Full-time')).toBeInTheDocument();
+    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '55.5');
+    expect(screen.getByText('Next class').closest('li')).toHaveClass('fd-next');
+    expect(screen.getByRole('link', {name: 'Open Teaching Load'})).toHaveAttribute('href', '/workload');
+    expect(screen.getAllByRole('link')).toHaveLength(1);
+    expect(screen.queryByRole('button', {name:'Export schedule'})).not.toBeInTheDocument();
+    for (const label of ['My subjects', 'Hours to weekly target', 'Plotted teaching hours', 'Teaching hours to plot']) expect(screen.queryByText(label)).not.toBeInTheDocument();
+    const photo = screen.getByRole('img', { name: 'Ada Lovelace profile photo' });
+    expect(photo.getAttribute('src')).toContain('/uploads/avatars/faculty.jpg');
+    fireEvent.error(photo);
+    expect(screen.getByText('AL')).toBeInTheDocument();
   });
 
   it('shows a Retry affordance when the summary fails to load', async () => {
@@ -203,5 +219,13 @@ describe('DashboardPage', () => {
     getDashboardSummaryMock.mockRejectedValue(new Error('network down'));
     renderPage();
     expect(await screen.findByRole('button', { name: 'Retry' })).toBeInTheDocument();
+  });
+  it('shows an empty state when no classes are scheduled today', async () => {
+    setAuth('FACULTY', 'fac-1');
+    getDashboardSummaryMock.mockResolvedValue({ summary: { ...PERSONAL, todays_classes: [], my_next_class: null } });
+    renderPage();
+    expect(await screen.findByText('No classes scheduled for today.')).toBeInTheDocument();
+    expect(screen.queryByText('Next class')).not.toBeInTheDocument();
+    expect(screen.queryByText('Earliest weekday with classes')).not.toBeInTheDocument();
   });
 });

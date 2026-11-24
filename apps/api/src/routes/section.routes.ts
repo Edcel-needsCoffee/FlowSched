@@ -35,7 +35,7 @@ sectionRouter.get(
   '/sections/:id',
   requireAuth,
   asyncHandler(async (req, res) => {
-    res.status(200).json({ section: await getSection(parseId(req)) });
+    res.status(200).json({ section: await getSection(parseId(req), req.query.termId) });
   }),
 );
 
@@ -44,7 +44,7 @@ sectionRouter.post(
   requireAuth,
   requireRole('CHAIR'),
   asyncHandler(async (req, res) => {
-    res.status(201).json({ section: await createSection(req.body) });
+    res.status(201).json({ section: await createSection(req.body, req.query.termId) });
   }),
 );
 
@@ -53,7 +53,7 @@ sectionRouter.patch(
   requireAuth,
   requireRole('CHAIR'),
   asyncHandler(async (req, res) => {
-    res.status(200).json({ section: await updateSection(parseId(req), req.body) });
+    res.status(200).json({ section: await updateSection(parseId(req), req.body, req.query.termId) });
   }),
 );
 

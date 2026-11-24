@@ -2,7 +2,7 @@ import { Router, type Request } from 'express';
 import { ApiError } from '../errors/apiError.js';
 import { requireAuth, requireRole } from '../middleware/auth.middleware.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
-import { createRoom, getRoom, listRooms, updateRoom } from '../services/room.service.js';
+import { createRoom, deleteRoom, getRoom, listRooms, updateRoom } from '../services/room.service.js';
 import { uuidIdSchema } from '../validation/room.validation.js';
 
 export const roomRouter = Router();
@@ -49,5 +49,15 @@ roomRouter.patch(
   requireRole('CHAIR'),
   asyncHandler(async (req, res) => {
     res.status(200).json({ room: await updateRoom(parseId(req), req.body) });
+  }),
+);
+
+roomRouter.delete(
+  '/rooms/:id',
+  requireAuth,
+  requireRole('CHAIR'),
+  asyncHandler(async (req, res) => {
+    await deleteRoom(parseId(req));
+    res.status(204).send();
   }),
 );

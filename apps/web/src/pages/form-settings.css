@@ -1,0 +1,10 @@
+.form-settings-page { font-family:'Plus Jakarta Sans','Segoe UI',sans-serif; padding-right:5px; }
+.form-settings-page>h1 { font-family:'Plus Jakarta Sans','Segoe UI',sans-serif; }
+.settings-launcher { padding:20px; border:2px solid var(--ui-ink); border-radius:14px; background:var(--ui-surface); box-shadow:4px 4px 0 #0b0b0b; transition:transform .15s ease,box-shadow .15s ease; }
+.settings-launcher:hover { transform:translate(-1px,-1px); box-shadow:5px 5px 0 #0b0b0b; }
+.settings-launcher>span:last-child { background:#a8f06a; color:#06210f; border:1px solid #0b0b0b; border-radius:6px; padding:5px 9px; }
+.form-settings-page [role=dialog] { max-width:780px; max-height:calc(100dvh - 32px); overflow-y:auto!important; border:2px solid var(--ui-ink)!important; box-shadow:6px 6px 0 #0b0b0b!important; }
+.form-settings-dialog>form,.form-settings-dialog>section { padding:0; border:0; background:transparent!important; }
+.form-settings-dialog input,.form-settings-dialog select,.form-settings-dialog textarea { border-width:2px!important; }
+.app-bg .form-settings-page button[aria-label='Close dialog'] { background:#dc2626!important; color:#fff!important; }
+@media(prefers-reduced-motion:reduce) { .settings-launcher { transition:none; } }

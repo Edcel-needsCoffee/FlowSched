@@ -1,7 +1,6 @@
 import type { DayOfWeek } from '../types/domain.js';
 import { z } from 'zod';
 import { ApiError } from '../errors/apiError.js';
-import * as facultyRepository from '../repositories/faculty.repository.js';
 import * as roomRepository from '../repositories/room.repository.js';
 import * as scheduleSlotRepository from '../repositories/schedule-slot.repository.js';
 import type { ScheduleSlotWithRelations } from '../repositories/schedule-slot.repository.js';
@@ -11,8 +10,8 @@ import { scheduleViewQuerySchema } from '../validation/schedule-view.validation.
 
 /**
  * Read-only schedule views replacing the department's hand-copied paper
- * process: "Student Class Program" (per section), "Faculty Class Program"
- * (per instructor) and "Classroom Utilization" (per room). Every view is a
+ * process: "Student Class Program" (per section) and "Classroom Utilization"
+ * (per room). Every view is a
  * reshape of the SAME ScheduleSlot rows the drag-and-drop grid writes —
  * there is no second source of truth and no write path here.
  *
@@ -89,44 +88,6 @@ export async function getSectionScheduleView(
       name: section.name,
       year_level: section.year_level,
       label: `${section.name} (Year ${section.year_level})`,
-    },
-    data: rows.map(toViewSlotDto),
-    meta: { total: rows.length },
-  };
-}
-
-export interface FacultyScheduleViewDto extends ScheduleViewListDto {
-  faculty: {
-    id: string;
-    employee_no: string;
-    first_name: string;
-    last_name: string;
-    name: string;
-  };
-}
-
-/** "Faculty Class Program" — every slot the faculty member teaches, all sections. */
-export async function getFacultyScheduleView(
-  facultyId: string,
-  rawQuery: unknown,
-): Promise<FacultyScheduleViewDto> {
-  const { termId } = parseQuery(rawQuery);
-  const faculty = await facultyRepository.findActiveById(facultyId);
-  if (!faculty) {
-    throw ApiError.notFound('Faculty member not found');
-  }
-  const rows = await scheduleSlotRepository.list({
-    termId: termId ?? null,
-    facultyId,
-    sectionId: null,
-  });
-  return {
-    faculty: {
-      id: faculty.id,
-      employee_no: faculty.employee_no,
-      first_name: faculty.first_name,
-      last_name: faculty.last_name,
-      name: `${faculty.first_name} ${faculty.last_name}`,
     },
     data: rows.map(toViewSlotDto),
     meta: { total: rows.length },

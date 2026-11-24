@@ -1,8 +1,9 @@
+import { readPlannerAccess, savePlannerAccess } from '../services/planner-access.service.js';
 import { Router } from 'express';
-import { requireAuth } from '../middleware/auth.middleware.js';
+import { requireAuth, requireRole } from '../middleware/auth.middleware.js';
 import { asyncHandler } from '../utils/asyncHandler.js';
 import { termIdQuery } from '../validation/faculty-program.validation.js';
-import { assertFacultyScope,validate,putFunctions,putFacultyEffectivity,getFacultyStudents,putFacultyStudents,saveFacultySession,deleteFacultySession } from '../services/faculty-program.service.js';
+import { assertFacultyScope,validate,putFunctions,getFacultyStudents,putFacultyStudents,saveFacultySession,deleteFacultySession } from '../services/faculty-program.service.js';
 import { listSessions } from '../repositories/faculty-program.repository.js';
 import { prisma } from '../config/prisma.js';
 import { ApiError } from '../errors/apiError.js';
@@ -10,7 +11,6 @@ import { z } from 'zod';
 export const facultyProgramRouter=Router();
 facultyProgramRouter.use(requireAuth);
 facultyProgramRouter.put('/faculty/:id/functions',asyncHandler(async(req,res)=>{const {termId}=validate(termIdQuery,req.query);res.json({load:await putFunctions(req.user!,req.params.id,termId,req.body)});}));
-facultyProgramRouter.put('/faculty/:id/effectivity',asyncHandler(async(req,res)=>{const {termId}=validate(termIdQuery,req.query);res.json({load:await putFacultyEffectivity(req.user!,req.params.id,termId,req.body)});}));
 facultyProgramRouter.get('/faculty/:id/students',asyncHandler(async(req,res)=>{const {termId}=validate(termIdQuery,req.query);await assertFacultyScope(req.user!,req.params.id,termId);res.json(await getFacultyStudents(req.params.id,termId));}));
 facultyProgramRouter.put('/faculty/:id/students',asyncHandler(async(req,res)=>{const {termId}=validate(termIdQuery,req.query);res.json(await putFacultyStudents(req.user!,req.params.id,termId,req.body));}));
 facultyProgramRouter.get('/faculty/:id/sessions',asyncHandler(async(req,res)=>{const {termId}=validate(termIdQuery,req.query);await assertFacultyScope(req.user!,req.params.id,termId);res.json({data:await listSessions(req.params.id,termId)});}));
@@ -23,3 +23,19 @@ facultyProgramRouter.patch('/faculty-sessions/:id',asyncHandler(async(req,res)=>
   res.json({session:await saveFacultySession(req.user!,row.faculty_id,row.term_id,{type,faculty_designation_id,day_of_week,start_time,end_time,...req.body},id)});
 }));
 facultyProgramRouter.delete('/faculty-sessions/:id',asyncHandler(async(req,res)=>{await deleteFacultySession(req.user!,req.params.id);res.status(204).send();}));
+
+
+facultyProgramRouter.get('/faculty/:id/planner-access', asyncHandler(async (req,res) => {
+  const {termId} = validate(termIdQuery, req.query);
+  await assertFacultyScope(req.user!, req.params.id, termId);
+  res.json(await readPlannerAccess(req.params.id, termId));
+}));
+facultyProgramRouter.put('/faculty/:id/planner-access', requireRole('CHAIR'), asyncHandler(async (req,res) => {
+  const {termId} = validate(termIdQuery, req.query);
+  await assertFacultyScope(req.user!, req.params.id, termId);
+  const hours = z.number().min(0).max(168).multipleOf(0.5);
+  const {enabled,targets} = validate(z.object({
+    enabled:z.boolean(), targets:z.object({research:hours,extension:hours,imp:hours,consultation:hours}).strict(),
+  }).strict(), req.body);
+  res.json(await savePlannerAccess(req.params.id, termId, enabled, targets));
+}));

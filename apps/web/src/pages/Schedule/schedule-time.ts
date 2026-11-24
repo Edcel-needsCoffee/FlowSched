@@ -1,7 +1,7 @@
 import type { DayOfWeek } from '../../lib/schedule-slots';
 
 /** Grid geometry shared by the droppable cells and the placed-block math. */
-export const DAYS: DayOfWeek[] = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+export const DAYS: DayOfWeek[] = ['MON', 'TUE', 'WED', 'THU', 'FRI'];
 
 export const DAY_LABELS: Record<DayOfWeek, string> = {
   MON: 'Mon',
@@ -10,6 +10,7 @@ export const DAY_LABELS: Record<DayOfWeek, string> = {
   THU: 'Thu',
   FRI: 'Fri',
   SAT: 'Sat',
+
 };
 
 /** Grid runs 7AM → 8PM (the last droppable half-hour cell starts at 7:30PM). */
